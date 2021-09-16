@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report.xsd" name="com.farao_community.farao.rao_runner.api.resource.RaoResponseTest" time="0" tests="1" errors="0" skipped="0" failures="0">
+  <properties>
+    <property name="sun.desktop" value="gnome"/>
+    <property name="awt.toolkit" value="sun.awt.X11.XToolkit"/>
+    <property name="java.specification.version" value="11"/>
+    <property name="sun.cpu.isalist" value=""/>
+    <property name="sun.jnu.encoding" value="UTF-8"/>
+    <property name="java.class.path" value="/home/mancinijor/calcul-capacite/code/gridcapa-rao-runner/rao-runner-api/target/test-classes:/home/mancinijor/calcul-capacite/code/gridcapa-rao-runner/rao-runner-api/target/classes:/home/mancinijor/.m2/repository/com/fasterxml/jackson/core/jackson-databind/2.11.4/jackson-databind-2.11.4.jar:/home/mancinijor/.m2/repository/com/fasterxml/jackson/core/jackson-annotations/2.11.3/jackson-annotations-2.11.3.jar:/home/mancinijor/.m2/repository/com/fasterxml/jackson/core/jackson-core/2.11.3/jackson-core-2.11.3.jar:/home/mancinijor/.m2/repository/com/github/jasminb/jsonapi-converter/0.10/jsonapi-converter-0.10.jar:/home/mancinijor/.m2/repository/com/squareup/retrofit2/retrofit/2.5.0/retrofit-2.5.0.jar:/home/mancinijor/.m2/repository/com/squareup/okhttp3/okhttp/3.14.9/okhttp-3.14.9.jar:/home/mancinijor/.m2/repository/com/squareup/okio/okio/1.17.2/okio-1.17.2.jar:/home/mancinijor/.m2/repository/org/jetbrains/annotations/17.0.0/annotations-17.0.0.jar:/home/mancinijor/.m2/repository/org/apache/commons/commons-lang3/3.11/commons-lang3-3.11.jar:/home/mancinijor/.m2/repository/org/junit/jupiter/junit-jupiter/5.8.0/junit-jupiter-5.8.0.jar:/home/mancinijor/.m2/repository/org/junit/jupiter/junit-jupiter-api/5.6.3/junit-jupiter-api-5.6.3.jar:/home/mancinijor/.m2/repository/org/apiguardian/apiguardian-api/1.1.0/apiguardian-api-1.1.0.jar:/home/mancinijor/.m2/repository/org/opentest4j/opentest4j/1.2.0/opentest4j-1.2.0.jar:/home/mancinijor/.m2/repository/org/junit/platform/junit-platform-commons/1.6.3/junit-platform-commons-1.6.3.jar:/home/mancinijor/.m2/repository/org/junit/jupiter/junit-jupiter-params/5.6.3/junit-jupiter-params-5.6.3.jar:/home/mancinijor/.m2/repository/org/junit/jupiter/junit-jupiter-engine/5.6.3/junit-jupiter-engine-5.6.3.jar:/home/mancinijor/.m2/repository/org/junit/platform/junit-platform-engine/1.6.3/junit-platform-engine-1.6.3.jar:"/>
+    <property name="java.vm.vendor" value="Oracle Corporation"/>
+    <property name="sun.arch.data.model" value="64"/>
+    <property name="java.vendor.url" value="http://java.oracle.com/"/>
+    <property name="user.timezone" value=""/>
+    <property name="java.vm.specification.version" value="11"/>
+    <property name="os.name" value="Linux"/>
+    <property name="sun.java.launcher" value="SUN_STANDARD"/>
+    <property name="user.country" value="FR"/>
+    <property name="sun.boot.library.path" value="/home/mancinijor/logiciels/jdk-11/lib"/>
+    <property name="sun.java.command" value="/home/mancinijor/calcul-capacite/code/gridcapa-rao-runner/rao-runner-api/target/surefire/surefirebooter7221830273677861137.jar /home/mancinijor/calcul-capacite/code/gridcapa-rao-runner/rao-runner-api/target/surefire 2021-09-16T18-10-26_495-jvmRun1 surefire3385097797220400776tmp surefire_017758964911409231529tmp"/>
+    <property name="jdk.debug" value="release"/>
+    <property name="surefire.test.class.path" value="/home/mancinijor/calcul-capacite/code/gridcapa-rao-runner/rao-runner-api/target/test-classes:/home/mancinijor/calcul-capacite/code/gridcapa-rao-runner/rao-runner-api/target/classes:/home/mancinijor/.m2/repository/com/fasterxml/jackson/core/jackson-databind/2.11.4/jackson-databind-2.11.4.jar:/home/mancinijor/.m2/repository/com/fasterxml/jackson/core/jackson-annotations/2.11.3/jackson-annotations-2.11.3.jar:/home/mancinijor/.m2/repository/com/fasterxml/jackson/core/jackson-core/2.11.3/jackson-core-2.11.3.jar:/home/mancinijor/.m2/repository/com/github/jasminb/jsonapi-converter/0.10/jsonapi-converter-0.10.jar:/home/mancinijor/.m2/repository/com/squareup/retrofit2/retrofit/2.5.0/retrofit-2.5.0.jar:/home/mancinijor/.m2/repository/com/squareup/okhttp3/okhttp/3.14.9/okhttp-3.14.9.jar:/home/mancinijor/.m2/repository/com/squareup/okio/okio/1.17.2/okio-1.17.2.jar:/home/mancinijor/.m2/repository/org/jetbrains/annotations/17.0.0/annotations-17.0.0.jar:/home/mancinijor/.m2/repository/org/apache/commons/commons-lang3/3.11/commons-lang3-3.11.jar:/home/mancinijor/.m2/repository/org/junit/jupiter/junit-jupiter/5.8.0/junit-jupiter-5.8.0.jar:/home/mancinijor/.m2/repository/org/junit/jupiter/junit-jupiter-api/5.6.3/junit-jupiter-api-5.6.3.jar:/home/mancinijor/.m2/repository/org/apiguardian/apiguardian-api/1.1.0/apiguardian-api-1.1.0.jar:/home/mancinijor/.m2/repository/org/opentest4j/opentest4j/1.2.0/opentest4j-1.2.0.jar:/home/mancinijor/.m2/repository/org/junit/platform/junit-platform-commons/1.6.3/junit-platform-commons-1.6.3.jar:/home/mancinijor/.m2/repository/org/junit/jupiter/junit-jupiter-params/5.6.3/junit-jupiter-params-5.6.3.jar:/home/mancinijor/.m2/repository/org/junit/jupiter/junit-jupiter-engine/5.6.3/junit-jupiter-engine-5.6.3.jar:/home/mancinijor/.m2/repository/org/junit/platform/junit-platform-engine/1.6.3/junit-platform-engine-1.6.3.jar:"/>
+    <property name="sun.cpu.endian" value="little"/>
+    <property name="user.home" value="/home/mancinijor"/>
+    <property name="user.language" value="fr"/>
+    <property name="java.specification.vendor" value="Oracle Corporation"/>
+    <property name="java.version.date" value="2018-09-25"/>
+    <property name="java.home" value="/home/mancinijor/logiciels/jdk-11"/>
+    <property name="file.separator" value="/"/>
+    <property name="basedir" value="/home/mancinijor/calcul-capacite/code/gridcapa-rao-runner/rao-runner-api"/>
+    <property name="java.vm.compressedOopsMode" value="Zero based"/>
+    <property name="line.separator" value="&#10;"/>
+    <property name="java.specification.name" value="Java Platform API Specification"/>
+    <property name="java.vm.specification.vendor" value="Oracle Corporation"/>
+    <property name="java.awt.graphicsenv" value="sun.awt.X11GraphicsEnvironment"/>
+    <property name="surefire.real.class.path" value="/home/mancinijor/calcul-capacite/code/gridcapa-rao-runner/rao-runner-api/target/surefire/surefirebooter7221830273677861137.jar"/>
+    <property name="sun.management.compiler" value="HotSpot 64-Bit Tiered Compilers"/>
+    <property name="java.runtime.version" value="11+28"/>
+    <property name="user.name" value="mancinijor"/>
+    <property name="path.separator" value=":"/>
+    <property name="os.version" value="5.8.0-48-generic"/>
+    <property name="java.runtime.name" value="OpenJDK Runtime Environment"/>
+    <property name="file.encoding" value="UTF-8"/>
+    <property name="java.vm.name" value="OpenJDK 64-Bit Server VM"/>
+    <property name="java.vendor.version" value="18.9"/>
+    <property name="localRepository" value="/home/mancinijor/.m2/repository"/>
+    <property name="java.vendor.url.bug" value="http://bugreport.java.com/bugreport/"/>
+    <property name="java.io.tmpdir" value="/tmp"/>
+    <property name="idea.version" value="2021.2"/>
+    <property name="java.version" value="11"/>
+    <property name="user.dir" value="/home/mancinijor/calcul-capacite/code/gridcapa-rao-runner/rao-runner-api"/>
+    <property name="os.arch" value="amd64"/>
+    <property name="java.vm.specification.name" value="Java Virtual Machine Specification"/>
+    <property name="java.awt.printerjob" value="sun.print.PSPrinterJob"/>
+    <property name="sun.os.patch.level" value="unknown"/>
+    <property name="java.library.path" value="/home/mancinijor/logiciels/or-tools/lib::/usr/java/packages/lib:/usr/lib64:/lib64:/lib:/usr/lib"/>
+    <property name="java.vendor" value="Oracle Corporation"/>
+    <property name="java.vm.info" value="mixed mode"/>
+    <property name="java.vm.version" value="11+28"/>
+    <property name="sun.io.unicode.encoding" value="UnicodeLittle"/>
+    <property name="java.class.version" value="55.0"/>
+  </properties>
+  <testcase name="checkRaoRequestNormalUsage" classname="com.farao_community.farao.rao_runner.api.resource.RaoResponseTest" time="0"/>
+</testsuite>

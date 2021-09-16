@@ -1,0 +1,4 @@
+com/farao_community/farao/rao_runner/api/resource/RaoResponseTest.class
+com/farao_community/farao/rao_runner/api/exceptions/RaoRunnerExceptionTest.class
+com/farao_community/farao/rao_runner/api/resource/RaoRequestTest.class
+com/farao_community/farao/rao_runner/api/JsonApiConverterTest.class
