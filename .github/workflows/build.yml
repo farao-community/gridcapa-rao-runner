@@ -27,3 +27,11 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
+      - name: Build and publish Docker image
+          if: github.ref == 'refs/heads/master'
+          uses: elgohr/Publish-Docker-Github-Action@master
+          with:
+            name: farao/gridcapa-rao-runner
+            username: farao
+            password: ${{ secrets.DOCKERHUB_TOKEN }}
