@@ -26,6 +26,7 @@
     <modules>
         <module>rao-runner-api</module>
         <module>rao-runner-app</module>
+        <module>rao-runner-spring-boot-starter</module>
     </modules>
 
     <properties>
