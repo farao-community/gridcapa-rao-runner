@@ -21,7 +21,7 @@ import static org.mockito.Mockito.when;
 /**
  * @author Mohamed BenRejeb {@literal <mohamed.ben-rejeb at rte-france.com>}
  */
-public class RaoResponseConversionHelperTest {
+class RaoResponseConversionHelperTest {
 
     @Test
     void checkThatExceptionIsConvertedCorrectly() throws IOException {
