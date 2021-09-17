@@ -78,7 +78,7 @@ public class RaoLauncherService {
     private RaoResponse uploadRaoResultsToFileStorageServer(RaoRequest raoRequest, Crac crac, RaoResult raoResult, Network network, String resultsDestination) {
         String raoResultFileUrl = exportAndSaveJsonRaoResult(raoResult, crac, resultsDestination);
         String networkWithPraFileUrl = exportAndSaveNetworkWithPra(raoResult, network, crac, resultsDestination);
-        String instant = raoRequest.getInstant();
+        String instant = raoRequest.getInstant().orElse(null);
         return new RaoResponse(raoRequest.getId(), instant, networkWithPraFileUrl, raoRequest.getCracFileUrl(), raoResultFileUrl);
     }
 

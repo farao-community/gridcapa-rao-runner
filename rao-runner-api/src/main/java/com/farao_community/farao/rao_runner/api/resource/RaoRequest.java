@@ -65,8 +65,8 @@ public class RaoRequest {
         return id;
     }
 
-    public String getInstant() {
-        return instant;
+    public Optional<String> getInstant() {
+        return Optional.ofNullable(instant);
     }
 
     public String getNetworkFileUrl() {

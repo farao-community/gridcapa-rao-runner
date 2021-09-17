@@ -91,13 +91,13 @@ public class RaoRunnerServer {
 
     private Optional<ZonalData<LinearGlsk>> importGlsk(RaoRequest raoRequest, Network network) {
         Optional<String> glskFileUrl = raoRequest.getRealGlskFileUrl();
-        String timestamp = raoRequest.getInstant();
+        Optional<String> timestamp = raoRequest.getInstant();
         if (glskFileUrl.isPresent()) {
             try {
                 InputStream glskFileInputStream = getInputStreamFromUrl(glskFileUrl.get());
                 GlskDocument ucteGlskProvider = GlskDocumentImporters.importGlsk(glskFileInputStream);
-                if (timestamp != null) {
-                    OffsetDateTime offsetDateTime = OffsetDateTime.parse(timestamp);
+                if (timestamp.isPresent()) {
+                    OffsetDateTime offsetDateTime = OffsetDateTime.parse(timestamp.get());
                     return Optional.of(ucteGlskProvider.getZonalGlsks(network, offsetDateTime.toInstant()));
                 } else {
                     return Optional.of(ucteGlskProvider.getZonalGlsks(network));
@@ -112,11 +112,11 @@ public class RaoRunnerServer {
 
     private Optional<ReferenceProgram> importRefProg(RaoRequest raoRequest) {
         Optional<String> refProgFileUrl = raoRequest.getRefprogFileUrl();
-        String timestamp = raoRequest.getInstant();
-        if (refProgFileUrl.isPresent() && timestamp != null) {
+        Optional<String> timestamp = raoRequest.getInstant();
+        if (refProgFileUrl.isPresent() && timestamp.isPresent()) {
             try {
                 InputStream refProgFileInputStream = getInputStreamFromUrl(refProgFileUrl.get());
-                OffsetDateTime offsetDateTime = OffsetDateTime.parse(timestamp);
+                OffsetDateTime offsetDateTime = OffsetDateTime.parse(timestamp.get());
                 ReferenceProgram referenceProgram = RefProgImporter.importRefProg(refProgFileInputStream, offsetDateTime);
                 return Optional.of(referenceProgram);
             } catch (Exception e) {

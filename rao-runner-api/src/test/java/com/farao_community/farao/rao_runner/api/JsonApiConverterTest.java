@@ -29,7 +29,7 @@ class JsonApiConverterTest {
         byte[] requestBytes = getClass().getResourceAsStream("/raoRequestMessage.json").readAllBytes();
         RaoRequest raoRequest = jsonConverter.fromJsonMessage(requestBytes, RaoRequest.class);
         assertEquals("id", raoRequest.getId());
-        assertEquals("instant", raoRequest.getInstant());
+        assertEquals("instant", raoRequest.getInstant().get());
         assertEquals("networkFileUrl", raoRequest.getNetworkFileUrl());
         assertEquals("cracFileUrl", raoRequest.getCracFileUrl());
         assertEquals("refprogFileUrl", raoRequest.getRefprogFileUrl().get());
@@ -44,7 +44,7 @@ class JsonApiConverterTest {
         byte[] requestBytes = getClass().getResourceAsStream("/raoRequestMessageEmptyOptionals.json").readAllBytes();
         RaoRequest raoRequest = jsonConverter.fromJsonMessage(requestBytes, RaoRequest.class);
         assertEquals("id", raoRequest.getId());
-        assertEquals("instant", raoRequest.getInstant());
+        assertEquals("instant", raoRequest.getInstant().get());
         assertEquals("networkFileUrl", raoRequest.getNetworkFileUrl());
         assertEquals("cracFileUrl", raoRequest.getCracFileUrl());
         assertEquals("refprogFileUrl", raoRequest.getRefprogFileUrl().get());
