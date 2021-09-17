@@ -37,7 +37,7 @@ class RaoRunnerClientTest {
 
         RaoResponse raoResponse = client.runRao(raoRequest);
 
-        assertEquals("instant", raoResponse.getInstant()); }
+        assertEquals("instant", raoResponse.getInstant().get()); }
 
     private RaoRunnerClientProperties buildProperties() {
         RaoRunnerClientProperties properties = new RaoRunnerClientProperties();

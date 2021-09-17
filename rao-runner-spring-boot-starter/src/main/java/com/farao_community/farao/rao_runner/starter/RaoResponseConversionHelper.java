@@ -9,9 +9,8 @@ package com.farao_community.farao.rao_runner.starter;
 import com.farao_community.farao.rao_runner.api.JsonApiConverter;
 import com.farao_community.farao.rao_runner.api.exceptions.RaoRunnerException;
 import com.farao_community.farao.rao_runner.api.resource.RaoResponse;
+import com.github.jasminb.jsonapi.exceptions.ResourceParseException;
 import org.springframework.amqp.core.Message;
-
-import java.io.IOException;
 
 /**
  * @author Mohamed BenRejeb {@literal <mohamed.ben-rejeb at rte-france.com>}
@@ -25,8 +24,12 @@ public final class RaoResponseConversionHelper {
     public static RaoResponse convertRaoResponse(Message message, JsonApiConverter jsonConverter) {
         try {
             return jsonConverter.fromJsonMessage(message.getBody(), RaoResponse.class);
-        } catch (IOException e) {
-            throw new RaoRunnerException("Impossible to import RAO response", e);
+        } catch (ResourceParseException resourceParseException) {
+            // exception details from rao-runner app is wrapped into a ResourceParseException on json Api Error format.
+            String originCause = resourceParseException.getErrors().getErrors().get(0).getDetail();
+            throw new RaoRunnerException(originCause);
+        } catch (Exception unknownException) {
+            throw new RaoRunnerException("Unsupported exception thrown by rao-runner app", unknownException);
         }
     }
 }

@@ -1,8 +1,13 @@
 {
-  "id": "id",
-  "instant": "instant",
-  "networkFileUrl": "networkFileUrl",
-  "cracFileUrl": "cracFileUrl",
-  "refprogFileUrl": "refprogFileUrl",
-  "realGlskFileUrl": "realGlskFileUrl"
+  "data": {
+    "type": "rao-request",
+    "id": "id",
+    "attributes": {
+      "instant": "instant",
+      "networkFileUrl": "networkFileUrl",
+      "cracFileUrl": "cracFileUrl",
+      "refprogFileUrl": "refprogFileUrl",
+      "realGlskFileUrl": "realGlskFileUrl"
+    }
+  }
 }

@@ -23,6 +23,21 @@
         <url>https://github.com/farao-community/gridcapa-rao-runner.git</url>
     </scm>
 
+    <developers>
+        <developer>
+            <name>Pengbo WANG</name>
+            <email>pengbo.wang@rte-international.com</email>
+            <organization>RTE-international</organization>
+            <organizationUrl>http://www.rte-international.com</organizationUrl>
+        </developer>
+        <developer>
+            <name>Mohamed BEN REJEB</name>
+            <email>mohamed.ben-rejeb@rte-france.com</email>
+            <organization>RTE</organization>
+            <organizationUrl>http://www.rte-france.com</organizationUrl>
+        </developer>
+    </developers>
+
     <modules>
         <module>rao-runner-api</module>
         <module>rao-runner-app</module>
@@ -30,7 +45,9 @@
     </modules>
 
     <properties>
-        <jackson.databind.version>2.11.4</jackson.databind.version>
+        <commons.lang.version>3.12.0</commons.lang.version>
+        <jackson.datatype.version>2.12.2</jackson.datatype.version>
+        <jsonapi.converter.version>0.11</jsonapi.converter.version>
 
         <farao.bom.version>1.0.10</farao.bom.version>
     </properties>
@@ -38,11 +55,21 @@
     <dependencyManagement>
         <dependencies>
             <!-- Compile dependencies -->
-            <!-- this dependency enables marshalling/unmarshalling Optional fields and/or fields which getters return Optional -->
+            <!-- This dependency enables marshalling/unmarshalling Optional fields and/or fields which getters return Optional -->
             <dependency>
-                <groupId>com.fasterxml.jackson.core</groupId>
-                <artifactId>jackson-databind</artifactId>
-                <version>${jackson.databind.version}</version>
+                <groupId>com.fasterxml.jackson.datatype</groupId>
+                <artifactId>jackson-datatype-jdk8</artifactId>
+                <version>${jackson.datatype.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.github.jasminb</groupId>
+                <artifactId>jsonapi-converter</artifactId>
+                <version>${jsonapi.converter.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.commons</groupId>
+                <artifactId>commons-lang3</artifactId>
+                <version>${commons.lang.version}</version>
             </dependency>
 
             <dependency>

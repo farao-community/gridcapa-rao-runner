@@ -10,6 +10,9 @@
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>gridcapa-rao-runner-app</artifactId>
+    <name>RAO runner application</name>
+    <description>RAO runner application</description>
+    <packaging>jar</packaging>
 
     <build>
         <plugins>

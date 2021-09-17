@@ -7,22 +7,29 @@
 package com.farao_community.farao.rao_runner.api.resource;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonIdentityReference;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonTypeName;
+import com.github.jasminb.jsonapi.annotations.Id;
+import com.github.jasminb.jsonapi.annotations.Type;
+import org.apache.commons.lang3.builder.ToStringBuilder;
+
+import java.util.Optional;
 
 /**
  * @author Mohamed BenRejeb {@literal <mohamed.ben-rejeb at rte-france.com>}
  */
-@JsonTypeName("rao-response")
+@Type("rao-response")
 public class RaoResponse {
 
-    @JsonIdentityReference(alwaysAsId = true)
-    private final String id;
-    private final String instant;
-    private final String networkWithPraFileUrl;
-    private final String cracFileUrl;
-    private final String raoResultFileUrl;
+    @Id
+    private String id;
+
+    private String instant;
+
+    private String networkWithPraFileUrl;
+
+    private String cracFileUrl;
+
+    private String raoResultFileUrl;
 
     @JsonCreator
     public RaoResponse(@JsonProperty("id") String id,
@@ -41,8 +48,8 @@ public class RaoResponse {
         return id;
     }
 
-    public String getInstant() {
-        return instant;
+    public Optional<String> getInstant() {
+        return Optional.ofNullable(instant);
     }
 
     public String getNetworkWithPraFileUrl() {
@@ -55,5 +62,10 @@ public class RaoResponse {
 
     public String getRaoResultFileUrl() {
         return raoResultFileUrl;
+    }
+
+    @Override
+    public String toString() {
+        return ToStringBuilder.reflectionToString(this);
     }
 }

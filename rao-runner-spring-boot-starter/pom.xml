@@ -10,6 +10,9 @@
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>gridcapa-rao-runner-spring-boot-starter</artifactId>
+    <name>RAO runner service client SpringBoot starter</name>
+    <description>Starter to be used in Spring application to use RAO runner service</description>
+    <packaging>jar</packaging>
 
     <dependencies>
         <dependency>

@@ -9,10 +9,14 @@ package com.farao_community.farao.rao_runner.starter;
 import com.farao_community.farao.rao_runner.api.JsonApiConverter;
 import com.farao_community.farao.rao_runner.api.exceptions.RaoRunnerException;
 import com.farao_community.farao.rao_runner.api.resource.RaoResponse;
+import com.github.jasminb.jsonapi.exceptions.ResourceParseException;
+import com.github.jasminb.jsonapi.models.errors.Error;
+import com.github.jasminb.jsonapi.models.errors.Errors;
 import org.junit.jupiter.api.Test;
 import org.springframework.amqp.core.Message;
 
 import java.io.IOException;
+import java.util.Collections;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.mock;
@@ -21,18 +25,21 @@ import static org.mockito.Mockito.when;
 /**
  * @author Mohamed BenRejeb {@literal <mohamed.ben-rejeb at rte-france.com>}
  */
-class RaoResponseConversionHelperTest {
+public class RaoResponseConversionHelperTest {
 
     @Test
     void checkThatExceptionIsConvertedCorrectly() throws IOException {
         Message responseMessage = mock(Message.class);
         when(responseMessage.getBody()).thenReturn(getClass().getResourceAsStream("/raoResponseMessage.json").readAllBytes());
         JsonApiConverter jsonApiConverter = mock(JsonApiConverter.class);
-        when(jsonApiConverter.fromJsonMessage(responseMessage.getBody(), RaoResponse.class)).thenThrow(new IOException("exception conversion test"));
-        RaoRunnerException exception = assertThrows(RaoRunnerException.class, () -> RaoResponseConversionHelper.convertRaoResponse(responseMessage, jsonApiConverter));
+        Errors errors = new Errors();
+        Error error = new Error();
+        error.setDetail("exception conversion test");
+        errors.setErrors(Collections.singletonList(error));
+        when(jsonApiConverter.fromJsonMessage(responseMessage.getBody(), RaoResponse.class)).thenThrow(new ResourceParseException(errors));
+        Exception exception = assertThrows(RaoRunnerException.class, () -> RaoResponseConversionHelper.convertRaoResponse(responseMessage, jsonApiConverter));
         String expectedMessage = "exception conversion test";
-        String actualMessage = exception.getCause().getMessage();
+        String actualMessage = exception.getMessage();
         assertEquals(expectedMessage, actualMessage);
     }
-
 }

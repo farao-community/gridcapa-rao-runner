@@ -20,6 +20,6 @@ class RaoResponseTest {
     void checkRaoRequestNormalUsage() {
         RaoResponse raoResponse = new RaoResponse("id", "instant", "networkWithPraFileUrl", "jsonCracFileUrl", "raoResultFileUrl");
         assertNotNull(raoResponse);
-        assertEquals("instant", raoResponse.getInstant());
+        assertEquals("instant", raoResponse.getInstant().get());
     }
 }

@@ -6,37 +6,27 @@
  */
 package com.farao_community.farao.rao_runner.api.exceptions;
 
-import com.fasterxml.jackson.annotation.JsonGetter;
-import com.fasterxml.jackson.annotation.JsonSubTypes;
-
 /**
  * @author Mohamed BenRejeb {@literal <mohamed.ben-rejeb at rte-france.com>}
  */
-@JsonSubTypes({
-        @JsonSubTypes.Type(value = RaoRunnerException.class, name = "rao-runner-exception")
-    })
 public abstract class AbstractRaoRunnerException extends RuntimeException {
 
-    AbstractRaoRunnerException(String message) {
+    public AbstractRaoRunnerException(String message) {
         super(message);
     }
 
-    AbstractRaoRunnerException(String message, Throwable throwable) {
+    public AbstractRaoRunnerException(String message, Throwable throwable) {
         super(message, throwable);
     }
 
-    @JsonGetter
     public abstract int getStatus();
 
-    @JsonGetter
     public abstract String getCode();
 
-    @JsonGetter
     public final String getTitle() {
         return getMessage();
     }
 
-    @JsonGetter
     public final String getDetails() {
         String message = getMessage();
         Throwable cause = getCause();

@@ -16,7 +16,6 @@ import java.io.IOException;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
 
 /**
  * @author Mohamed BenRejeb {@literal <mohamed.ben-rejeb at rte-france.com>}
@@ -68,7 +67,7 @@ class JsonApiConverterTest {
         byte[] requestBytes = getClass().getResourceAsStream("/raoResponseMessage.json").readAllBytes();
         RaoResponse raoResponse = jsonConverter.fromJsonMessage(requestBytes, RaoResponse.class);
         assertEquals("id", raoResponse.getId());
-        assertEquals("instant", raoResponse.getInstant());
+        assertEquals("instant", raoResponse.getInstant().get());
         assertEquals("networkWithPraFileUrl", raoResponse.getNetworkWithPraFileUrl());
         assertEquals("cracFileUrl", raoResponse.getCracFileUrl());
         assertEquals("raoResultFileUrl", raoResponse.getRaoResultFileUrl());
@@ -80,7 +79,7 @@ class JsonApiConverterTest {
         byte[] requestBytes = getClass().getResourceAsStream("/raoResponseMessageNullInstant.json").readAllBytes();
         RaoResponse raoResponse = jsonConverter.fromJsonMessage(requestBytes, RaoResponse.class);
         assertEquals("id", raoResponse.getId());
-        assertNull(raoResponse.getInstant());
+        assertEquals(Optional.empty(), raoResponse.getInstant());
         assertEquals("networkWithPraFileUrl", raoResponse.getNetworkWithPraFileUrl());
         assertEquals("cracFileUrl", raoResponse.getCracFileUrl());
         assertEquals("raoResultFileUrl", raoResponse.getRaoResultFileUrl());
