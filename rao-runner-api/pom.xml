@@ -10,9 +10,8 @@
         <version>0.0.1-SNAPSHOT</version>
     </parent>
 
-    <groupId>org.example</groupId>
     <artifactId>gridcapa-rao-runner-api</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
+    <packaging>jar</packaging>
 
     <dependencies>
         <dependency>

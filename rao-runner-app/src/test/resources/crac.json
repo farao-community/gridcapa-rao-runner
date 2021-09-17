@@ -1,0 +1,20 @@
+{
+  "type" : "simple-crac",
+  "id" : "rao test crac",
+  "name" : "rao crac",
+  "networkElementsNamePerId": { },
+  "contingencies": [
+    {
+      "id": "N-1 NL1-NL3",
+      "name": "N-1 NL1-NL3",
+      "networkElementsIds": [
+        "NNL1AA1  NNL2AA1  1"
+      ]
+    }
+  ],
+  "flowCnecs" : [ ],
+  "pstRangeActions" : [ ],
+  "networkActions" : [ ],
+  "extensions" : {
+  }
+}

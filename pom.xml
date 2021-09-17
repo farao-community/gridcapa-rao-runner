@@ -25,6 +25,7 @@
 
     <modules>
         <module>rao-runner-api</module>
+        <module>rao-runner-app</module>
     </modules>
 
     <properties>

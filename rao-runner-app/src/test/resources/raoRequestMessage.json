@@ -1,0 +1,10 @@
+{
+  "id": "id",
+  "instant": "instant",
+  "networkFileUrl": "networkFileUrl",
+  "cracFileUrl": "cracFileUrl",
+  "refprogFileUrl": "refprogFileUrl",
+  "realGlskFileUrl": "realGlskFileUrl",
+  "raoParametersFileUrl": "raoParametersFileUrl",
+  "resultsDestination": "resultsDestination"
+}

@@ -34,7 +34,7 @@
         <module name="EmptyStatement"/>
         <module name="EqualsHashCode"/>
         <module name="FinalClass"/>
-        <module name="HideUtilityClassConstructor"/>
+        <!--module name="HideUtilityClassConstructor"/--> <!--commented for @SpringBootApplication class-->
         <module name="IllegalImport"/>
         <module name="Indentation"/>
         <module name="LeftCurly"/>
