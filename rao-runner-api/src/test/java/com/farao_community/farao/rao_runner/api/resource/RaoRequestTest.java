@@ -20,7 +20,7 @@ class RaoRequestTest {
     void checkRaoRequestNormalUsage() {
         RaoRequest raoRequest = new RaoRequest("id", "instant", "networkFileUrl", "cracFileUrl", "refprogFileUrl", "glskFileUrl", "raoParametersFileUrl", "resultsDestination");
         assertNotNull(raoRequest);
-        assertEquals("instant", raoRequest.getInstant().get());
+        assertEquals("instant", raoRequest.getInstant());
     }
 
     @Test

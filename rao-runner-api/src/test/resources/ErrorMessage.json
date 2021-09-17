@@ -1,1 +1,1 @@
-{"errors":[{"id":null,"links":null,"status":"400","code":"400-Rao-Runner-Exception","title":"Something bad happened","detail":"Something bad happened","source":null,"meta":null}]}
+{"status":400,"code":"400-Rao-Runner-Exception","title":"Something bad happened","details":"Something bad happened"}

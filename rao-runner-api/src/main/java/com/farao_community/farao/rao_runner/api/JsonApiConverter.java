@@ -6,17 +6,13 @@
  */
 package com.farao_community.farao.rao_runner.api;
 
-import com.farao_community.farao.rao_runner.api.exceptions.AbstractRaoRunnerException;
+import com.farao_community.farao.rao_runner.api.exceptions.RaoRunnerExceptionSerializer;
 import com.farao_community.farao.rao_runner.api.exceptions.RaoRunnerException;
-import com.farao_community.farao.rao_runner.api.resource.RaoRequest;
-import com.farao_community.farao.rao_runner.api.resource.RaoResponse;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
-import com.github.jasminb.jsonapi.JSONAPIDocument;
-import com.github.jasminb.jsonapi.ResourceConverter;
-import com.github.jasminb.jsonapi.SerializationFeature;
-import com.github.jasminb.jsonapi.exceptions.DocumentSerializationException;
-import com.github.jasminb.jsonapi.models.errors.Error;
+
+import java.io.IOException;
 
 /**
  * JSON API conversion component
@@ -30,46 +26,20 @@ public class JsonApiConverter {
 
     public JsonApiConverter() {
         objectMapper = new ObjectMapper();
-        objectMapper.registerModule(new SimpleModule());
+        SimpleModule module = new SimpleModule();
+        module.addSerializer(RaoRunnerException.class, new RaoRunnerExceptionSerializer());
+        objectMapper.registerModule(module);
     }
 
-    public <T> T fromJsonMessage(byte[] jsonMessage, Class<T> clazz) {
-        ResourceConverter converter = createConverter();
-        return converter.readDocument(jsonMessage, clazz).get();
+    public <T> T fromJsonMessage(byte[] jsonMessage, Class<T> clazz) throws IOException {
+        return objectMapper.readValue(jsonMessage, clazz);
     }
 
     public <T> byte[] toJsonMessage(T jsonApiObject) {
-        ResourceConverter converter = createConverter();
-        JSONAPIDocument<?> jsonApiDocument = new JSONAPIDocument<>(jsonApiObject);
         try {
-            return converter.writeDocument(jsonApiDocument);
-        } catch (DocumentSerializationException e) {
+            return objectMapper.writeValueAsBytes(jsonApiObject);
+        } catch (JsonProcessingException e) {
             throw new RaoRunnerException("Exception occurred during message conversion", e);
         }
-    }
-
-    public byte[] toJsonMessage(AbstractRaoRunnerException exception) {
-        ResourceConverter converter = createConverter();
-        JSONAPIDocument<?> jsonApiDocument = new JSONAPIDocument<>(convertExceptionToJsonError(exception));
-        try {
-            return converter.writeDocument(jsonApiDocument);
-        } catch (DocumentSerializationException e) {
-            throw new RaoRunnerException("Exception occurred during message conversion", e);
-        }
-    }
-
-    private ResourceConverter createConverter() {
-        ResourceConverter converter = new ResourceConverter(objectMapper, RaoRequest.class, RaoResponse.class);
-        converter.disableSerializationOption(SerializationFeature.INCLUDE_META);
-        return converter;
-    }
-
-    private Error convertExceptionToJsonError(AbstractRaoRunnerException exception) {
-        Error error = new Error();
-        error.setStatus(Integer.toString(exception.getStatus()));
-        error.setCode(exception.getCode());
-        error.setTitle(exception.getTitle());
-        error.setDetail(exception.getDetails());
-        return error;
     }
 }

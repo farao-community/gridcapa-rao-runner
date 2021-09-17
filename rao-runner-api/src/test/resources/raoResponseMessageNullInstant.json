@@ -1,12 +1,7 @@
 {
-  "data": {
-    "type": "rao-response",
-    "id": "id",
-    "attributes": {
-      "instant": null,
-      "networkWithPraFileUrl": "networkWithPraFileUrl",
-      "cracFileUrl": "cracFileUrl",
-      "raoResultFileUrl": "raoResultFileUrl"
-    }
-  }
+  "id": "id",
+  "instant": null,
+  "networkWithPraFileUrl": "networkWithPraFileUrl",
+  "cracFileUrl": "cracFileUrl",
+  "raoResultFileUrl": "raoResultFileUrl"
 }

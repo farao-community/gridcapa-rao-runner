@@ -6,9 +6,12 @@
  */
 package com.farao_community.farao.rao_runner.api.exceptions;
 
+import com.fasterxml.jackson.annotation.JsonTypeName;
+
 /**
  * @author Mohamed BenRejeb {@literal <mohamed.ben-rejeb at rte-france.com>}
  */
+@JsonTypeName("rao-runner-exception")
 public class RaoRunnerException extends AbstractRaoRunnerException {
 
     private static final int STATUS = 400;
