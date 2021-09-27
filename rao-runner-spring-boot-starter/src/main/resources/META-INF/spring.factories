@@ -1,0 +1,1 @@
+org.springframework.boot.autoconfigure.EnableAutoConfiguration=com.rte_france.farao.rao_runner.starter.RaoRunnerClientAutoConfiguration

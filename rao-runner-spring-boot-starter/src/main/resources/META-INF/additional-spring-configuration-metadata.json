@@ -1,0 +1,19 @@
+{
+  "properties": [
+    {
+      "name": "rao-runner-server.amqp.queue-name",
+      "type": "java.lang.String",
+      "description": "AMQP queue to be used to send rao requests."
+    },
+    {
+      "name": "rao-runner-server.amqp.client-app-id",
+      "type": "java.lang.String",
+      "description": "Name of the application that call rao-runner through starter."
+    },
+    {
+      "name": "rao-runner-server.amqp.expiration",
+      "type": "java.lang.String",
+      "description": "Expiration time of rao requests."
+    }
+  ]
+}

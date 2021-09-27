@@ -1,0 +1,26 @@
+spring:
+  rabbitmq:
+    host: ${RABBITMQ_HOST:localhost}
+    port: ${RABBITMQ_PORT:5672}
+    username: ${RABBITMQ_USERNAME:guest}
+    password: ${RABBITMQ_PASSWORD:guest}
+
+minio:
+  access:
+    name: minioadmin-test
+    secret: minioadmin-test
+  url: http://localhost-test:9000
+  bucket: my-bucket
+  base-path: base/path
+
+rao-runner:
+  messages:
+    rao-request:
+      queue-name: raoi-request-queue
+    rao-response:
+      exchange: raoi-response
+      expiration: 60000
+  url:
+    whitelist:
+      - http://localhost:9000
+      - file:/
