@@ -44,9 +44,11 @@ public class RaoLauncherService {
     private static final String IIDM_EXTENSION = "xiidm";
 
     private final MinioAdapter minioAdapter;
+    private final Rao.Runner raoRunnerProvider;
 
-    public RaoLauncherService(MinioAdapter minioAdapter) {
+    public RaoLauncherService(MinioAdapter minioAdapter, Rao.Runner raoRunnerProvider) {
         this.minioAdapter = minioAdapter;
+        this.raoRunnerProvider = raoRunnerProvider;
     }
 
     public RaoResponse runRao(RaoRequest raoRequest,
@@ -68,8 +70,8 @@ public class RaoLauncherService {
             }
 
             // Run search tree rao
-            RaoResult results = Rao.run(raoInputBuilder.build(), raoParameters);
-            return uploadRaoResultsToFileStorageServer(raoRequest, crac, results, network, resultsDestination);
+            RaoResult raoResult = raoRunnerProvider.run(raoInputBuilder.build(), raoParameters);
+            return uploadRaoResultsToFileStorageServer(raoRequest, crac, raoResult, network, resultsDestination);
         } catch (Exception e) {
             throw new RaoRunnerException("Error occurred when running rao: " + e.getMessage(), e);
         }

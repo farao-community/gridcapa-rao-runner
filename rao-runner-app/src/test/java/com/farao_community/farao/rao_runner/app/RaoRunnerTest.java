@@ -8,17 +8,17 @@ package com.farao_community.farao.rao_runner.app;
 
 import com.farao_community.farao.data.crac_api.Crac;
 import com.farao_community.farao.rao_api.parameters.RaoParameters;
-import com.farao_community.farao.rao_runner.api.exceptions.RaoRunnerException;
 import com.farao_community.farao.rao_runner.api.resource.RaoRequest;
 import com.farao_community.farao.rao_runner.app.configuration.MinioAdapter;
-import com.farao_community.farao.rao_runner.app.configuration.UrlWhitelistConfiguration;
 import com.farao_community.farao.search_tree_rao.SearchTreeRaoParameters;
 import com.powsybl.iidm.network.Country;
 import com.powsybl.iidm.network.Network;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.core.io.ClassPathResource;
 
 import java.io.IOException;
@@ -42,59 +42,46 @@ class RaoRunnerTest {
     @Autowired
     RaoRunnerServer raoRunnerServer;
 
-    @Test
-    void checkIidmNetworkIsImportedCorrectly() throws IOException {
-        RaoRunnerServer raoRunnerServerMock = Mockito.mock(RaoRunnerServer.class);
-        InputStream networkInputStream = new ClassPathResource("/network.xiidm").getInputStream();
-        Mockito.when(raoRunnerServerMock.getInputStreamFromUrl("networkFileUrl")).thenReturn(networkInputStream);
-        Mockito.when(raoRunnerServerMock.getFileNameFromUrl("networkFileUrl")).thenReturn("network.xiidm");
-        Mockito.when(raoRunnerServerMock.importNetwork(simpleRaoRequest)).thenCallRealMethod();
+    @MockBean
+    MinioAdapter minioAdapter;
 
-        Network network = raoRunnerServerMock.importNetwork(simpleRaoRequest);
+    @BeforeEach
+    void setUp() throws IOException {
+
+        InputStream networkInputStream = new ClassPathResource("/network.xiidm").getInputStream();
+        Mockito.when(minioAdapter.getInputStreamFromUrl("networkFileUrl")).thenReturn(networkInputStream);
+        Mockito.when(minioAdapter.getFileNameFromUrl("networkFileUrl")).thenReturn("network.xiidm");
+
+        InputStream cracInputStream = new ClassPathResource("/crac.json").getInputStream();
+        Mockito.when(minioAdapter.getInputStreamFromUrl("cracFileUrl")).thenReturn(cracInputStream);
+        Mockito.when(minioAdapter.getFileNameFromUrl("cracFileUrl")).thenReturn("crac.json");
+
+        Mockito.when(minioAdapter.getDefaultBasePath()).thenReturn("base-path");
+
+        Mockito.when(minioAdapter.getFileNameFromUrl("file:/raoParametersFileUrl")).thenReturn("raoParametersFileUrl.json");
+        InputStream raoParamsInputStream = new ClassPathResource("/raoParameters.json").getInputStream();
+        Mockito.when(minioAdapter.getInputStreamFromUrl("file:/raoParametersFileUrl")).thenReturn(raoParamsInputStream);
+    }
+
+    @Test
+    void checkIidmNetworkIsImportedCorrectly() {
+        Network network = raoRunnerServer.importNetwork(simpleRaoRequest);
         assertEquals("UCTE", network.getSourceFormat());
         assertEquals(4, network.getCountryCount());
     }
 
     @Test
-    void checkJsonCracIsImportedCorrectly() throws IOException {
-        RaoRunnerServer raoRunnerServerMock = Mockito.mock(RaoRunnerServer.class);
-        InputStream cracInputStream = new ClassPathResource("/crac.json").getInputStream();
-        Mockito.when(raoRunnerServerMock.getInputStreamFromUrl("cracFileUrl")).thenReturn(cracInputStream);
-        Mockito.when(raoRunnerServerMock.getFileNameFromUrl("cracFileUrl")).thenReturn("crac.json");
-        Mockito.when(raoRunnerServerMock.importCrac(simpleRaoRequest)).thenCallRealMethod();
-
-        Crac crac = raoRunnerServerMock.importCrac(simpleRaoRequest);
+    void checkJsonCracIsImportedCorrectly() {
+        Crac crac = raoRunnerServer.importCrac(simpleRaoRequest);
         assertEquals("rao test crac", crac.getId());
         assertEquals("N-1 NL1-NL3", crac.getContingencies().stream().findAny().get().getId());
 
     }
 
     @Test
-    void checkGetFileNameFromUrl() {
-        RaoRunnerServer raoRunnerServerMock = Mockito.mock(RaoRunnerServer.class);
-        Mockito.when(raoRunnerServerMock.getFileNameFromUrl("http://host:9000/rao-integration-data/4/inputs/networks/network_fr.xiidm?X-Amz-Algo")).thenCallRealMethod();
-        String fileName = raoRunnerServerMock.getFileNameFromUrl("http://host:9000/rao-integration-data/4/inputs/networks/network_fr.xiidm?X-Amz-Algo");
-        assertEquals("network_fr.xiidm", fileName);
-    }
-
-    @Test
     void checkGenerateResultsDestination() {
-        MinioAdapter minioAdapterMock = Mockito.mock(MinioAdapter.class);
-        Mockito.when(minioAdapterMock.getDefaultBasePath()).thenReturn("base-path");
         String resultsDestination = raoRunnerServer.generateResultsDestination(simpleRaoRequest);
-        assertEquals("base/path/id", resultsDestination);
-    }
-
-    @Test
-    void checkExceptionThrown() {
-        UrlWhitelistConfiguration urlWhitelistConfigurationMock = Mockito.mock(UrlWhitelistConfiguration.class);
-        Mockito.when(urlWhitelistConfigurationMock.getWhitelist()).thenReturn(Arrays.asList("url1", "url2"));
-        Exception exception = assertThrows(RaoRunnerException.class, () -> {
-            raoRunnerServer.getInputStreamFromUrl("notWhiteListedUrl");
-        });
-        String expectedMessage = "is not part of application's whitelisted url's";
-        String actualMessage = exception.getMessage();
-        assertTrue(actualMessage.contains(expectedMessage));
+        assertEquals("base-path/id", resultsDestination);
     }
 
     @Test
@@ -105,13 +92,8 @@ class RaoRunnerTest {
     }
 
     @Test
-    void checkRequestedRaoParametersAreImported() throws IOException {
-        RaoRunnerServer raoRunnerServerMock = Mockito.mock(RaoRunnerServer.class);
-        Mockito.when(raoRunnerServerMock.getFileNameFromUrl("file:/raoParametersFileUrl")).thenReturn("raoParametersFileUrl.json");
-        InputStream raoParamsInputStream = new ClassPathResource("/raoParameters.json").getInputStream();
-        Mockito.when(raoRunnerServerMock.getInputStreamFromUrl("file:/raoParametersFileUrl")).thenReturn(raoParamsInputStream);
-        Mockito.when(raoRunnerServerMock.importRaoParameters(completeRaoRequest)).thenCallRealMethod();
-        RaoParameters raoParameters = raoRunnerServerMock.importRaoParameters(completeRaoRequest);
+    void checkRequestedRaoParametersAreImported() {
+        RaoParameters raoParameters = raoRunnerServer.importRaoParameters(completeRaoRequest);
 
         List<String> expectedLoopFlowConstraintCountries = Arrays.asList("AT", "BE", "CZ", "DE", "FR", "HR", "HU", "NL", "PL", "RO", "SI", "SK");
         List<String> actualLoopFlowConstraintCountries = raoParameters.getLoopflowCountries().stream().map(Country::toString).collect(Collectors.toList());

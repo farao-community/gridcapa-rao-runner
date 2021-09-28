@@ -6,6 +6,7 @@
  */
 package com.farao_community.farao.rao_runner.app.configuration;
 
+import com.farao_community.farao.rao_runner.api.exceptions.RaoRunnerException;
 import io.minio.MinioClient;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -15,8 +16,9 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 
 import java.io.ByteArrayInputStream;
+import java.util.Arrays;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * @author Mohamed BenRejeb {@literal <mohamed.ben-rejeb at rte-france.com>}
@@ -47,4 +49,21 @@ class MinioAdapterTest {
         Mockito.verify(minioClient, Mockito.times(1)).getPresignedObjectUrl(Mockito.any());
         assertEquals("http://url", url);
     }
+
+    @Test
+    void checkFileNameReturnedCorrectlyFromUrl() {
+        String stringUrl = "http://localhost:9000/folder/id/fileName.xml?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=minioadmin-Amz-SignedHeaders=host&X-Amz-Signature=61e252359e5cb";
+        assertEquals("fileName.xml", minioAdapter.getFileNameFromUrl(stringUrl));
+    }
+
+    @Test
+    void checkExceptionThrown() {
+        UrlWhitelistConfiguration urlWhitelistConfigurationMock = Mockito.mock(UrlWhitelistConfiguration.class);
+        Mockito.when(urlWhitelistConfigurationMock.getWhitelist()).thenReturn(Arrays.asList("url1", "url2"));
+        Exception exception = assertThrows(RaoRunnerException.class, () -> minioAdapter.getInputStreamFromUrl("notWhiteListedUrl"));
+        String expectedMessage = "is not part of application's whitelisted url's";
+        String actualMessage = exception.getMessage();
+        assertTrue(actualMessage.contains(expectedMessage));
+    }
+
 }
