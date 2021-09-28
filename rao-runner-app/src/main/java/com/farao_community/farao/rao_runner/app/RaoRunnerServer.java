@@ -6,21 +6,18 @@
  */
 package com.farao_community.farao.rao_runner.app;
 
-import com.farao_community.farao.commons.FaraoException;
 import com.farao_community.farao.commons.ZonalData;
 import com.farao_community.farao.data.crac_api.Crac;
-import com.farao_community.farao.data.crac_io_api.CracImporters;
-import com.farao_community.farao.data.glsk.api.GlskDocument;
-import com.farao_community.farao.data.glsk.api.io.GlskDocumentImporters;
+import com.farao_community.farao.data.crac_api.State;
+import com.farao_community.farao.data.glsk.virtual.hubs.GlskVirtualHubs;
+import com.farao_community.farao.data.rao_result_api.RaoResult;
 import com.farao_community.farao.data.refprog.reference_program.ReferenceProgram;
-import com.farao_community.farao.data.refprog.refprog_xml_importer.RefProgImporter;
+import com.farao_community.farao.rao_api.RaoInput;
 import com.farao_community.farao.rao_api.json.JsonRaoParameters;
 import com.farao_community.farao.rao_api.parameters.RaoParameters;
 import com.farao_community.farao.rao_runner.api.exceptions.RaoRunnerException;
 import com.farao_community.farao.rao_runner.api.resource.RaoRequest;
 import com.farao_community.farao.rao_runner.api.resource.RaoResponse;
-import com.farao_community.farao.rao_runner.app.configuration.MinioAdapter;
-import com.powsybl.iidm.import_.Importers;
 import com.powsybl.iidm.network.Network;
 import com.powsybl.sensitivity.factors.variables.LinearGlsk;
 import org.slf4j.Logger;
@@ -28,8 +25,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.io.ByteArrayOutputStream;
-import java.io.InputStream;
-import java.time.OffsetDateTime;
 import java.util.Optional;
 
 /**
@@ -41,23 +36,23 @@ public class RaoRunnerServer {
     private static final Logger LOGGER = LoggerFactory.getLogger(RaoRunnerServer.class);
 
     private final RaoLauncherService raoLauncherService;
-    private final MinioAdapter minioAdapter;
+    private final FileExporter fileExporter;
+    private final FileImporter fileImporter;
 
-    public RaoRunnerServer(RaoLauncherService raoLauncherService, MinioAdapter minioAdapter) {
+    public RaoRunnerServer(RaoLauncherService raoLauncherService, FileExporter fileExporter, FileImporter fileImporter) {
         this.raoLauncherService = raoLauncherService;
-        this.minioAdapter = minioAdapter;
+        this.fileExporter = fileExporter;
+        this.fileImporter = fileImporter;
     }
 
     public RaoResponse runRao(RaoRequest raoRequest) {
-        String resultsDestination = generateResultsDestination(raoRequest);
-        LOGGER.info("Results will be uploaded under directory: {} ", resultsDestination);
-        Network network = importNetwork(raoRequest);
-        Crac crac = importCrac(raoRequest);
-        Optional<ZonalData<LinearGlsk>> glskProvider = importGlsk(raoRequest, network);
-        Optional<ReferenceProgram> referenceProgram = importRefProg(raoRequest);
-        RaoParameters raoParameters = importRaoParameters(raoRequest);
+        Network network = fileImporter.importNetwork(raoRequest);
+        Crac crac = fileImporter.importCrac(raoRequest);
+        Optional<ZonalData<LinearGlsk>> glskProvider = fileImporter.importGlsk(raoRequest, network);
+        Optional<ReferenceProgram> referenceProgram = fileImporter.importRefProg(raoRequest);
+        RaoParameters raoParameters = fileImporter.importRaoParameters(raoRequest);
         logParameters(raoParameters);
-        return raoLauncherService.runRao(raoRequest, network, crac, glskProvider, referenceProgram, raoParameters, resultsDestination);
+        return runRao(raoRequest, network, crac, glskProvider, referenceProgram, raoParameters);
     }
 
     private void logParameters(RaoParameters raoParameters) {
@@ -68,75 +63,42 @@ public class RaoRunnerServer {
         }
     }
 
-    String generateResultsDestination(RaoRequest raoRequest) {
-        return raoRequest.getResultsDestination().orElse(minioAdapter.getDefaultBasePath() + "/" + raoRequest.getId());
-    }
-
-    RaoParameters importRaoParameters(RaoRequest raoRequest) {
-        RaoParameters defaultRaoParameters = RaoParameters.load();
-        Optional<String> raoParametersFileUrl = raoRequest.getRaoParametersFileUrl();
-        if (raoParametersFileUrl.isPresent()) {
-            InputStream jsonRaoParametersInputStream = minioAdapter.getInputStreamFromUrl(raoParametersFileUrl.get());
-            return JsonRaoParameters.update(defaultRaoParameters, jsonRaoParametersInputStream);
-        } else {
-            return defaultRaoParameters;
-        }
-    }
-
-    private Optional<ZonalData<LinearGlsk>> importGlsk(RaoRequest raoRequest, Network network) {
-        Optional<String> glskFileUrl = raoRequest.getRealGlskFileUrl();
-        Optional<String> timestamp = raoRequest.getInstant();
-        if (glskFileUrl.isPresent()) {
-            try {
-                InputStream glskFileInputStream = minioAdapter.getInputStreamFromUrl(glskFileUrl.get());
-                GlskDocument ucteGlskProvider = GlskDocumentImporters.importGlsk(glskFileInputStream);
-                if (timestamp.isPresent()) {
-                    OffsetDateTime offsetDateTime = OffsetDateTime.parse(timestamp.get());
-                    return Optional.of(ucteGlskProvider.getZonalGlsks(network, offsetDateTime.toInstant()));
-                } else {
-                    return Optional.of(ucteGlskProvider.getZonalGlsks(network));
-                }
-            } catch (Exception e) {
-                throw new RaoRunnerException(String.format("Error occurred during GLSK Provider creation for timestamp: %s, using GLSK file: %s, and CGM network file %s. Cause: %s", timestamp, minioAdapter.getFileNameFromUrl(glskFileUrl.get()), network.getNameOrId(), e.getMessage()));
-            }
-        } else {
-            return Optional.empty();
-        }
-    }
-
-    private Optional<ReferenceProgram> importRefProg(RaoRequest raoRequest) {
-        Optional<String> refProgFileUrl = raoRequest.getRefprogFileUrl();
-        Optional<String> timestamp = raoRequest.getInstant();
-        if (refProgFileUrl.isPresent() && timestamp.isPresent()) {
-            try {
-                InputStream refProgFileInputStream = minioAdapter.getInputStreamFromUrl(refProgFileUrl.get());
-                OffsetDateTime offsetDateTime = OffsetDateTime.parse(timestamp.get());
-                ReferenceProgram referenceProgram = RefProgImporter.importRefProg(refProgFileInputStream, offsetDateTime);
-                return Optional.of(referenceProgram);
-            } catch (Exception e) {
-                throw new RaoRunnerException(String.format("Error occurred during Reference Program creation for timestamp: %s, using refProg file: %s. Cause: %s", timestamp, minioAdapter.getFileNameFromUrl(refProgFileUrl.get()), e.getMessage()));
-            }
-        } else {
-            return Optional.empty();
-        }
-    }
-
-    Crac importCrac(RaoRequest raoRequest) {
-        String cracFileUrl = raoRequest.getCracFileUrl();
+    public RaoResponse runRao(RaoRequest raoRequest,
+                              Network network,
+                              Crac crac,
+                              Optional<ZonalData<LinearGlsk>> glsks,
+                              Optional<ReferenceProgram> referenceProgram,
+                              RaoParameters raoParameters) {
         try {
-            return CracImporters.importCrac(minioAdapter.getFileNameFromUrl(cracFileUrl), minioAdapter.getInputStreamFromUrl(cracFileUrl));
-        } catch (FaraoException | RaoRunnerException e) {
-            throw new RaoRunnerException(String.format("Exception occurred while importing CRAC file: %s. Cause: %s", minioAdapter.getFileNameFromUrl(cracFileUrl), e.getMessage()));
-        }
-    }
+            RaoInput.RaoInputBuilder raoInputBuilder = RaoInput.build(network, crac);
+            glsks.ifPresent(raoInputBuilder::withGlskProvider);
+            referenceProgram.ifPresent(raoInputBuilder::withRefProg);
 
-    Network importNetwork(RaoRequest raoRequest) {
-        String networkFileUrl = raoRequest.getNetworkFileUrl();
-        try {
-            return Importers.loadNetwork(minioAdapter.getFileNameFromUrl(networkFileUrl), minioAdapter.getInputStreamFromUrl(networkFileUrl));
+            if (glsks.isPresent() && referenceProgram.isPresent()) {
+                ZonalData<LinearGlsk> glskOfVirtualHubs = GlskVirtualHubs.getVirtualHubGlsks(network, referenceProgram.get());
+                glsks.get().addAll(glskOfVirtualHubs);
+                raoInputBuilder.withGlskProvider(glsks.get());
+            }
+
+            // Run search tree rao
+            RaoResult results = raoLauncherService.run(raoInputBuilder.build(), raoParameters);
+            return uploadRaoResultsToFileStorageServer(raoRequest, crac, results, network);
         } catch (Exception e) {
-            throw new RaoRunnerException(String.format("Exception occurred while importing network : %s. Cause: %s ", minioAdapter.getFileNameFromUrl(networkFileUrl), e.getMessage()));
+            throw new RaoRunnerException("Error occurred when running rao: " + e.getMessage(), e);
         }
     }
 
+    private RaoResponse uploadRaoResultsToFileStorageServer(RaoRequest raoRequest, Crac crac, RaoResult raoResult, Network network) {
+        String resultsDestination = fileExporter.generateResultsDestination(raoRequest);
+        String raoResultFileUrl = fileExporter.exportAndSaveJsonRaoResult(raoResult, crac, resultsDestination);
+        applyRemedialActionsForState(network, raoResult, crac.getPreventiveState());
+        String networkWithPraFileUrl = fileExporter.exportAndSaveNetworkWithPra(raoResult, network, resultsDestination);
+        String instant = raoRequest.getInstant().orElse(null);
+        return new RaoResponse(raoRequest.getId(), instant, networkWithPraFileUrl, raoRequest.getCracFileUrl(), raoResultFileUrl);
+    }
+
+    private static void applyRemedialActionsForState(Network network, RaoResult raoResult, State state) {
+        raoResult.getActivatedNetworkActionsDuringState(state).forEach(networkAction -> networkAction.apply(network));
+        raoResult.getOptimizedSetPointsOnState(state).forEach((rangeAction, setPoint) -> rangeAction.apply(network, setPoint));
+    }
 }
