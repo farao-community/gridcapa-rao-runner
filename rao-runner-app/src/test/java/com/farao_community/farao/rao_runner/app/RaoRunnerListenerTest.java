@@ -35,7 +35,7 @@ class RaoRunnerListenerTest {
     public RaoRunnerListener raoRunnerListener;
 
     @MockBean
-    public RaoRunnerServer raoRunnerServer;
+    public RaoRunnerService raoRunnerServer;
 
     @Autowired
     private AmqpTemplate amqpTemplate;

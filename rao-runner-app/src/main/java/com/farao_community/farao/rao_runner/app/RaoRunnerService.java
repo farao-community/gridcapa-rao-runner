@@ -12,6 +12,7 @@ import com.farao_community.farao.data.crac_api.State;
 import com.farao_community.farao.data.glsk.virtual.hubs.GlskVirtualHubs;
 import com.farao_community.farao.data.rao_result_api.RaoResult;
 import com.farao_community.farao.data.refprog.reference_program.ReferenceProgram;
+import com.farao_community.farao.rao_api.Rao;
 import com.farao_community.farao.rao_api.RaoInput;
 import com.farao_community.farao.rao_api.json.JsonRaoParameters;
 import com.farao_community.farao.rao_api.parameters.RaoParameters;
@@ -32,15 +33,15 @@ import java.util.Optional;
  * @author Mohamed BenRejeb {@literal <mohamed.ben-rejeb at rte-france.com>}
  */
 @Service
-public class RaoRunnerServer {
-    private static final Logger LOGGER = LoggerFactory.getLogger(RaoRunnerServer.class);
+public class RaoRunnerService {
+    private static final Logger LOGGER = LoggerFactory.getLogger(RaoRunnerService.class);
 
-    private final RaoLauncherService raoLauncherService;
+    private final Rao.Runner raoRunnerProvider;
     private final FileExporter fileExporter;
     private final FileImporter fileImporter;
 
-    public RaoRunnerServer(RaoLauncherService raoLauncherService, FileExporter fileExporter, FileImporter fileImporter) {
-        this.raoLauncherService = raoLauncherService;
+    public RaoRunnerService(Rao.Runner raoRunnerProvider, FileExporter fileExporter, FileImporter fileImporter) {
+        this.raoRunnerProvider = raoRunnerProvider;
         this.fileExporter = fileExporter;
         this.fileImporter = fileImporter;
     }
@@ -79,10 +80,9 @@ public class RaoRunnerServer {
                 glsks.get().addAll(glskOfVirtualHubs);
                 raoInputBuilder.withGlskProvider(glsks.get());
             }
-
             // Run search tree rao
-            RaoResult results = raoLauncherService.run(raoInputBuilder.build(), raoParameters);
-            return uploadRaoResultsToFileStorageServer(raoRequest, crac, results, network);
+            RaoResult raoResult = raoRunnerProvider.run(raoInputBuilder.build(), raoParameters);
+            return uploadRaoResultsToFileStorageServer(raoRequest, crac, raoResult, network);
         } catch (Exception e) {
             throw new RaoRunnerException("Error occurred when running rao: " + e.getMessage(), e);
         }

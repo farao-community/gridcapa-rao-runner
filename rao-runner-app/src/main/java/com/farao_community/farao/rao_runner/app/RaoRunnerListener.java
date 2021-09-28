@@ -28,11 +28,11 @@ public class RaoRunnerListener  implements MessageListener {
     private static final int PRIORITY = 1;
 
     private final JsonApiConverter jsonApiConverter;
-    private final RaoRunnerServer raoRunnerServer;
+    private final RaoRunnerService raoRunnerServer;
     private final AmqpTemplate amqpTemplate;
     private final AmqpConfiguration amqpConfiguration;
 
-    public RaoRunnerListener(RaoRunnerServer raoRunnerServer, AmqpTemplate amqpTemplate, AmqpConfiguration amqpConfiguration) {
+    public RaoRunnerListener(RaoRunnerService raoRunnerServer, AmqpTemplate amqpTemplate, AmqpConfiguration amqpConfiguration) {
         this.jsonApiConverter = new JsonApiConverter();
         this.raoRunnerServer = raoRunnerServer;
         this.amqpTemplate = amqpTemplate;

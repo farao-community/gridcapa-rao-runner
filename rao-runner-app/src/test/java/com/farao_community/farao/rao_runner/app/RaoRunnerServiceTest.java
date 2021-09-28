@@ -41,14 +41,18 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
  * @author Mohamed BenRejeb {@literal <mohamed.ben-rejeb at rte-france.com>}
  */
 @SpringBootTest
-public class RaoLauncherTest {
+class RaoRunnerServiceTest {
 
+    @Autowired
+    RaoRunnerService raoRunnerService;
     @MockBean
     Rao.Runner raoRunnerProv;
-    @Autowired
-    RaoLauncherService raoLauncherService;
     @MockBean
     MinioAdapter minioAdapter;
+    @MockBean
+    FileImporter fileImporter;
+    @MockBean
+    FileExporter fileExporter;
 
     Network network;
     Crac crac;
@@ -65,31 +69,35 @@ public class RaoLauncherTest {
         crac = CracImporters.importCrac("crac.json", Objects.requireNonNull(getClass().getResourceAsStream("/rao_inputs/crac.json")));
         raoResult = new RaoResultImporter().importRaoResult(raoResultInputStream, crac);
         Mockito.when(raoRunnerProv.run(Mockito.any(), Mockito.any())).thenReturn(raoResult);
-        Mockito.when(minioAdapter.generatePreSignedUrl("destination-key/networkWithPRA.xiidm")).thenReturn("networkWithPRA-url");
-        Mockito.when(minioAdapter.generatePreSignedUrl("destination-key/raoResult.json")).thenReturn("raoResult-url");
 
-        InputStream glskFileInputStream = getClass().getResourceAsStream("/rao_inputs/glsk_proportional_12nodes.xml");
+        InputStream glskFileInputStream = getClass().getResourceAsStream("/rao_inputs/glsk.xml");
         GlskDocument ucteGlskProvider = GlskDocumentImporters.importGlsk(Objects.requireNonNull(glskFileInputStream));
-        InputStream refProgFileInputStream = getClass().getResourceAsStream("/rao_inputs/refProg_12nodes.xml");
+        InputStream refProgFileInputStream = getClass().getResourceAsStream("/rao_inputs/refprog.xml");
 
         glsks = ucteGlskProvider.getZonalGlsks(network, OffsetDateTime.parse("2019-01-08T12:30:00Z").toInstant());
         referenceProgram = RefProgImporter.importRefProg(refProgFileInputStream, OffsetDateTime.parse("2019-01-08T12:30:00Z"));
+
+        Mockito.when(fileImporter.importNetwork(Mockito.any())).thenReturn(network);
+        Mockito.when(fileImporter.importCrac(Mockito.any())).thenReturn(crac);
+        Mockito.when(fileExporter.generateResultsDestination(Mockito.any())).thenReturn("/");
+        Mockito.when(fileExporter.exportAndSaveNetworkWithPra(raoResult, network, "/")).thenReturn("simple-networkWithPRA-url");
+        Mockito.when(fileExporter.exportAndSaveJsonRaoResult(raoResult, crac, "/")).thenReturn("simple-RaoResultJson-url");
     }
 
     @Test
     void checkSimpleRaoRun() {
-        RaoRequest raoRequest = new RaoRequest("id", "http://host:9000/network.xiidm", "http://host:9000/crac.json");
-        RaoResponse raoResponse = raoLauncherService.runRao(raoRequest, network, crac, Optional.empty(), Optional.empty(), new RaoParameters(), "destination-key");
+        RaoRequest simpleRaoRequest = new RaoRequest("id", "http://host:9000/network.xiidm", "http://host:9000/crac.json");
+        RaoResponse raoResponse = raoRunnerService.runRao(simpleRaoRequest);
         assertEquals("id", raoResponse.getId());
         assertEquals("http://host:9000/crac.json", raoResponse.getCracFileUrl());
-        assertEquals("networkWithPRA-url", raoResponse.getNetworkWithPraFileUrl());
-        assertEquals("raoResult-url", raoResponse.getRaoResultFileUrl());
+        assertEquals("simple-networkWithPRA-url", raoResponse.getNetworkWithPraFileUrl());
+        assertEquals("simple-RaoResultJson-url", raoResponse.getRaoResultFileUrl());
         assertEquals(Optional.empty(), raoResponse.getInstant());
     }
 
     @Test
     void checkCoreRaoRun() {
-        RaoRequest raoRequest = new RaoRequest("id",
+        RaoRequest coreRaoRequest = new RaoRequest("id",
                 "2019-01-08T12:30:00Z",
                 "http://host:9000/network.xiidm",
                 "http://host:9000/crac.json",
@@ -97,11 +105,11 @@ public class RaoLauncherTest {
                 "http://host:9000/glsk.xml",
                 "raoParams.json",
                 "destination-key");
-        RaoResponse raoResponse = raoLauncherService.runRao(raoRequest, network, crac, Optional.of(glsks), Optional.of(referenceProgram), new RaoParameters(), "destination-key");
+        RaoResponse raoResponse = raoRunnerService.runRao(coreRaoRequest, network, crac, Optional.of(glsks), Optional.of(referenceProgram), new RaoParameters());
         assertEquals("id", raoResponse.getId());
         assertEquals("http://host:9000/crac.json", raoResponse.getCracFileUrl());
-        assertEquals("networkWithPRA-url", raoResponse.getNetworkWithPraFileUrl());
-        assertEquals("raoResult-url", raoResponse.getRaoResultFileUrl());
+        assertEquals("simple-networkWithPRA-url", raoResponse.getNetworkWithPraFileUrl());
+        assertEquals("simple-RaoResultJson-url", raoResponse.getRaoResultFileUrl());
         assertEquals(Optional.of("2019-01-08T12:30:00Z"), raoResponse.getInstant());
     }
 }
