@@ -99,13 +99,19 @@ class RaoRunnerServiceTest {
                 "http://host:9000/crac.json",
                 "http://host:9000/refProg.xml",
                 "http://host:9000/glsk.xml",
-                "raoParams.json",
+                "raoParameters.json",
                 "destination-key");
+
+        Mockito.when(fileImporter.importRaoParameters(coreRaoRequest)).thenReturn(new RaoParameters());
+        Mockito.when(fileImporter.importRefProg(coreRaoRequest.getInstant().get(), coreRaoRequest.getRefprogFileUrl().get()))
+                .thenReturn(referenceProgram);
+        Mockito.when(fileImporter.importGlsk(coreRaoRequest.getInstant().get(), coreRaoRequest.getRealGlskFileUrl().get(), network))
+                .thenReturn(glsks);
 
         Mockito.when(fileExporter.saveNetwork(network, coreRaoRequest)).thenReturn("simple-networkWithPRA-url");
         Mockito.when(fileExporter.saveRaoResult(raoResult, crac, coreRaoRequest)).thenReturn("simple-RaoResultJson-url");
 
-        RaoResponse raoResponse = raoRunnerService.runRao(coreRaoRequest, network, crac, Optional.of(glsks), Optional.of(referenceProgram), new RaoParameters());
+        RaoResponse raoResponse = raoRunnerService.runRao(coreRaoRequest);
         assertEquals("id", raoResponse.getId());
         assertEquals("http://host:9000/crac.json", raoResponse.getCracFileUrl());
         assertEquals("simple-networkWithPRA-url", raoResponse.getNetworkWithPraFileUrl());

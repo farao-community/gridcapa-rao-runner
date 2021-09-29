@@ -51,41 +51,33 @@ public class FileImporter {
         }
     }
 
-    Optional<ZonalData<LinearGlsk>> importGlsk(RaoRequest raoRequest, Network network) {
-        Optional<String> glskFileUrl = raoRequest.getRealGlskFileUrl();
-        Optional<String> timestamp = raoRequest.getInstant();
-        if (glskFileUrl.isPresent()) {
-            try {
-                InputStream glskFileInputStream = minioAdapter.getInputStreamFromUrl(glskFileUrl.get());
-                GlskDocument ucteGlskProvider = GlskDocumentImporters.importGlsk(glskFileInputStream);
-                if (timestamp.isPresent()) {
-                    OffsetDateTime offsetDateTime = OffsetDateTime.parse(timestamp.get());
-                    return Optional.of(ucteGlskProvider.getZonalGlsks(network, offsetDateTime.toInstant()));
-                } else {
-                    return Optional.of(ucteGlskProvider.getZonalGlsks(network));
-                }
-            } catch (Exception e) {
-                throw new RaoRunnerException(String.format("Error occurred during GLSK Provider creation for timestamp: %s, using GLSK file: %s, and CGM network file %s. Cause: %s", timestamp, minioAdapter.getFileNameFromUrl(glskFileUrl.get()), network.getNameOrId(), e.getMessage()));
-            }
-        } else {
-            return Optional.empty();
+    ZonalData<LinearGlsk> importGlsk(String instant, String glskUrl, Network network) {
+        try {
+            InputStream glskFileInputStream = minioAdapter.getInputStreamFromUrl(glskUrl);
+            GlskDocument ucteGlskProvider = GlskDocumentImporters.importGlsk(glskFileInputStream);
+            OffsetDateTime offsetDateTime = OffsetDateTime.parse(instant);
+            return ucteGlskProvider.getZonalGlsks(network, offsetDateTime.toInstant());
+        } catch (Exception e) {
+            throw new RaoRunnerException(
+                    String.format("Error occurred during GLSK Provider creation for timestamp: %s, using GLSK file: %s, and CGM network file %s. Cause: %s",
+                            instant,
+                            minioAdapter.getFileNameFromUrl(glskUrl),
+                            network.getNameOrId(),
+                            e.getMessage()));
         }
     }
 
-    Optional<ReferenceProgram> importRefProg(RaoRequest raoRequest) {
-        Optional<String> refProgFileUrl = raoRequest.getRefprogFileUrl();
-        Optional<String> timestamp = raoRequest.getInstant();
-        if (refProgFileUrl.isPresent() && timestamp.isPresent()) {
-            try {
-                InputStream refProgFileInputStream = minioAdapter.getInputStreamFromUrl(refProgFileUrl.get());
-                OffsetDateTime offsetDateTime = OffsetDateTime.parse(timestamp.get());
-                ReferenceProgram referenceProgram = RefProgImporter.importRefProg(refProgFileInputStream, offsetDateTime);
-                return Optional.of(referenceProgram);
-            } catch (Exception e) {
-                throw new RaoRunnerException(String.format("Error occurred during Reference Program creation for timestamp: %s, using refProg file: %s. Cause: %s", timestamp, minioAdapter.getFileNameFromUrl(refProgFileUrl.get()), e.getMessage()));
-            }
-        } else {
-            return Optional.empty();
+    ReferenceProgram importRefProg(String instant, String refProgUrl) {
+        try {
+            InputStream refProgFileInputStream = minioAdapter.getInputStreamFromUrl(refProgUrl);
+            OffsetDateTime offsetDateTime = OffsetDateTime.parse(instant);
+            return RefProgImporter.importRefProg(refProgFileInputStream, offsetDateTime);
+        } catch (Exception e) {
+            throw new RaoRunnerException(
+                    String.format("Error occurred during Reference Program creation for timestamp: %s, using refProg file: %s. Cause: %s",
+                            instant,
+                            minioAdapter.getFileNameFromUrl(refProgUrl),
+                            e.getMessage()));
         }
     }
 

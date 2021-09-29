@@ -6,6 +6,7 @@
  */
 package com.farao_community.farao.rao_runner.app;
 
+import com.farao_community.farao.commons.FaraoException;
 import com.farao_community.farao.commons.ZonalData;
 import com.farao_community.farao.data.crac_api.Crac;
 import com.farao_community.farao.data.crac_api.State;
@@ -49,11 +50,15 @@ public class RaoRunnerService {
     public RaoResponse runRao(RaoRequest raoRequest) {
         Network network = fileImporter.importNetwork(raoRequest);
         Crac crac = fileImporter.importCrac(raoRequest);
-        Optional<ZonalData<LinearGlsk>> glskProvider = fileImporter.importGlsk(raoRequest, network);
-        Optional<ReferenceProgram> referenceProgram = fileImporter.importRefProg(raoRequest);
         RaoParameters raoParameters = fileImporter.importRaoParameters(raoRequest);
         logParameters(raoParameters);
-        return runRao(raoRequest, network, crac, glskProvider, referenceProgram, raoParameters);
+        try {
+            RaoResult raoResult = raoRunnerProvider.run(getRaoInput(raoRequest, network, crac), raoParameters);
+            applyRemedialActionsForState(network, raoResult, crac.getPreventiveState());
+            return saveResultsAndCreateRaoResponse(raoRequest, crac, raoResult, network);
+        } catch (FaraoException e) {
+            throw new RaoRunnerException("FARAO exception occurred when running rao: " + e.getMessage(), e);
+        }
     }
 
     private void logParameters(RaoParameters raoParameters) {
@@ -64,33 +69,28 @@ public class RaoRunnerService {
         }
     }
 
-    public RaoResponse runRao(RaoRequest raoRequest,
-                              Network network,
-                              Crac crac,
-                              Optional<ZonalData<LinearGlsk>> glsks,
-                              Optional<ReferenceProgram> referenceProgram,
-                              RaoParameters raoParameters) {
-        try {
-            RaoInput.RaoInputBuilder raoInputBuilder = RaoInput.build(network, crac);
-            glsks.ifPresent(raoInputBuilder::withGlskProvider);
-            referenceProgram.ifPresent(raoInputBuilder::withRefProg);
+    private RaoInput getRaoInput(RaoRequest raoRequest, Network network, Crac crac) {
+        RaoInput.RaoInputBuilder raoInputBuilder = RaoInput.build(network, crac);
+        addCoreD2CCInputsIfPresent(raoRequest, raoInputBuilder, network);
+        return raoInputBuilder.build();
+    }
 
-            if (glsks.isPresent() && referenceProgram.isPresent()) {
-                ZonalData<LinearGlsk> glskOfVirtualHubs = GlskVirtualHubs.getVirtualHubGlsks(network, referenceProgram.get());
-                glsks.get().addAll(glskOfVirtualHubs);
-                raoInputBuilder.withGlskProvider(glsks.get());
-            }
-            // Run search tree rao
-            RaoResult raoResult = raoRunnerProvider.run(raoInputBuilder.build(), raoParameters);
-            return uploadRaoResultsToFileStorageServer(raoRequest, crac, raoResult, network);
-        } catch (Exception e) {
-            throw new RaoRunnerException("Error occurred when running rao: " + e.getMessage(), e);
+    private void addCoreD2CCInputsIfPresent(RaoRequest raoRequest, RaoInput.RaoInputBuilder raoInputBuilder, Network network) {
+        Optional<String> optInstant = raoRequest.getInstant();
+        Optional<String> optGlskUrl = raoRequest.getRealGlskFileUrl();
+        Optional<String> optRefProgUrl = raoRequest.getRefprogFileUrl();
+        if (optInstant.isPresent() && optGlskUrl.isPresent() && optRefProgUrl.isPresent()) {
+            ReferenceProgram referenceProgram = fileImporter.importRefProg(optInstant.get(), optRefProgUrl.get());
+            ZonalData<LinearGlsk> glskProvider = fileImporter.importGlsk(optInstant.get(), optGlskUrl.get(), network);
+            ZonalData<LinearGlsk> glskOfVirtualHubs = GlskVirtualHubs.getVirtualHubGlsks(network, referenceProgram);
+            glskProvider.addAll(glskOfVirtualHubs);
+            raoInputBuilder.withGlskProvider(glskProvider);
+            raoInputBuilder.withRefProg(referenceProgram);
         }
     }
 
-    private RaoResponse uploadRaoResultsToFileStorageServer(RaoRequest raoRequest, Crac crac, RaoResult raoResult, Network network) {
+    private RaoResponse saveResultsAndCreateRaoResponse(RaoRequest raoRequest, Crac crac, RaoResult raoResult, Network network) {
         String raoResultFileUrl = fileExporter.saveRaoResult(raoResult, crac, raoRequest);
-        applyRemedialActionsForState(network, raoResult, crac.getPreventiveState());
         String networkWithPraFileUrl = fileExporter.saveNetwork(network, raoRequest);
         String instant = raoRequest.getInstant().orElse(null);
         return new RaoResponse(raoRequest.getId(), instant, networkWithPraFileUrl, raoRequest.getCracFileUrl(), raoResultFileUrl);

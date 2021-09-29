@@ -38,7 +38,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * @author Mohamed BenRejeb {@literal <mohamed.ben-rejeb at rte-france.com>}
  */
 @SpringBootTest
-public class FileImporterTest {
+class FileImporterTest {
 
     @Autowired
     FileImporter fileImporter;
@@ -89,7 +89,7 @@ public class FileImporterTest {
     @Test
     void checkGlskIsImportedCorrectly() {
         Network network = Importers.loadNetwork("network.xiidm", getClass().getResourceAsStream("/rao_inputs/network.xiidm"));
-        ZonalData<LinearGlsk> glsks = fileImporter.importGlsk(raoRequest, network).get();
+        ZonalData<LinearGlsk> glsks = fileImporter.importGlsk("2019-01-08T21:30:00Z", "glskFileUrl", network);
         assertEquals(4, glsks.getDataPerZone().size());
         assertEquals(3, glsks.getData("10YFR-RTE------C").getGLSKs().size());
 
@@ -97,7 +97,7 @@ public class FileImporterTest {
 
     @Test
     void checkRefProgIsImportedCorrectly() {
-        ReferenceProgram referenceProgram = fileImporter.importRefProg(raoRequest).get();
+        ReferenceProgram referenceProgram = fileImporter.importRefProg("2019-01-08T21:30:00Z", "refprogFileUrl");
         assertEquals(4, referenceProgram.getReferenceExchangeDataList().size());
         assertEquals(1600, referenceProgram.getExchange("10YFR-RTE------C", "10YCB-GERMANY--8"));
     }
