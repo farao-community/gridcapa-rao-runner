@@ -89,10 +89,9 @@ public class RaoRunnerService {
     }
 
     private RaoResponse uploadRaoResultsToFileStorageServer(RaoRequest raoRequest, Crac crac, RaoResult raoResult, Network network) {
-        String resultsDestination = fileExporter.generateResultsDestination(raoRequest);
-        String raoResultFileUrl = fileExporter.exportAndSaveJsonRaoResult(raoResult, crac, resultsDestination);
+        String raoResultFileUrl = fileExporter.saveRaoResult(raoResult, crac, raoRequest);
         applyRemedialActionsForState(network, raoResult, crac.getPreventiveState());
-        String networkWithPraFileUrl = fileExporter.exportAndSaveNetworkWithPra(raoResult, network, resultsDestination);
+        String networkWithPraFileUrl = fileExporter.saveNetwork(network, raoRequest);
         String instant = raoRequest.getInstant().orElse(null);
         return new RaoResponse(raoRequest.getId(), instant, networkWithPraFileUrl, raoRequest.getCracFileUrl(), raoResultFileUrl);
     }

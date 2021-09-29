@@ -19,7 +19,6 @@ import com.farao_community.farao.rao_api.Rao;
 import com.farao_community.farao.rao_api.parameters.RaoParameters;
 import com.farao_community.farao.rao_runner.api.resource.RaoRequest;
 import com.farao_community.farao.rao_runner.api.resource.RaoResponse;
-import com.farao_community.farao.rao_runner.app.configuration.MinioAdapter;
 import com.powsybl.iidm.import_.Importers;
 import com.powsybl.iidm.network.Network;
 import com.powsybl.sensitivity.factors.variables.LinearGlsk;
@@ -48,8 +47,6 @@ class RaoRunnerServiceTest {
     @MockBean
     Rao.Runner raoRunnerProv;
     @MockBean
-    MinioAdapter minioAdapter;
-    @MockBean
     FileImporter fileImporter;
     @MockBean
     FileExporter fileExporter;
@@ -62,8 +59,6 @@ class RaoRunnerServiceTest {
 
     @BeforeEach
     public void setUp() {
-        Mockito.when(minioAdapter.getFileNameFromUrl(Mockito.any())).thenCallRealMethod();
-        Mockito.doNothing().when(minioAdapter).uploadFile(Mockito.any(), Mockito.any());
         InputStream raoResultInputStream = getClass().getResourceAsStream("/rao_inputs/raoResult.json");
         network = Importers.loadNetwork("network.xiidm", getClass().getResourceAsStream("/rao_inputs/network.xiidm"));
         crac = CracImporters.importCrac("crac.json", Objects.requireNonNull(getClass().getResourceAsStream("/rao_inputs/crac.json")));
@@ -79,14 +74,15 @@ class RaoRunnerServiceTest {
 
         Mockito.when(fileImporter.importNetwork(Mockito.any())).thenReturn(network);
         Mockito.when(fileImporter.importCrac(Mockito.any())).thenReturn(crac);
-        Mockito.when(fileExporter.generateResultsDestination(Mockito.any())).thenReturn("/");
-        Mockito.when(fileExporter.exportAndSaveNetworkWithPra(raoResult, network, "/")).thenReturn("simple-networkWithPRA-url");
-        Mockito.when(fileExporter.exportAndSaveJsonRaoResult(raoResult, crac, "/")).thenReturn("simple-RaoResultJson-url");
     }
 
     @Test
     void checkSimpleRaoRun() {
         RaoRequest simpleRaoRequest = new RaoRequest("id", "http://host:9000/network.xiidm", "http://host:9000/crac.json");
+
+        Mockito.when(fileExporter.saveNetwork(network, simpleRaoRequest)).thenReturn("simple-networkWithPRA-url");
+        Mockito.when(fileExporter.saveRaoResult(raoResult, crac, simpleRaoRequest)).thenReturn("simple-RaoResultJson-url");
+
         RaoResponse raoResponse = raoRunnerService.runRao(simpleRaoRequest);
         assertEquals("id", raoResponse.getId());
         assertEquals("http://host:9000/crac.json", raoResponse.getCracFileUrl());
@@ -105,6 +101,10 @@ class RaoRunnerServiceTest {
                 "http://host:9000/glsk.xml",
                 "raoParams.json",
                 "destination-key");
+
+        Mockito.when(fileExporter.saveNetwork(network, coreRaoRequest)).thenReturn("simple-networkWithPRA-url");
+        Mockito.when(fileExporter.saveRaoResult(raoResult, crac, coreRaoRequest)).thenReturn("simple-RaoResultJson-url");
+
         RaoResponse raoResponse = raoRunnerService.runRao(coreRaoRequest, network, crac, Optional.of(glsks), Optional.of(referenceProgram), new RaoParameters());
         assertEquals("id", raoResponse.getId());
         assertEquals("http://host:9000/crac.json", raoResponse.getCracFileUrl());

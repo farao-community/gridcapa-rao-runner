@@ -1,10 +1,14 @@
+/*
+ * Copyright (c) 2021, RTE (http://www.rte-france.com)
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ */
 package com.farao_community.farao.rao_runner.app;
 
 import com.farao_community.farao.data.crac_api.Crac;
-import com.farao_community.farao.data.rao_result_api.ComputationStatus;
 import com.farao_community.farao.data.rao_result_api.RaoResult;
 import com.farao_community.farao.data.rao_result_json.RaoResultExporter;
-import com.farao_community.farao.rao_runner.api.exceptions.RaoRunnerException;
 import com.farao_community.farao.rao_runner.api.resource.RaoRequest;
 import com.farao_community.farao.rao_runner.app.configuration.MinioAdapter;
 import com.powsybl.commons.datasource.MemDataSource;
@@ -15,7 +19,6 @@ import org.springframework.stereotype.Service;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.util.Objects;
 
 /**
  * @author Joris Mancini {@literal <joris.mancini at rte-france.com>}
@@ -33,29 +36,24 @@ public class FileExporter {
         this.minioAdapter = minioAdapter;
     }
 
-    String generateResultsDestination(RaoRequest raoRequest) {
-        return raoRequest.getResultsDestination().orElse(minioAdapter.getDefaultBasePath() + "/" + raoRequest.getId());
+    String saveNetwork(Network network, RaoRequest raoRequest) {
+        MemDataSource dataSource = new MemDataSource();
+        Exporters.export(IIDM_EXPORT_FORMAT, network, null, dataSource);
+        String networkWithPRADestinationPath = makeTargetDirectoryPath(raoRequest) + File.separator + NETWORK;
+        minioAdapter.uploadFile(networkWithPRADestinationPath, new ByteArrayInputStream(dataSource.getData(null, IIDM_EXTENSION)));
+        return minioAdapter.generatePreSignedUrl(networkWithPRADestinationPath);
     }
 
-    String exportAndSaveNetworkWithPra(RaoResult raoResult, Network network, String resultsDestination) {
-        String networkWithPraFileUrl;
-        if (Objects.nonNull(raoResult) && raoResult.getComputationStatus() != ComputationStatus.FAILURE) {
-            MemDataSource dataSource = new MemDataSource();
-            Exporters.export(IIDM_EXPORT_FORMAT, network, null, dataSource);
-            String networkWithPRADestinationPath = resultsDestination + File.separator + NETWORK;
-            minioAdapter.uploadFile(networkWithPRADestinationPath, new ByteArrayInputStream(dataSource.getData(null, IIDM_EXTENSION)));
-            networkWithPraFileUrl = minioAdapter.generatePreSignedUrl(networkWithPRADestinationPath);
-            return networkWithPraFileUrl;
-        } else {
-            throw new RaoRunnerException("Cannot find optimized network in rao result");
-        }
-    }
-
-    String exportAndSaveJsonRaoResult(RaoResult raoResult, Crac crac, String resultsDestination) {
+    String saveRaoResult(RaoResult raoResult, Crac crac, RaoRequest raoRequest) {
         ByteArrayOutputStream outputStreamRaoResult = new ByteArrayOutputStream();
         new RaoResultExporter().export(raoResult, crac, outputStreamRaoResult);
-        String raoResultDestinationPath = resultsDestination + File.separator + RAO_RESULT;
+        String raoResultDestinationPath = makeTargetDirectoryPath(raoRequest) + File.separator + RAO_RESULT;
         minioAdapter.uploadFile(raoResultDestinationPath, new ByteArrayInputStream(outputStreamRaoResult.toByteArray()));
         return minioAdapter.generatePreSignedUrl(raoResultDestinationPath);
+    }
+
+    private String makeTargetDirectoryPath(RaoRequest raoRequest) {
+        return raoRequest.getResultsDestination()
+                .orElse(minioAdapter.getDefaultBasePath() + "/" + raoRequest.getId());
     }
 }

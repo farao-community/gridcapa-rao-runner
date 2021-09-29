@@ -30,46 +30,59 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
  * @author Mohamed BenRejeb {@literal <mohamed.ben-rejeb at rte-france.com>}
  */
 @SpringBootTest
-public class FileExporterTest {
+class FileExporterTest {
 
     @Autowired
     FileExporter fileExporter;
     @MockBean
     MinioAdapter minioAdapter;
+
     RaoRequest simpleRaoRequest = new RaoRequest("id", "networkFileUrl", "cracFileUrl");
+    RaoRequest raoRequestWithResultDestination = new RaoRequest("id", "networkFileUrl", "cracFileUrl", "destination-key");
 
     @BeforeEach
     public void setUp() {
         Mockito.when(minioAdapter.getFileNameFromUrl(Mockito.any())).thenCallRealMethod();
         Mockito.when(minioAdapter.getDefaultBasePath()).thenReturn("base/path");
         Mockito.doNothing().when(minioAdapter).uploadFile(Mockito.any(), Mockito.any());
+    }
+
+    @Test
+    void checkRaoResultSavingWithResultDestination() {
         Mockito.when(minioAdapter.generatePreSignedUrl("destination-key/raoResult.json")).thenReturn("raoResultUrl");
-        Mockito.when(minioAdapter.generatePreSignedUrl("destination-key/networkWithPRA.xiidm")).thenReturn("networkWithPraUrl");
-    }
-
-    @Test
-    void checkGenerateResultsDestination() {
-        String resultsDestination = fileExporter.generateResultsDestination(simpleRaoRequest);
-        assertEquals("base/path/id", resultsDestination);
-    }
-
-    @Test
-    void checkRaoResultCreation() {
         InputStream raoResultInputStream = getClass().getResourceAsStream("/rao_inputs/raoResult.json");
         Crac crac = CracImporters.importCrac("crac.json", Objects.requireNonNull(getClass().getResourceAsStream("/rao_inputs/crac.json")));
         RaoResult raoResult = new RaoResultImporter().importRaoResult(raoResultInputStream, crac);
-        String resultsDestination = fileExporter.exportAndSaveJsonRaoResult(raoResult, crac, "destination-key");
+        String resultsDestination = fileExporter.saveRaoResult(raoResult, crac, raoRequestWithResultDestination);
         assertEquals("raoResultUrl", resultsDestination);
     }
 
     @Test
-    void checkNetworkWithCreation() {
+    void checkRaoResultSavingWithNoResultDestination() {
+        Mockito.when(minioAdapter.generatePreSignedUrl("base/path/id/raoResult.json")).thenReturn("raoResultUrl");
         InputStream raoResultInputStream = getClass().getResourceAsStream("/rao_inputs/raoResult.json");
-        Network network = Importers.loadNetwork("network.xiidm", getClass().getResourceAsStream("/rao_inputs/network.xiidm"));
         Crac crac = CracImporters.importCrac("crac.json", Objects.requireNonNull(getClass().getResourceAsStream("/rao_inputs/crac.json")));
         RaoResult raoResult = new RaoResultImporter().importRaoResult(raoResultInputStream, crac);
-        String resultsDestination = fileExporter.exportAndSaveNetworkWithPra(raoResult, network, "destination-key");
-        assertEquals("networkWithPraUrl", resultsDestination);
+        String resultsDestination = fileExporter.saveRaoResult(raoResult, crac, simpleRaoRequest);
+        assertEquals("raoResultUrl", resultsDestination);
+    }
+
+    @Test
+    void checkNetworkSavingWithResultDestination() {
+        Mockito.when(minioAdapter.generatePreSignedUrl("destination-key/networkWithPRA.xiidm")).thenReturn("networkWithPraUrl");
+
+        Network network = Importers.loadNetwork("network.xiidm", getClass().getResourceAsStream("/rao_inputs/network.xiidm"));
+        String networkPraUrl = fileExporter.saveNetwork(network, raoRequestWithResultDestination);
+        assertEquals("networkWithPraUrl", networkPraUrl);
+    }
+
+    @Test
+    void checkNetworkSavingWithNoResultDestination() {
+        Mockito.when(minioAdapter.generatePreSignedUrl("base/path/id/networkWithPRA.xiidm")).thenReturn("networkWithPraUrl");
+
+        Network network = Importers.loadNetwork("network.xiidm", getClass().getResourceAsStream("/rao_inputs/network.xiidm"));
+        String networkPraUrl = fileExporter.saveNetwork(network, simpleRaoRequest);
+        assertEquals("networkWithPraUrl", networkPraUrl);
     }
 
 }
