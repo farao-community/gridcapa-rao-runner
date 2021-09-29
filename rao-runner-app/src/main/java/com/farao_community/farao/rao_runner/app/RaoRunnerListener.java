@@ -51,8 +51,8 @@ public class RaoRunnerListener  implements MessageListener {
             sendRaoResponse(raoResponse, replyTo, correlationId);
         } catch (RaoRunnerException e) {
             sendErrorResponse(e, replyTo, correlationId);
-        } catch (Exception e) {
-            RaoRunnerException wrappingException = new RaoRunnerException("Unknown exception", e);
+        } catch (RuntimeException e) {
+            RaoRunnerException wrappingException = new RaoRunnerException("Unhandled exception: " + e.getMessage(), e);
             sendErrorResponse(wrappingException, replyTo, correlationId);
         }
     }
