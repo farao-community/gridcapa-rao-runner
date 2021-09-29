@@ -1,0 +1,394 @@
+{
+  "computationStatus" : "default",
+  "costResults" : {
+    "initial" : {
+      "functionalCost" : 0.0,
+      "virtualCost" : {
+        "mnec-cost" : 0.0,
+        "sensitivity-fallback-cost" : 0.0
+      }
+    },
+    "afterPRA" : {
+      "functionalCost" : -983.8937072753906,
+      "virtualCost" : {
+        "mnec-cost" : 0.0,
+        "sensitivity-fallback-cost" : 0.0
+      }
+    },
+    "afterCRA" : {
+      "functionalCost" : 241.965087890625,
+      "virtualCost" : {
+        "mnec-cost" : 0.0,
+        "sensitivity-fallback-cost" : 0.0
+      }
+    }
+  },
+  "flowCnecResults" : [ {
+    "flowCnecId" : "de2_nl3_N - preventive",
+    "initial" : {
+      "megawatt" : {
+        "flow" : -756.964111328125,
+        "margin" : 4221.06572646588
+      },
+      "ampere" : {
+        "flow" : -1092.8896484375,
+        "margin" : 6092.8896484375
+      }
+    },
+    "afterPRA" : {
+      "megawatt" : {
+        "flow" : -736.455810546875,
+        "margin" : 4200.55742568463
+      },
+      "ampere" : {
+        "flow" : -1063.26416015625,
+        "margin" : 6063.26416015625
+      }
+    }
+  }, {
+    "flowCnecId" : "fr1_fr4_CO1 - curative",
+    "initial" : {
+      "megawatt" : {
+        "flow" : 1305.8040771484375,
+        "margin" : 79.8365689066643
+      },
+      "ampere" : {
+        "flow" : 1886.3397216796875,
+        "margin" : 113.6602783203125
+      }
+    },
+    "afterPRA" : {
+      "megawatt" : {
+        "flow" : 1725.0694580078125,
+        "margin" : -339.4288119527107
+      },
+      "ampere" : {
+        "flow" : 2493.559814453125,
+        "margin" : -493.559814453125
+      }
+    },
+    "afterCRA" : {
+      "megawatt" : {
+        "flow" : 1551.447998046875,
+        "margin" : -165.8073519917732
+      },
+      "ampere" : {
+        "flow" : 2241.965087890625,
+        "margin" : -241.965087890625
+      }
+    }
+  }, {
+    "flowCnecId" : "fr1_fr4_CO1 - outage",
+    "initial" : {
+      "megawatt" : {
+        "flow" : 1305.8040771484375,
+        "margin" : 1384334.8419779534
+      },
+      "ampere" : {
+        "flow" : 1886.3397216796875,
+        "margin" : 1998113.6602783203
+      }
+    },
+    "afterPRA" : {
+      "megawatt" : {
+        "flow" : 1725.0694580078125,
+        "margin" : 1383915.576597094
+      },
+      "ampere" : {
+        "flow" : 2493.559814453125,
+        "margin" : 1997506.4401855469
+      }
+    },
+    "afterCRA" : {
+      "megawatt" : {
+        "flow" : 1725.0694580078125,
+        "margin" : 1383915.576597094
+      },
+      "ampere" : {
+        "flow" : 2493.559814453125,
+        "margin" : 1997506.4401855469
+      }
+    }
+  }, {
+    "flowCnecId" : "fr3_fr5_CO1 - DIR - curative",
+    "initial" : {
+      "megawatt" : {
+        "flow" : -222.03469848632812,
+        "margin" : 914.855021513879
+      },
+      "ampere" : {
+        "flow" : -320.4871826171875,
+        "margin" : 1320.4871826171875
+      }
+    },
+    "afterPRA" : {
+      "megawatt" : {
+        "flow" : 149.72119140625,
+        "margin" : 543.0991316213009
+      },
+      "ampere" : {
+        "flow" : 216.10629272460938,
+        "margin" : 783.8937072753906
+      }
+    },
+    "afterCRA" : {
+      "megawatt" : {
+        "flow" : 225.02108764648438,
+        "margin" : 467.7992353810665
+      },
+      "ampere" : {
+        "flow" : 324.7980041503906,
+        "margin" : 675.2019958496094
+      }
+    }
+  }, {
+    "flowCnecId" : "fr3_fr5_CO1 - DIR - outage",
+    "initial" : {
+      "megawatt" : {
+        "flow" : -222.03469848632812,
+        "margin" : 1053.4190861193892
+      },
+      "ampere" : {
+        "flow" : -320.4871826171875,
+        "margin" : 1520.4871826171875
+      }
+    },
+    "afterPRA" : {
+      "megawatt" : {
+        "flow" : 149.72119140625,
+        "margin" : 681.6631962268111
+      },
+      "ampere" : {
+        "flow" : 216.10629272460938,
+        "margin" : 983.8937072753906
+      }
+    },
+    "afterCRA" : {
+      "megawatt" : {
+        "flow" : 149.72119140625,
+        "margin" : 681.6631962268111
+      },
+      "ampere" : {
+        "flow" : 216.10629272460938,
+        "margin" : 983.8937072753906
+      }
+    }
+  }, {
+    "flowCnecId" : "fr3_fr5_CO1 - OPP - curative",
+    "initial" : {
+      "megawatt" : {
+        "flow" : -222.03469848632812,
+        "margin" : 470.7856245412228
+      },
+      "ampere" : {
+        "flow" : -320.4871826171875,
+        "margin" : 679.5128173828125
+      }
+    },
+    "afterPRA" : {
+      "megawatt" : {
+        "flow" : 149.72119140625,
+        "margin" : 842.5415144338009
+      },
+      "ampere" : {
+        "flow" : 216.10629272460938,
+        "margin" : 1216.1062927246094
+      }
+    },
+    "afterCRA" : {
+      "megawatt" : {
+        "flow" : 225.02108764648438,
+        "margin" : 917.8414106740353
+      },
+      "ampere" : {
+        "flow" : 324.7980041503906,
+        "margin" : 1324.7980041503906
+      }
+    }
+  }, {
+    "flowCnecId" : "fr3_fr5_CO1 - OPP - outage",
+    "initial" : {
+      "megawatt" : {
+        "flow" : -222.03469848632812,
+        "margin" : 609.349689146733
+      },
+      "ampere" : {
+        "flow" : -320.4871826171875,
+        "margin" : 879.5128173828125
+      }
+    },
+    "afterPRA" : {
+      "megawatt" : {
+        "flow" : 149.72119140625,
+        "margin" : 981.1055790393111
+      },
+      "ampere" : {
+        "flow" : 216.10629272460938,
+        "margin" : 1416.1062927246094
+      }
+    },
+    "afterCRA" : {
+      "megawatt" : {
+        "flow" : 149.72119140625,
+        "margin" : 981.1055790393111
+      },
+      "ampere" : {
+        "flow" : 216.10629272460938,
+        "margin" : 1416.1062927246094
+      }
+    }
+  }, {
+    "flowCnecId" : "fr4_de1_CO1 - curative",
+    "initial" : {
+      "megawatt" : {
+        "flow" : 430.91534423828125,
+        "margin" : 608.3151403030452
+      },
+      "ampere" : {
+        "flow" : 622.0291137695312,
+        "margin" : 877.9708862304688
+      }
+    },
+    "afterPRA" : {
+      "megawatt" : {
+        "flow" : 353.0614318847656,
+        "margin" : 686.1690526565608
+      },
+      "ampere" : {
+        "flow" : 509.6313171386719,
+        "margin" : 990.3686828613281
+      }
+    },
+    "afterCRA" : {
+      "megawatt" : {
+        "flow" : 281.3052062988281,
+        "margin" : 757.9252782424983
+      },
+      "ampere" : {
+        "flow" : 406.0447998046875,
+        "margin" : 1093.9552001953125
+      }
+    }
+  }, {
+    "flowCnecId" : "fr4_de1_CO1 - outage",
+    "initial" : {
+      "megawatt" : {
+        "flow" : 430.91534423828125,
+        "margin" : 746.844563892404
+      },
+      "ampere" : {
+        "flow" : 622.0291137695312,
+        "margin" : 1077.9208862304688
+      }
+    },
+    "afterPRA" : {
+      "megawatt" : {
+        "flow" : 353.0614318847656,
+        "margin" : 824.6984762459197
+      },
+      "ampere" : {
+        "flow" : 509.6313171386719,
+        "margin" : 1190.3186828613282
+      }
+    },
+    "afterCRA" : {
+      "megawatt" : {
+        "flow" : 353.0614318847656,
+        "margin" : 824.6984762459197
+      },
+      "ampere" : {
+        "flow" : 509.6313171386719,
+        "margin" : 1190.3186828613282
+      }
+    }
+  }, {
+    "flowCnecId" : "fr4_de1_N - preventive",
+    "initial" : {
+      "megawatt" : {
+        "flow" : 448.6268005371094,
+        "margin" : 590.603684004217
+      },
+      "ampere" : {
+        "flow" : 647.6006469726562,
+        "margin" : 852.3993530273438
+      }
+    },
+    "afterPRA" : {
+      "megawatt" : {
+        "flow" : 357.2601013183594,
+        "margin" : 681.970383222967
+      },
+      "ampere" : {
+        "flow" : 515.6926879882812,
+        "margin" : 984.3073120117188
+      }
+    }
+  }, {
+    "flowCnecId" : "nl2_be3_N - preventive",
+    "initial" : {
+      "megawatt" : {
+        "flow" : -1256.947265625,
+        "margin" : 4721.048880762755
+      },
+      "ampere" : {
+        "flow" : -1815.6505126953125,
+        "margin" : 6815.6505126953125
+      }
+    },
+    "afterPRA" : {
+      "megawatt" : {
+        "flow" : -1236.455810546875,
+        "margin" : 4700.55742568463
+      },
+      "ampere" : {
+        "flow" : -1786.0059814453125,
+        "margin" : 6786.0059814453125
+      }
+    }
+  } ],
+  "networkActionResults" : [ {
+    "networkActionId" : "close_de3_de4",
+    "activatedStates" : [ {
+      "instant" : "preventive"
+    } ]
+  }, {
+    "networkActionId" : "close_fr1_fr5",
+    "activatedStates" : [ {
+      "instant" : "preventive"
+    } ]
+  }, {
+    "networkActionId" : "open_be1_be4",
+    "activatedStates" : [ ]
+  }, {
+    "networkActionId" : "open_fr1_fr2",
+    "activatedStates" : [ ]
+  }, {
+    "networkActionId" : "open_fr1_fr3",
+    "activatedStates" : [ {
+      "instant" : "curative",
+      "contingency" : "CO1_fr2_fr3_1"
+    } ]
+  } ],
+  "pstRangeActionResults" : [ {
+    "pstRangeActionId" : "pst_be",
+    "pstNetworkElementId" : "BBE2AA1  BBE3AA1  1",
+    "initialTap" : 0,
+    "initialSetpoint" : 0.0,
+    "activatedStates" : [ {
+      "instant" : "curative",
+      "contingency" : "CO1_fr2_fr3_1",
+      "tap" : -16,
+      "setpoint" : -6.22764253616333
+    } ]
+  }, {
+    "pstRangeActionId" : "pst_fr",
+    "pstNetworkElementId" : "FFR2AA1  FFR4AA1  1",
+    "initialTap" : 5,
+    "initialSetpoint" : 1.9478689432144165,
+    "activatedStates" : [ {
+      "instant" : "preventive",
+      "tap" : 15,
+      "setpoint" : 5.839110374450684
+    } ]
+  } ]
+}

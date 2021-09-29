@@ -9,11 +9,14 @@ package com.farao_community.farao.rao_runner.app.configuration;
 import com.farao_community.farao.rao_runner.api.exceptions.RaoRunnerException;
 import io.minio.*;
 import io.minio.http.Method;
+import org.apache.commons.io.FilenameUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
+import java.io.IOException;
 import java.io.InputStream;
+import java.net.URL;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -24,15 +27,17 @@ public class MinioAdapter {
     private static final int DEFAULT_DOWNLOAD_LINK_EXPIRY_IN_DAYS = 7;
 
     private final MinioClient minioClient;
+    private final UrlWhitelistConfiguration urlWhitelistConfiguration;
     private final String minioBucket;
     private final String basePath;
 
     private static final Logger LOGGER = LoggerFactory.getLogger(MinioAdapter.class);
 
-    public MinioAdapter(MinioConfiguration minioConfiguration, MinioClient minioClient) {
+    public MinioAdapter(MinioConfiguration minioConfiguration, MinioClient minioClient, UrlWhitelistConfiguration urlWhitelistConfiguration) {
         this.minioClient = minioClient;
         this.minioBucket = minioConfiguration.getBucket();
         this.basePath = minioConfiguration.getBasePath();
+        this.urlWhitelistConfiguration = urlWhitelistConfiguration;
     }
 
     public void uploadFile(String pathDestination, InputStream sourceInputStream) {
@@ -67,4 +72,25 @@ public class MinioAdapter {
     public String getDefaultBasePath() {
         return basePath;
     }
+
+    public InputStream getInputStreamFromUrl(String url) {
+        try {
+            if (urlWhitelistConfiguration.getWhitelist().stream().noneMatch(url::startsWith)) {
+                throw new RaoRunnerException(String.format("URL '%s' is not part of application's whitelisted url's.", url));
+            }
+            return new URL(url).openStream();
+        } catch (IOException e) {
+            throw new RaoRunnerException(String.format("Exception occurred while retrieving file content from : %s Cause: %s ", url, e.getMessage()));
+        }
+    }
+
+    public String getFileNameFromUrl(String stringUrl) {
+        try {
+            URL url = new URL(stringUrl);
+            return FilenameUtils.getName(url.getPath());
+        } catch (IOException e) {
+            throw new RaoRunnerException(String.format("Exception occurred while retrieving file name from : %s Cause: %s ", stringUrl, e.getMessage()));
+        }
+    }
+
 }

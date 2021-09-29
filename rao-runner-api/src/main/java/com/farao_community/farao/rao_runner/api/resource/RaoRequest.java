@@ -59,14 +59,14 @@ public class RaoRequest {
     public RaoRequest(@JsonProperty("id") String id,
                       @JsonProperty("networkFileUrl") String networkFileUrl,
                       @JsonProperty("cracFileUrl") String cracFileUrl) {
-        this.id = id;
-        this.networkFileUrl = networkFileUrl;
-        this.cracFileUrl = cracFileUrl;
-        this.instant = null;
-        this.refprogFileUrl = null;
-        this.realGlskFileUrl = null;
-        this.raoParametersFileUrl = null;
-        this.resultsDestination = null;
+        this(id, null, networkFileUrl, cracFileUrl, null, null, null, null);
+    }
+
+    public RaoRequest(@JsonProperty("id") String id,
+                      @JsonProperty("networkFileUrl") String networkFileUrl,
+                      @JsonProperty("cracFileUrl") String cracFileUrl,
+                      @JsonProperty("resultsDestination") String resultsDestination) {
+        this(id, null, networkFileUrl, cracFileUrl, null, null, null, resultsDestination);
     }
 
     public String getId() {
