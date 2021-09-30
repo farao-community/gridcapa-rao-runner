@@ -37,8 +37,8 @@ class FileExporterTest {
     @MockBean
     MinioAdapter minioAdapter;
 
-    RaoRequest simpleRaoRequest = new RaoRequest("id", "networkFileUrl", "cracFileUrl");
-    RaoRequest raoRequestWithResultDestination = new RaoRequest("id", "networkFileUrl", "cracFileUrl", "destination-key");
+    RaoRequest simpleRaoRequest = new RaoRequest("id", "networkFileUrl", "cracFileUrl", "raoParametersFileUrl");
+    RaoRequest raoRequestWithResultDestination = new RaoRequest("id", "networkFileUrl", "cracFileUrl", "raoParametersFileUrl", "destination-key");
 
     @BeforeEach
     public void setUp() {

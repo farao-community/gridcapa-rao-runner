@@ -21,21 +21,14 @@ import java.util.Optional;
 public class RaoRequest {
 
     @Id
-    private String id;
-
-    private String instant;
-
-    private String networkFileUrl;
-
-    private String cracFileUrl;
-
-    private String refprogFileUrl;
-
-    private String realGlskFileUrl;
-
-    private String raoParametersFileUrl;
-
-    private String resultsDestination;
+    private final String id;
+    private final String instant;
+    private final String networkFileUrl;
+    private final String cracFileUrl;
+    private final String raoParametersFileUrl;
+    private final String refprogFileUrl;
+    private final String realGlskFileUrl;
+    private final String resultsDestination;
 
     @JsonCreator
     public RaoRequest(@JsonProperty("id") String id,
@@ -58,15 +51,17 @@ public class RaoRequest {
 
     public RaoRequest(@JsonProperty("id") String id,
                       @JsonProperty("networkFileUrl") String networkFileUrl,
-                      @JsonProperty("cracFileUrl") String cracFileUrl) {
-        this(id, null, networkFileUrl, cracFileUrl, null, null, null, null);
+                      @JsonProperty("cracFileUrl") String cracFileUrl,
+                      @JsonProperty("raoParametersFileUrl") String raoParametersFileUrl) {
+        this(id, null, networkFileUrl, cracFileUrl, null, null, raoParametersFileUrl, null);
     }
 
     public RaoRequest(@JsonProperty("id") String id,
                       @JsonProperty("networkFileUrl") String networkFileUrl,
                       @JsonProperty("cracFileUrl") String cracFileUrl,
+                      @JsonProperty("raoParametersFileUrl") String raoParametersFileUrl,
                       @JsonProperty("resultsDestination") String resultsDestination) {
-        this(id, null, networkFileUrl, cracFileUrl, null, null, null, resultsDestination);
+        this(id, null, networkFileUrl, cracFileUrl, null, null, raoParametersFileUrl, resultsDestination);
     }
 
     public String getId() {
@@ -93,8 +88,8 @@ public class RaoRequest {
         return Optional.ofNullable(realGlskFileUrl);
     }
 
-    public Optional<String> getRaoParametersFileUrl() {
-        return Optional.ofNullable(raoParametersFileUrl);
+    public String getRaoParametersFileUrl() {
+        return raoParametersFileUrl;
     }
 
     public Optional<String> getResultsDestination() {

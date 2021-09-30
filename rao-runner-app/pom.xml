@@ -84,11 +84,6 @@
         </dependency>
         <dependency>
             <groupId>com.farao-community.farao</groupId>
-            <artifactId>farao-glsk-document-cse</artifactId>
-            <scope>runtime</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.farao-community.farao</groupId>
             <artifactId>farao-glsk-document-ucte</artifactId>
             <scope>runtime</scope>
         </dependency>
@@ -120,6 +115,11 @@
         <dependency>
             <groupId>com.rte-france.powsybl</groupId>
             <artifactId>powsybl-hades2-integration</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.powsybl</groupId>
+            <artifactId>powsybl-open-loadflow</artifactId>
             <scope>runtime</scope>
         </dependency>
         <dependency>

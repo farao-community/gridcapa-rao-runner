@@ -17,7 +17,6 @@ import com.farao_community.farao.data.refprog.refprog_xml_importer.RefProgImport
 import com.farao_community.farao.rao_api.json.JsonRaoParameters;
 import com.farao_community.farao.rao_api.parameters.RaoParameters;
 import com.farao_community.farao.rao_runner.api.exceptions.RaoRunnerException;
-import com.farao_community.farao.rao_runner.api.resource.RaoRequest;
 import com.farao_community.farao.rao_runner.app.configuration.MinioAdapter;
 import com.powsybl.iidm.import_.Importers;
 import com.powsybl.iidm.network.Network;
@@ -26,7 +25,6 @@ import org.springframework.stereotype.Service;
 
 import java.io.InputStream;
 import java.time.OffsetDateTime;
-import java.util.Optional;
 
 /**
  * @author Joris Mancini {@literal <joris.mancini at rte-france.com>}
@@ -40,15 +38,11 @@ public class FileImporter {
         this.minioAdapter = minioAdapter;
     }
 
-    RaoParameters importRaoParameters(RaoRequest raoRequest) {
-        RaoParameters defaultRaoParameters = RaoParameters.load();
-        Optional<String> raoParametersFileUrl = raoRequest.getRaoParametersFileUrl();
-        if (raoParametersFileUrl.isPresent()) {
-            InputStream jsonRaoParametersInputStream = minioAdapter.getInputStreamFromUrl(raoParametersFileUrl.get());
-            return JsonRaoParameters.update(defaultRaoParameters, jsonRaoParametersInputStream);
-        } else {
-            return defaultRaoParameters;
-        }
+    RaoParameters importRaoParameters(String raoParametersFileUrl) {
+        //keep using update method instead of read directly to avoid serialisation issues
+        RaoParameters defaultRaoParameters = new RaoParameters();
+        InputStream customRaoParameters = minioAdapter.getInputStreamFromUrl(raoParametersFileUrl);
+        return JsonRaoParameters.update(defaultRaoParameters, customRaoParameters);
     }
 
     ZonalData<LinearGlsk> importGlsk(String instant, String glskUrl, Network network) {
@@ -81,8 +75,7 @@ public class FileImporter {
         }
     }
 
-    Crac importCrac(RaoRequest raoRequest) {
-        String cracFileUrl = raoRequest.getCracFileUrl();
+    Crac importCrac(String cracFileUrl) {
         try {
             return CracImporters.importCrac(minioAdapter.getFileNameFromUrl(cracFileUrl), minioAdapter.getInputStreamFromUrl(cracFileUrl));
         } catch (FaraoException | RaoRunnerException e) {
@@ -90,8 +83,7 @@ public class FileImporter {
         }
     }
 
-    Network importNetwork(RaoRequest raoRequest) {
-        String networkFileUrl = raoRequest.getNetworkFileUrl();
+    Network importNetwork(String networkFileUrl) {
         try {
             return Importers.loadNetwork(minioAdapter.getFileNameFromUrl(networkFileUrl), minioAdapter.getInputStreamFromUrl(networkFileUrl));
         } catch (Exception e) {
