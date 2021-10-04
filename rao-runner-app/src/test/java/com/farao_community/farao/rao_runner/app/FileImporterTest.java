@@ -17,7 +17,6 @@ import com.powsybl.iidm.network.Country;
 import com.powsybl.iidm.network.Network;
 import com.powsybl.sensitivity.factors.variables.LinearGlsk;
 import com.rte_france.powsybl.iidm.export.adn.ADNLoadFlowParameters;
-import com.powsybl.openloadflow.OpenLoadFlowParameters;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -68,10 +67,6 @@ class FileImporterTest {
         Mockito.when(minioAdapter.getFileNameFromUrl("raoParametersAdnLoadflowFileUrl")).thenReturn("raoParametersFileUrl.json");
         InputStream raoParamsAdnLfInputStream = new ClassPathResource("/rao_inputs/raoParametersWithAdnLoadflow.json").getInputStream();
         Mockito.when(minioAdapter.getInputStreamFromUrl("raoParametersAdnLoadflowFileUrl")).thenReturn(raoParamsAdnLfInputStream);
-
-        Mockito.when(minioAdapter.getFileNameFromUrl("raoParametersOpenLoadflowFileUrl")).thenReturn("raoParametersOpenLoadflowFileUrl.json");
-        InputStream raoParamsOpenLfInputStream = new ClassPathResource("/rao_inputs/raoParametersWithOpenLoadflow.json").getInputStream();
-        Mockito.when(minioAdapter.getInputStreamFromUrl("raoParametersOpenLoadflowFileUrl")).thenReturn(raoParamsOpenLfInputStream);
     }
 
     @Test
@@ -131,14 +126,4 @@ class FileImporterTest {
         assertEquals(1.0, adnLoadFlowParameters.getDcCosphi(), .0);
         assertEquals(2, adnLoadFlowParameters.getNbThreads());
     }
-
-    @Test
-    void checkParametersImportWithOpenLoadflow() {
-        RaoParameters raoParameters = fileImporter.importRaoParameters("raoParametersOpenLoadflowFileUrl");
-        assertEquals("{FR}-{BE}", raoParameters.getRelativeMarginPtdfBoundariesAsString().get(0));
-        assertEquals("MAIN", raoParameters.getDefaultSensitivityAnalysisParameters().getLoadFlowParameters().getConnectedComponentMode().toString());
-        OpenLoadFlowParameters openLoadFlowParameters = raoParameters.getDefaultSensitivityAnalysisParameters().getLoadFlowParameters().getExtension(OpenLoadFlowParameters.class);
-        assertEquals(6000., openLoadFlowParameters.getPlausibleActivePowerLimit(), .0);
-    }
-
 }
