@@ -48,9 +48,9 @@ public class RaoRunnerService {
     }
 
     public RaoResponse runRao(RaoRequest raoRequest) {
-        Network network = fileImporter.importNetwork(raoRequest);
-        Crac crac = fileImporter.importCrac(raoRequest);
-        RaoParameters raoParameters = fileImporter.importRaoParameters(raoRequest);
+        Network network = fileImporter.importNetwork(raoRequest.getNetworkFileUrl());
+        Crac crac = fileImporter.importCrac(raoRequest.getCracFileUrl());
+        RaoParameters raoParameters = fileImporter.importRaoParameters(raoRequest.getRaoParametersFileUrl());
         logParameters(raoParameters);
         try {
             RaoResult raoResult = raoRunnerProvider.run(getRaoInput(raoRequest, network, crac), raoParameters);

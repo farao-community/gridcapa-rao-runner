@@ -10,13 +10,13 @@ import com.farao_community.farao.commons.ZonalData;
 import com.farao_community.farao.data.crac_api.Crac;
 import com.farao_community.farao.data.refprog.reference_program.ReferenceProgram;
 import com.farao_community.farao.rao_api.parameters.RaoParameters;
-import com.farao_community.farao.rao_runner.api.resource.RaoRequest;
 import com.farao_community.farao.rao_runner.app.configuration.MinioAdapter;
 import com.farao_community.farao.search_tree_rao.SearchTreeRaoParameters;
 import com.powsybl.iidm.import_.Importers;
 import com.powsybl.iidm.network.Country;
 import com.powsybl.iidm.network.Network;
 import com.powsybl.sensitivity.factors.variables.LinearGlsk;
+import com.rte_france.powsybl.iidm.export.adn.ADNLoadFlowParameters;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -42,8 +42,6 @@ class FileImporterTest {
 
     @Autowired
     FileImporter fileImporter;
-    RaoRequest raoRequest = new RaoRequest("id", "2019-01-08T21:30:00Z", "networkFileUrl", "cracFileUrl",
-            "refprogFileUrl", "glskFileUrl", "file:/raoParametersFileUrl", "resultsDestination");
     @MockBean
     MinioAdapter minioAdapter;
 
@@ -66,21 +64,21 @@ class FileImporterTest {
         Mockito.when(minioAdapter.getFileNameFromUrl("refprogFileUrl")).thenReturn("refprog.xml");
 
         Mockito.when(minioAdapter.getDefaultBasePath()).thenReturn("base-path");
-        Mockito.when(minioAdapter.getFileNameFromUrl("file:/raoParametersFileUrl")).thenReturn("raoParametersFileUrl.json");
-        InputStream raoParamsInputStream = new ClassPathResource("/rao_inputs/raoParameters.json").getInputStream();
-        Mockito.when(minioAdapter.getInputStreamFromUrl("file:/raoParametersFileUrl")).thenReturn(raoParamsInputStream);
+        Mockito.when(minioAdapter.getFileNameFromUrl("raoParametersAdnLoadflowFileUrl")).thenReturn("raoParametersFileUrl.json");
+        InputStream raoParamsAdnLfInputStream = new ClassPathResource("/rao_inputs/raoParametersWithAdnLoadflow.json").getInputStream();
+        Mockito.when(minioAdapter.getInputStreamFromUrl("raoParametersAdnLoadflowFileUrl")).thenReturn(raoParamsAdnLfInputStream);
     }
 
     @Test
     void checkIidmNetworkIsImportedCorrectly() {
-        Network network = fileImporter.importNetwork(raoRequest);
+        Network network = fileImporter.importNetwork("networkFileUrl");
         assertEquals("UCTE", network.getSourceFormat());
         assertEquals(4, network.getCountryCount());
     }
 
     @Test
     void checkJsonCracIsImportedCorrectly() {
-        Crac crac = fileImporter.importCrac(raoRequest);
+        Crac crac = fileImporter.importCrac("cracFileUrl");
         assertEquals("rao test crac", crac.getId());
         assertEquals(1, crac.getContingencies().size());
         assertEquals(11, crac.getFlowCnecs().size());
@@ -103,16 +101,8 @@ class FileImporterTest {
     }
 
     @Test
-    void checkDefaultRaoParametersAreImported() {
-        RaoRequest simpleRaoRequest = new RaoRequest("id", "networkUrl", "cracUrl");
-        RaoParameters defaultRaoParameters = fileImporter.importRaoParameters(simpleRaoRequest);
-        assertEquals(0, defaultRaoParameters.getLoopflowCountries().size());
-        assertEquals(50.0, defaultRaoParameters.getMnecAcceptableMarginDiminution());
-    }
-
-    @Test
-    void checkRequestedRaoParametersAreImported() {
-        RaoParameters raoParameters = fileImporter.importRaoParameters(raoRequest);
+    void checkParametersImportWithAdnLoadflow() {
+        RaoParameters raoParameters = fileImporter.importRaoParameters("raoParametersAdnLoadflowFileUrl");
 
         List<String> expectedLoopFlowConstraintCountries = Arrays.asList("AT", "BE", "CZ", "DE", "FR", "HR", "HU", "NL", "PL", "RO", "SI", "SK");
         List<String> actualLoopFlowConstraintCountries = raoParameters.getLoopflowCountries().stream().map(Country::toString).collect(Collectors.toList());
@@ -130,6 +120,10 @@ class FileImporterTest {
         assertEquals(15, searchTreeRaoParameters.getMaxCurativeTopoPerTso().size());
         assertEquals(0, searchTreeRaoParameters.getMaxCurativePstPerTso().get("AT"));
         assertEquals(15, searchTreeRaoParameters.getMaxCurativePstPerTso().size());
-    }
 
+        ADNLoadFlowParameters adnLoadFlowParameters = raoParameters.getDefaultSensitivityAnalysisParameters().getLoadFlowParameters().getExtension(ADNLoadFlowParameters.class);
+        assertEquals("COURANT_CONTINU", adnLoadFlowParameters.getDcApproxType());
+        assertEquals(1.0, adnLoadFlowParameters.getDcCosphi(), .0);
+        assertEquals(2, adnLoadFlowParameters.getNbThreads());
+    }
 }

@@ -84,11 +84,6 @@
         </dependency>
         <dependency>
             <groupId>com.farao-community.farao</groupId>
-            <artifactId>farao-glsk-document-cse</artifactId>
-            <scope>runtime</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.farao-community.farao</groupId>
             <artifactId>farao-glsk-document-ucte</artifactId>
             <scope>runtime</scope>
         </dependency>
