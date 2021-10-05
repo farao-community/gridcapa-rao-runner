@@ -35,3 +35,10 @@ jobs:
           name: farao/gridcapa-rao-runner
           username: farao
           password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Broadcast update event
+        if: github.ref == 'refs/heads/master'
+        uses: farao-community/broadcast-event@master
+        with:
+          token: ${{ secrets.REPO_ACCESS_TOKEN }}
+          event-type: gridcapa_rao_runner_updated
