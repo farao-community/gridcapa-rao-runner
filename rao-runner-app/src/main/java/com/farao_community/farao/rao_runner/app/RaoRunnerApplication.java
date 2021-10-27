@@ -12,6 +12,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 /**
  * @author Mohamed BenRejeb {@literal <mohamed.ben-rejeb at rte-france.com>}
  */
+@SuppressWarnings("HideUtilityClassConstructor")
 @SpringBootApplication
 public class RaoRunnerApplication {
     public static void main(String[] args) {
