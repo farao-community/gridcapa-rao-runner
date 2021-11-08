@@ -34,7 +34,7 @@
         <module name="EmptyStatement"/>
         <module name="EqualsHashCode"/>
         <module name="FinalClass"/>
-        <!--module name="HideUtilityClassConstructor"/--> <!--commented for @SpringBootApplication class-->
+        <module name="HideUtilityClassConstructor"/>
         <module name="IllegalImport"/>
         <module name="Indentation"/>
         <module name="LeftCurly"/>
@@ -57,6 +57,7 @@
         <module name="SimplifyBooleanExpression"/>
         <module name="SimplifyBooleanReturn"/>
         <module name="StringLiteralEquality"/>
+        <module name="SuppressWarningsHolder"/>
         <module name="TypecastParenPad"/>
         <module name="TypeName"/>
         <module name="UnnecessaryParentheses"/>
@@ -65,4 +66,5 @@
         <module name="WhitespaceAfter"/>
         <module name="WhitespaceAround"/>
     </module>
+    <module name="SuppressWarningsFilter"/>
 </module>
