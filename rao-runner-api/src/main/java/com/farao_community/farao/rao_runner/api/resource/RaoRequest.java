@@ -22,15 +22,15 @@ import java.util.Optional;
 public class RaoRequest {
 
     @Id
-    private String id;
-    private String instant;
-    private String networkFileUrl;
-    private String cracFileUrl;
-    private String refprogFileUrl;
-    private String realGlskFileUrl;
-    private String raoParametersFileUrl;
-    private String resultsDestination;
-    private Instant targetEndInstant;
+    private final String id;
+    private final String instant;
+    private final String networkFileUrl;
+    private final String cracFileUrl;
+    private final String refprogFileUrl;
+    private final String realGlskFileUrl;
+    private final String raoParametersFileUrl;
+    private final String resultsDestination;
+    private final Instant targetEndInstant;
 
     @JsonCreator
     public RaoRequest(@JsonProperty("id") String id,

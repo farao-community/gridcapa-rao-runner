@@ -25,7 +25,7 @@ class RaoRequestTest {
 
     @Test
     void checkRaoRequestWithEmptyOptionals() {
-        RaoRequest raoRequest = new RaoRequest("id", "networkFileUrl", "cracFileUrl", "raoParametersUrl");
+        RaoRequest raoRequest = new RaoRequest("id", "networkFileUrl", "cracFileUrl", "raoParametersFileUrl");
         assertNotNull(raoRequest);
         assertEquals("networkFileUrl", raoRequest.getNetworkFileUrl());
     }

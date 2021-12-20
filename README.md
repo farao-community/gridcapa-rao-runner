@@ -9,7 +9,7 @@
 Server based on spring-boot dedicated to launch rao computations for one timestamp
 
 ## Requirements
-In order to build **rao-adapter-server**, you need the following environment available:
+In order to build **gridcapa-rao-runner-app**, you need the following environment available:
   - Install JDK *(11)*
   - Install Maven latest version
   - Install Docker (optional)
