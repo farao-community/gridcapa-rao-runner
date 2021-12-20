@@ -35,7 +35,7 @@ class JsonApiConverterTest {
         assertEquals("cracFileUrl", raoRequest.getCracFileUrl());
         assertEquals("refprogFileUrl", raoRequest.getRefprogFileUrl().get());
         assertEquals("realGlskFileUrl", raoRequest.getRealGlskFileUrl().get());
-        assertEquals("raoParametersFileUrl", raoRequest.getRaoParametersFileUrl().get());
+        assertEquals("raoParametersFileUrl", raoRequest.getRaoParametersFileUrl());
         assertEquals("resultsDestination", raoRequest.getResultsDestination().get());
         assertEquals(Instant.ofEpochSecond(1637052884, 944727000), raoRequest.getTargetEndInstant().get());
     }
@@ -78,7 +78,7 @@ class JsonApiConverterTest {
         assertEquals("cracFileUrl", raoRequest.getCracFileUrl());
         assertEquals("refprogFileUrl", raoRequest.getRefprogFileUrl().get());
         assertEquals("realGlskFileUrl", raoRequest.getRealGlskFileUrl().get());
-        assertEquals(Optional.empty(), raoRequest.getRaoParametersFileUrl());
+        assertNull(raoRequest.getRaoParametersFileUrl());
         assertEquals(Optional.empty(), raoRequest.getResultsDestination());
         assertEquals(Optional.empty(), raoRequest.getTargetEndInstant());
     }

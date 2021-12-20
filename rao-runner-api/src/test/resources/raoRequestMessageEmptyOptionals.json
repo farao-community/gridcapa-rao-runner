@@ -6,7 +6,8 @@
       "instant": "instant",
       "networkFileUrl": "networkFileUrl",
       "cracFileUrl": "cracFileUrl",
-      "raoParametersFileUrl": "raoParametersFileUrl"
+      "refprogFileUrl": "refprogFileUrl",
+      "realGlskFileUrl": "realGlskFileUrl"
     }
   }
 }

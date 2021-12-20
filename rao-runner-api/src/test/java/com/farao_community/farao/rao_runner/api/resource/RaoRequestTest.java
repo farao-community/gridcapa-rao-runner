@@ -8,8 +8,7 @@ package com.farao_community.farao.rao_runner.api.resource;
 
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * @author Mohamed BenRejeb {@literal <mohamed.ben-rejeb at rte-france.com>}
@@ -26,7 +25,7 @@ class RaoRequestTest {
 
     @Test
     void checkRaoRequestWithEmptyOptionals() {
-        RaoRequest raoRequest = new RaoRequest("id", "networkFileUrl", "cracFileUrl");
+        RaoRequest raoRequest = new RaoRequest("id", "networkFileUrl", "cracFileUrl", "raoParametersUrl");
         assertNotNull(raoRequest);
         assertEquals("networkFileUrl", raoRequest.getNetworkFileUrl());
     }
