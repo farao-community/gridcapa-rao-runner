@@ -30,6 +30,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 
 import java.io.InputStream;
+import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.util.Objects;
 import java.util.Optional;
@@ -100,7 +101,8 @@ class RaoRunnerServiceTest {
                 "http://host:9000/refProg.xml",
                 "http://host:9000/glsk.xml",
                 "raoParametersWithAdnLoadflow.json",
-                "destination-key");
+                "destination-key",
+                Instant.MAX);
 
         Mockito.when(fileImporter.importRaoParameters(coreRaoRequest.getRaoParametersFileUrl())).thenReturn(new RaoParameters());
         Mockito.when(fileImporter.importRefProg(coreRaoRequest.getInstant().get(), coreRaoRequest.getRefprogFileUrl().get()))
