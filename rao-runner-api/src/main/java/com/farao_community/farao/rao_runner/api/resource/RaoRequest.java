@@ -23,21 +23,13 @@ public class RaoRequest {
 
     @Id
     private String id;
-
     private String instant;
-
     private String networkFileUrl;
-
     private String cracFileUrl;
-
     private String refprogFileUrl;
-
     private String realGlskFileUrl;
-
     private String raoParametersFileUrl;
-
     private String resultsDestination;
-
     private Instant targetEndInstant;
 
     @JsonCreator
@@ -63,16 +55,17 @@ public class RaoRequest {
 
     public RaoRequest(@JsonProperty("id") String id,
                       @JsonProperty("networkFileUrl") String networkFileUrl,
-                      @JsonProperty("cracFileUrl") String cracFileUrl) {
-        this.id = id;
-        this.networkFileUrl = networkFileUrl;
-        this.cracFileUrl = cracFileUrl;
-        this.instant = null;
-        this.refprogFileUrl = null;
-        this.realGlskFileUrl = null;
-        this.raoParametersFileUrl = null;
-        this.resultsDestination = null;
-        this.targetEndInstant = null;
+                      @JsonProperty("cracFileUrl") String cracFileUrl,
+                      @JsonProperty("raoParametersFileUrl") String raoParametersFileUrl) {
+        this(id, null, networkFileUrl, cracFileUrl, null, null, raoParametersFileUrl, null, null);
+    }
+
+    public RaoRequest(@JsonProperty("id") String id,
+                      @JsonProperty("networkFileUrl") String networkFileUrl,
+                      @JsonProperty("cracFileUrl") String cracFileUrl,
+                      @JsonProperty("raoParametersFileUrl") String raoParametersFileUrl,
+                      @JsonProperty("resultsDestination") String resultsDestination) {
+        this(id, null, networkFileUrl, cracFileUrl, null, null, raoParametersFileUrl, resultsDestination, null);
     }
 
     public String getId() {
@@ -99,8 +92,8 @@ public class RaoRequest {
         return Optional.ofNullable(realGlskFileUrl);
     }
 
-    public Optional<String> getRaoParametersFileUrl() {
-        return Optional.ofNullable(raoParametersFileUrl);
+    public String getRaoParametersFileUrl() {
+        return raoParametersFileUrl;
     }
 
     public Optional<String> getResultsDestination() {

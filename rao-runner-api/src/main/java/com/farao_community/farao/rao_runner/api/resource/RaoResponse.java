@@ -23,17 +23,11 @@ public class RaoResponse {
 
     @Id
     private String id;
-
     private String instant;
-
     private String networkWithPraFileUrl;
-
     private String cracFileUrl;
-
     private String raoResultFileUrl;
-
     private Instant computationStartInstant;
-
     private Instant computationEndInstant;
 
     @JsonCreator

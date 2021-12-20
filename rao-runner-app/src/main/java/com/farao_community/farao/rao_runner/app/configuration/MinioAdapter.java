@@ -92,5 +92,4 @@ public class MinioAdapter {
             throw new RaoRunnerException(String.format("Exception occurred while retrieving file name from : %s Cause: %s ", stringUrl, e.getMessage()));
         }
     }
-
 }

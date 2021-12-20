@@ -26,7 +26,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
-import java.io.ByteArrayOutputStream;
+import java.io.*;
+import java.time.Instant;
 import java.util.Optional;
 
 /**
@@ -53,19 +54,23 @@ public class RaoRunnerService {
         RaoParameters raoParameters = fileImporter.importRaoParameters(raoRequest.getRaoParametersFileUrl());
         logParameters(raoParameters);
         try {
+            Instant computationStartInstant = Instant.now();
             RaoResult raoResult = raoRunnerProvider.run(getRaoInput(raoRequest, network, crac), raoParameters);
             applyRemedialActionsForState(network, raoResult, crac.getPreventiveState());
-            return saveResultsAndCreateRaoResponse(raoRequest, crac, raoResult, network);
+            return saveResultsAndCreateRaoResponse(raoRequest, crac, raoResult, network, computationStartInstant);
         } catch (FaraoException e) {
             throw new RaoRunnerException("FARAO exception occurred when running rao: " + e.getMessage(), e);
         }
     }
 
     private void logParameters(RaoParameters raoParameters) {
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        JsonRaoParameters.write(raoParameters, baos);
-        if (LOGGER.isInfoEnabled()) {
-            LOGGER.info("Running RAO with following parameters:{}{}", System.lineSeparator(), baos);
+        try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
+            JsonRaoParameters.write(raoParameters, baos);
+            if (LOGGER.isInfoEnabled()) {
+                LOGGER.info("Running RAO with following parameters:{}{}", System.lineSeparator(), baos);
+            }
+        } catch (IOException e) {
+            throw new RaoRunnerException(String.format("Exception occur while reading RAO parameters for logging: %s", e.getMessage()));
         }
     }
 
@@ -89,11 +94,18 @@ public class RaoRunnerService {
         }
     }
 
-    private RaoResponse saveResultsAndCreateRaoResponse(RaoRequest raoRequest, Crac crac, RaoResult raoResult, Network network) {
+    private RaoResponse saveResultsAndCreateRaoResponse(RaoRequest raoRequest, Crac crac, RaoResult raoResult, Network network, Instant computationStartInstant) {
         String raoResultFileUrl = fileExporter.saveRaoResult(raoResult, crac, raoRequest);
         String networkWithPraFileUrl = fileExporter.saveNetwork(network, raoRequest);
-        String instant = raoRequest.getInstant().orElse(null);
-        return new RaoResponse(raoRequest.getId(), instant, networkWithPraFileUrl, raoRequest.getCracFileUrl(), raoResultFileUrl);
+        String raoInstant = raoRequest.getInstant().orElse(null);
+        Instant computationEndInstant = Instant.now();
+        return new RaoResponse(raoRequest.getId(),
+                raoInstant,
+                networkWithPraFileUrl,
+                raoRequest.getCracFileUrl(),
+                raoResultFileUrl,
+                computationStartInstant,
+                computationEndInstant);
     }
 
     private static void applyRemedialActionsForState(Network network, RaoResult raoResult, State state) {
