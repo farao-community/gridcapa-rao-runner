@@ -33,6 +33,7 @@
     </build>
 
     <dependencies>
+        <!-- Compile dependencies -->
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>gridcapa-rao-runner-api</artifactId>
@@ -79,7 +80,7 @@
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
 
-        <!-- RUNTIME DEPENDENCIES -->
+        <!-- Runtime dependencies -->
         <dependency>
             <groupId>com.farao-community.farao</groupId>
             <artifactId>farao-crac-impl</artifactId>
@@ -134,10 +135,15 @@
             <artifactId>spring-rabbit</artifactId>
         </dependency>
 
-        <!-- TEST DEPENDENCIES -->
+        <!-- Test dependencies -->
         <dependency>
             <groupId>com.powsybl</groupId>
             <artifactId>powsybl-config-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.platform</groupId>
+            <artifactId>junit-platform-launcher</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -145,6 +151,6 @@
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
         </dependency>
-    </dependencies>
 
+    </dependencies>
 </project>
