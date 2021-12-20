@@ -12,6 +12,7 @@ import com.farao_community.farao.rao_runner.api.resource.RaoRequest;
 import com.farao_community.farao.rao_runner.api.resource.RaoResponse;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.github.jasminb.jsonapi.JSONAPIDocument;
 import com.github.jasminb.jsonapi.ResourceConverter;
 import com.github.jasminb.jsonapi.SerializationFeature;
@@ -31,6 +32,7 @@ public class JsonApiConverter {
     public JsonApiConverter() {
         objectMapper = new ObjectMapper();
         objectMapper.registerModule(new Jdk8Module());
+        objectMapper.registerModule(new JavaTimeModule());
     }
 
     public <T> T fromJsonMessage(byte[] jsonMessage, Class<T> clazz) {
@@ -73,3 +75,4 @@ public class JsonApiConverter {
         return error;
     }
 }
+

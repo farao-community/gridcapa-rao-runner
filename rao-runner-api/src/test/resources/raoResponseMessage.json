@@ -6,7 +6,9 @@
       "instant": "instant",
       "networkWithPraFileUrl": "networkWithPraFileUrl",
       "cracFileUrl": "cracFileUrl",
-      "raoResultFileUrl": "raoResultFileUrl"
+      "raoResultFileUrl": "raoResultFileUrl",
+      "computationStartInstant": 1637052884.944727,
+      "computationEndInstant": 1647057884.934927
     }
   }
 }

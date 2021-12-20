@@ -18,16 +18,16 @@ class RaoRequestTest {
 
     @Test
     void checkRaoRequestNormalUsage() {
-        RaoRequest raoRequest = new RaoRequest("id", "instant", "networkFileUrl", "cracFileUrl", "refprogFileUrl", "glskFileUrl", "raoParametersFileUrl", "resultsDestination");
+        RaoRequest raoRequest = new RaoRequest("id", "instant", "networkFileUrl", "cracFileUrl", "refprogFileUrl", "glskFileUrl", "raoParametersFileUrl", "resultsDestination", null);
         assertNotNull(raoRequest);
         assertEquals("instant", raoRequest.getInstant().get());
+        assertTrue(raoRequest.getTargetEndInstant().isEmpty());
     }
 
     @Test
     void checkRaoRequestWithEmptyOptionals() {
-        RaoRequest raoRequest = new RaoRequest("id", "networkFileUrl", "cracFileUrl", "raoParametersFileUrl");
+        RaoRequest raoRequest = new RaoRequest("id", "networkFileUrl", "cracFileUrl");
         assertNotNull(raoRequest);
         assertEquals("networkFileUrl", raoRequest.getNetworkFileUrl());
     }
-
 }
