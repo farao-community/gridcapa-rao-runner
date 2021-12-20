@@ -76,8 +76,9 @@ class JsonApiConverterTest {
         assertEquals("instant", raoRequest.getInstant().get());
         assertEquals("networkFileUrl", raoRequest.getNetworkFileUrl());
         assertEquals("cracFileUrl", raoRequest.getCracFileUrl());
-        assertEquals("raoParametersFileUrl", raoRequest.getRefprogFileUrl().get());
-        assertNull(raoRequest.getRaoParametersFileUrl());
+        assertEquals("raoParametersFileUrl", raoRequest.getRaoParametersFileUrl());
+        assertEquals(Optional.empty(), raoRequest.getRefprogFileUrl());
+        assertEquals(Optional.empty(), raoRequest.getRealGlskFileUrl());
         assertEquals(Optional.empty(), raoRequest.getResultsDestination());
         assertEquals(Optional.empty(), raoRequest.getTargetEndInstant());
     }
