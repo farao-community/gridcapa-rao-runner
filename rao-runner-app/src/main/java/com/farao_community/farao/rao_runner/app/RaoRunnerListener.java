@@ -53,7 +53,7 @@ public class RaoRunnerListener  implements MessageListener {
         } catch (RaoRunnerException e) {
             sendErrorResponse(e, replyTo, correlationId);
         } catch (Exception e) {
-            RaoRunnerException wrappingException = new RaoRunnerException("Unknown exception", e);
+            RaoRunnerException wrappingException = new RaoRunnerException("Unhandled exception: " + e.getMessage(), e);
             sendErrorResponse(wrappingException, replyTo, correlationId);
         }
     }

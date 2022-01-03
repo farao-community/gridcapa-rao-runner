@@ -17,14 +17,6 @@
 
     <dependencies>
         <!-- Compile dependencies -->
-        <dependency>
-            <groupId>com.github.jasminb</groupId>
-            <artifactId>jsonapi-converter</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.commons</groupId>
-            <artifactId>commons-lang3</artifactId>
-        </dependency>
         <!-- this dependency enables marshalling/unmarshalling Optional fields and/or fields which getters return Optional -->
         <dependency>
             <groupId>com.fasterxml.jackson.datatype</groupId>
@@ -34,6 +26,14 @@
         <dependency>
             <groupId>com.fasterxml.jackson.datatype</groupId>
             <artifactId>jackson-datatype-jsr310</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.github.jasminb</groupId>
+            <artifactId>jsonapi-converter</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
         </dependency>
 
         <!-- Test dependencies -->

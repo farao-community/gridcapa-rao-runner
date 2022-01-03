@@ -75,4 +75,3 @@ public class JsonApiConverter {
         return error;
     }
 }
-
