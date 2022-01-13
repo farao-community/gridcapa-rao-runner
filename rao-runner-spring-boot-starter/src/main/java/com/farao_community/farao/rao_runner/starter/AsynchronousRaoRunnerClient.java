@@ -33,22 +33,23 @@ public class AsynchronousRaoRunnerClient {
 
     public CompletableFuture<RaoResponse> runRaoAsynchronously(RaoRequest raoRequest) {
         return asyncAmqpTemplate.sendAndReceive(raoRunnerClientProperties.getAmqp().getQueueName(), buildMessage(raoRequest))
-                .completable().thenApply(message -> RaoResponseConversionHelper.convertRaoResponse(message, jsonConverter));
+            .completable().thenApplyAsync(message -> RaoResponseConversionHelper.convertRaoResponse(message, jsonConverter),
+                new MDCAwareForkJoinPool());
     }
 
     private Message buildMessage(RaoRequest raoRequest) {
         return MessageBuilder.withBody(jsonConverter.toJsonMessage(raoRequest))
-                .andProperties(buildMessageProperties())
-                .build();
+            .andProperties(buildMessageProperties())
+            .build();
     }
 
     private MessageProperties buildMessageProperties() {
         return MessagePropertiesBuilder.newInstance()
-                .setAppId(raoRunnerClientProperties.getAmqp().getClientAppId())
-                .setContentEncoding(CONTENT_ENCODING)
-                .setContentType(CONTENT_TYPE)
-                .setDeliveryMode(MessageDeliveryMode.NON_PERSISTENT)
-                .setExpiration(raoRunnerClientProperties.getAmqp().getExpiration())
-                .build();
+            .setAppId(raoRunnerClientProperties.getAmqp().getClientAppId())
+            .setContentEncoding(CONTENT_ENCODING)
+            .setContentType(CONTENT_TYPE)
+            .setDeliveryMode(MessageDeliveryMode.NON_PERSISTENT)
+            .setExpiration(raoRunnerClientProperties.getAmqp().getExpiration())
+            .build();
     }
 }

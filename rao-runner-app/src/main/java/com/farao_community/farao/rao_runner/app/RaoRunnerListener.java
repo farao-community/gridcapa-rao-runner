@@ -11,8 +11,8 @@ import com.farao_community.farao.rao_runner.api.exceptions.RaoRunnerException;
 import com.farao_community.farao.rao_runner.api.resource.RaoRequest;
 import com.farao_community.farao.rao_runner.api.resource.RaoResponse;
 import com.farao_community.farao.rao_runner.app.configuration.AmqpConfiguration;
+import com.farao_community.farao.rao_runner.app.configuration.RaoRunnerEventsLogging;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.amqp.core.*;
 import org.springframework.stereotype.Component;
 
@@ -21,7 +21,8 @@ import org.springframework.stereotype.Component;
  */
 @Component
 public class RaoRunnerListener  implements MessageListener {
-    private static final Logger LOGGER = LoggerFactory.getLogger(RaoRunnerListener.class);
+
+    private final Logger raoRunnerEventsLogger;
     private static final String APPLICATION_ID = "rao-runner-server";
     private static final String CONTENT_ENCODING = "UTF-8";
     private static final String CONTENT_TYPE = "application/vnd.api+json";
@@ -31,8 +32,11 @@ public class RaoRunnerListener  implements MessageListener {
     private final RaoRunnerService raoRunnerServer;
     private final AmqpTemplate amqpTemplate;
     private final AmqpConfiguration amqpConfiguration;
+    private final RaoRunnerEventsLogging raoRunnerEventsLogging;
 
-    public RaoRunnerListener(RaoRunnerService raoRunnerServer, AmqpTemplate amqpTemplate, AmqpConfiguration amqpConfiguration) {
+    public RaoRunnerListener(Logger raoRunnerEventsLogger, RaoRunnerService raoRunnerServer, AmqpTemplate amqpTemplate, AmqpConfiguration amqpConfiguration, RaoRunnerEventsLogging raoRunnerEventsLogging) {
+        this.raoRunnerEventsLogger = raoRunnerEventsLogger;
+        this.raoRunnerEventsLogging = raoRunnerEventsLogging;
         this.jsonApiConverter = new JsonApiConverter();
         this.raoRunnerServer = raoRunnerServer;
         this.amqpTemplate = amqpTemplate;
@@ -45,9 +49,9 @@ public class RaoRunnerListener  implements MessageListener {
         String correlationId = message.getMessageProperties().getCorrelationId();
         try {
             RaoRequest raoRequest = jsonApiConverter.fromJsonMessage(message.getBody(), RaoRequest.class);
-            LOGGER.info("RAO request received: {}", raoRequest);
+            raoRunnerEventsLogging.addMetaDataToLogsModelContext(raoRequest.getId(), correlationId, message.getMessageProperties().getAppId());
+            raoRunnerEventsLogger.info("RAO request received: {}", raoRequest);
             RaoResponse raoResponse = raoRunnerServer.runRao(raoRequest);
-            LOGGER.info("RAO response sent: {}", raoResponse);
             sendRaoResponse(raoResponse, replyTo, correlationId);
         } catch (RaoRunnerException e) {
             sendErrorResponse(e, replyTo, correlationId);
@@ -64,9 +68,7 @@ public class RaoRunnerListener  implements MessageListener {
         } else {
             amqpTemplate.send(amqpConfiguration.raoResponseExchange().getName(), "", responseMessage);
         }
-        if (LOGGER.isInfoEnabled()) {
-            LOGGER.info("Response message: {}", new String(responseMessage.getBody()));
-        }
+        raoRunnerEventsLogger.info("RAO response sent: Response message: {}", responseMessage);
     }
 
     private void sendErrorResponse(RaoRunnerException exception, String replyTo, String correlationId) {
@@ -76,9 +78,7 @@ public class RaoRunnerListener  implements MessageListener {
         } else {
             amqpTemplate.send(amqpConfiguration.raoResponseExchange().getName(), "", errorMessage);
         }
-        if (LOGGER.isInfoEnabled()) {
-            LOGGER.info("Response message: {}", new String(errorMessage.getBody()));
-        }
+        raoRunnerEventsLogger.warn("RAO response sent: Response message: {}", errorMessage);
     }
 
     private Message createMessageResponse(RaoResponse raoResponse, String correlationId) {

@@ -48,7 +48,7 @@
         <commons.lang.version>3.12.0</commons.lang.version>
         <jackson.datatype.version>2.12.2</jackson.datatype.version>
         <jsonapi.converter.version>0.11</jsonapi.converter.version>
-
+        <logstash.version>4.9</logstash.version>
         <farao.bom.version>1.1.0</farao.bom.version>
     </properties>
 
@@ -71,7 +71,12 @@
                 <artifactId>commons-lang3</artifactId>
                 <version>${commons.lang.version}</version>
             </dependency>
-
+            <dependency>
+                <groupId>net.logstash.logback</groupId>
+                <artifactId>logstash-logback-encoder</artifactId>
+                <version>${logstash.version}</version>
+                <scope>runtime</scope>
+            </dependency>
             <dependency>
                 <groupId>com.farao-community.farao</groupId>
                 <artifactId>farao-bom</artifactId>

@@ -1,12 +1,68 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
+    <springProperty scope="context" name="rabbitMQHost" source="spring.rabbitmq.host" defaultValue="localhost"/>
+    <springProperty scope="context" name="rabbitMQPort" source="spring.rabbitmq.port" defaultValue="5672"/>
+    <springProperty scope="context" name="rabbitMQUserName" source="spring.rabbitmq.username" defaultValue="guest" />
+    <springProperty scope="context" name="rabbitMQPassword" source="spring.rabbitmq.password" defaultValue="guest" />
+    <springProperty scope="context" name="rabbitMQExchangeName" source="logback.amqp.exchange" defaultValue="rao-logs-broker-exchange"/>
+    <springProperty scope="context" name="rabbitMQRoutingKey" source="logback.amqp.routing-key" defaultValue="#"/>
+    <springProperty scope="context" name="serviceName" source="spring.application.name" defaultValue="gridcapa-back-end" />
+
+    <!-- specific appender to send business events to a rabbitmq exchange-->
+    <appender name="amqp-business-events" class="org.springframework.amqp.rabbit.logback.AmqpAppender">
+        <!-- Logstash encoder is used as a trick to convert plain text to json -->
+        <encoder class="net.logstash.logback.encoder.LogstashEncoder">
+            <customFields>{"serviceName": "${serviceName}"}</customFields>
+            <includeContext>false</includeContext>
+            <fieldNames>
+                <timestamp>timestamp</timestamp>
+                <thread>[ignore]</thread>
+                <logger>[ignore]</logger>
+                <version>[ignore]</version>
+                <levelValue>[ignore]</levelValue>
+            </fieldNames>
+        </encoder>
+
+        <!-- RabbitMQ connection -->
+        <host>${rabbitMQHost}</host>
+        <port>${rabbitMQPort}</port>
+        <username>${rabbitMQUserName}</username>
+        <password>${rabbitMQPassword}</password>
+        <exchangeName>${rabbitMQExchangeName}</exchangeName>
+        <routingKeyPattern>${rabbitMQRoutingKey}</routingKeyPattern>
+
+        <declareExchange>true</declareExchange>
+        <exchangeType>topic</exchangeType>
+        <generateId>true</generateId>
+        <charset>UTF-8</charset>
+        <durable>true</durable>
+        <deliveryMode>PERSISTENT</deliveryMode>
+    </appender>
+
+    <!-- This logger name must match Logger's names in java code
+    Do not bind any logger with the appender "amqp-business-events"!
+    You should bind with "amqp-business-events" appender only Loggers you want to see in gridcapa processes as a final user-->
+    <logger name="RAO_RUNNER_BUSINESS_LOGGER" additivity="false" level="INFO">
+        <appender-ref ref="amqp-business-events"/>
+    </logger>
+    <logger name="com.farao_community.farao.commons.logs.RaoBusinessLogs" level="INFO">
+        <appender-ref ref="amqp-business-events"/>
+    </logger>
+    <logger name="com.farao_community.farao.commons.logs.RaoBusinessWarns" level="WARN">
+        <appender-ref ref="amqp-business-events"/>
+    </logger>
+    <logger name="com.farao_community.farao.commons.logs.TechnicalLogs" level="OFF">
+        <appender-ref ref="amqp-business-events"/>
+    </logger>
+
+
     <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
-            <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] "%X{gridcapa-task-id}" "%X{rao-request-id}" "%X{client-app-id}" %-5level %logger{36} - %msg%n</pattern>
         </encoder>
     </appender>
-    <root level="info">
-        <appender-ref ref="STDOUT" />
+    <root level="INFO">
+        <appender-ref ref="STDOUT"/>
     </root>
     <logger name="com.rte_france.powsybl" level="OFF"/>
     <logger name="com.powsybl" level="ERROR"/>
