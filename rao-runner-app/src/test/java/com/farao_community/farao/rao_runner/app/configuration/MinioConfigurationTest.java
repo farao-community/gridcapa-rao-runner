@@ -6,13 +6,11 @@
  */
 package com.farao_community.farao.rao_runner.app.configuration;
 
-import io.minio.MinioClient;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * @author Mohamed BenRejeb {@literal <mohamed.ben-rejeb at rte-france.com>}
@@ -24,11 +22,9 @@ class MinioConfigurationTest {
     private MinioConfiguration minioConfiguration;
 
     @Test
-    void checkMinioConfiguration() throws Exception {
+    void checkMinioConfiguration() {
         assertNotNull(minioConfiguration);
-        MinioClient minioClient = minioConfiguration.generateMinioClient();
-        assertNotNull(minioClient);
-        assertEquals("http://localhost-test:9000/bucket/test/file.txt", minioClient.getObjectUrl("bucket", "test/file.txt"));
+        assertEquals("my-bucket", minioConfiguration.getBucket());
         assertEquals("base/path", minioConfiguration.getBasePath());
     }
 }

@@ -7,7 +7,7 @@
     <parent>
         <groupId>com.farao-community.farao</groupId>
         <artifactId>farao-parent-ws</artifactId>
-        <version>1.1.0</version>
+        <version>1.3.0</version>
     </parent>
 
     <artifactId>gridcapa-rao-runner</artifactId>
@@ -49,7 +49,7 @@
         <jackson.datatype.version>2.12.2</jackson.datatype.version>
         <jsonapi.converter.version>0.11</jsonapi.converter.version>
 
-        <farao.bom.version>1.1.0</farao.bom.version>
+        <farao.dependencies.version>1.0.0</farao.dependencies.version>
     </properties>
 
     <dependencyManagement>
@@ -74,8 +74,8 @@
 
             <dependency>
                 <groupId>com.farao-community.farao</groupId>
-                <artifactId>farao-bom</artifactId>
-                <version>${farao.bom.version}</version>
+                <artifactId>farao-dependencies</artifactId>
+                <version>${farao.dependencies.version}</version>
                 <scope>import</scope>
                 <type>pom</type>
             </dependency>
