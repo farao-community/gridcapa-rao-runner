@@ -9,7 +9,8 @@
       "refprogFileUrl": "refprogFileUrl",
       "realGlskFileUrl": "realGlskFileUrl",
       "raoParametersFileUrl": "raoParametersFileUrl",
-      "resultsDestination": "resultsDestination"
+      "resultsDestination": "resultsDestination",
+      "targetEndInstant": 1637052884.944727
     }
   }
 }

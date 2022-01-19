@@ -13,9 +13,11 @@ import com.farao_community.farao.rao_runner.api.resource.RaoResponse;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
+import java.time.Instant;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 /**
  * @author Mohamed BenRejeb {@literal <mohamed.ben-rejeb at rte-france.com>}
@@ -35,6 +37,34 @@ class JsonApiConverterTest {
         assertEquals("realGlskFileUrl", raoRequest.getRealGlskFileUrl().get());
         assertEquals("raoParametersFileUrl", raoRequest.getRaoParametersFileUrl());
         assertEquals("resultsDestination", raoRequest.getResultsDestination().get());
+        assertEquals(Instant.ofEpochSecond(1637052884, 944727000), raoRequest.getTargetEndInstant().get());
+    }
+
+    private void roundTripTestOnRaoRequest(RaoRequest raoRequest) {
+        JsonApiConverter jsonConverter = new JsonApiConverter();
+        RaoRequest importedRaoRequest = jsonConverter.fromJsonMessage(jsonConverter.toJsonMessage(raoRequest), RaoRequest.class);
+
+        assertEquals(raoRequest.getId(), importedRaoRequest.getId());
+        assertEquals(raoRequest.getInstant(), importedRaoRequest.getInstant());
+        assertEquals(raoRequest.getNetworkFileUrl(), importedRaoRequest.getNetworkFileUrl());
+        assertEquals(raoRequest.getCracFileUrl(), importedRaoRequest.getCracFileUrl());
+        assertEquals(raoRequest.getRefprogFileUrl(), importedRaoRequest.getRefprogFileUrl());
+        assertEquals(raoRequest.getRealGlskFileUrl(), importedRaoRequest.getRealGlskFileUrl());
+        assertEquals(raoRequest.getRaoParametersFileUrl(), importedRaoRequest.getRaoParametersFileUrl());
+        assertEquals(raoRequest.getResultsDestination(), importedRaoRequest.getResultsDestination());
+        assertEquals(raoRequest.getTargetEndInstant(), importedRaoRequest.getTargetEndInstant());
+    }
+
+    @Test
+    void roundTripTest() {
+        RaoRequest raoRequest = new RaoRequest("id", "instant", "networkFileUrl", "cracFileUrl", "refprogFileUrl", "glskFileUrl", "raoParametersFileUrl", "resultsDestination", Instant.ofEpochSecond(1637052884, 944727000));
+        roundTripTestOnRaoRequest(raoRequest);
+    }
+
+    @Test
+    void roundTripTestWithEmptyOptionals() {
+        RaoRequest raoRequest = new RaoRequest("id", "instant", "networkFileUrl", "cracFileUrl", "refprogFileUrl", "glskFileUrl", null, null, null);
+        roundTripTestOnRaoRequest(raoRequest);
     }
 
     @Test
@@ -50,6 +80,7 @@ class JsonApiConverterTest {
         assertEquals(Optional.empty(), raoRequest.getRefprogFileUrl());
         assertEquals(Optional.empty(), raoRequest.getRealGlskFileUrl());
         assertEquals(Optional.empty(), raoRequest.getResultsDestination());
+        assertEquals(Optional.empty(), raoRequest.getTargetEndInstant());
     }
 
     @Test
@@ -71,6 +102,8 @@ class JsonApiConverterTest {
         assertEquals("networkWithPraFileUrl", raoResponse.getNetworkWithPraFileUrl());
         assertEquals("cracFileUrl", raoResponse.getCracFileUrl());
         assertEquals("raoResultFileUrl", raoResponse.getRaoResultFileUrl());
+        assertEquals(Instant.ofEpochSecond(1637052884, 944727000), raoResponse.getComputationStartInstant());
+        assertEquals(Instant.ofEpochSecond(1647057884, 934927000), raoResponse.getComputationEndInstant());
     }
 
     @Test
@@ -83,5 +116,7 @@ class JsonApiConverterTest {
         assertEquals("networkWithPraFileUrl", raoResponse.getNetworkWithPraFileUrl());
         assertEquals("cracFileUrl", raoResponse.getCracFileUrl());
         assertEquals("raoResultFileUrl", raoResponse.getRaoResultFileUrl());
+        assertNull(raoResponse.getComputationStartInstant());
+        assertNull(raoResponse.getComputationEndInstant());
     }
 }

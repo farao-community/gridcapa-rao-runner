@@ -48,6 +48,7 @@
         <commons.lang.version>3.12.0</commons.lang.version>
         <jackson.datatype.version>2.12.2</jackson.datatype.version>
         <jsonapi.converter.version>0.11</jsonapi.converter.version>
+        <junit.launcher.version>1.6.3</junit.launcher.version>
 
         <farao.dependencies.version>1.0.0</farao.dependencies.version>
     </properties>
@@ -78,6 +79,14 @@
                 <version>${farao.dependencies.version}</version>
                 <scope>import</scope>
                 <type>pom</type>
+            </dependency>
+
+            <!-- Test dependencies -->
+            <dependency>
+                <groupId>org.junit.platform</groupId>
+                <artifactId>junit-platform-launcher</artifactId>
+                <version>${junit.launcher.version}</version>
+                <scope>test</scope>
             </dependency>
         </dependencies>
     </dependencyManagement>

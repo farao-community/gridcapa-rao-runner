@@ -12,6 +12,7 @@ import com.github.jasminb.jsonapi.annotations.Id;
 import com.github.jasminb.jsonapi.annotations.Type;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 
+import java.time.Instant;
 import java.util.Optional;
 
 /**
@@ -22,26 +23,28 @@ public class RaoResponse {
 
     @Id
     private String id;
-
     private String instant;
-
     private String networkWithPraFileUrl;
-
     private String cracFileUrl;
-
     private String raoResultFileUrl;
+    private Instant computationStartInstant;
+    private Instant computationEndInstant;
 
     @JsonCreator
     public RaoResponse(@JsonProperty("id") String id,
                        @JsonProperty("instant") String instant,
                        @JsonProperty("networkWithPraFileUrl") String networkWithPraFileUrl,
                        @JsonProperty("cracFileUrl") String cracFileUrl,
-                       @JsonProperty("raoResultFileUrl") String raoResultFileUrl) {
+                       @JsonProperty("raoResultFileUrl") String raoResultFileUrl,
+                       @JsonProperty("computationStartInstant") Instant computationStartInstant,
+                       @JsonProperty("computationEndInstant") Instant computationEndInstant) {
         this.id = id;
         this.instant = instant;
         this.networkWithPraFileUrl = networkWithPraFileUrl;
         this.cracFileUrl = cracFileUrl;
         this.raoResultFileUrl = raoResultFileUrl;
+        this.computationStartInstant = computationStartInstant;
+        this.computationEndInstant = computationEndInstant;
     }
 
     public String getId() {
@@ -62,6 +65,14 @@ public class RaoResponse {
 
     public String getRaoResultFileUrl() {
         return raoResultFileUrl;
+    }
+
+    public Instant getComputationStartInstant() {
+        return computationStartInstant;
+    }
+
+    public Instant getComputationEndInstant() {
+        return computationEndInstant;
     }
 
     @Override

@@ -27,7 +27,7 @@ rao-runner:
       queue-name: ${RAO_ADAPTER_SERVER_QUEUE_NAME:raoi-request-queue}
     rao-response:
       exchange: raoi-response
-      expiration: 12000000
+      expiration: 600000 # (10x60s), time for applications to read the response
   url:
     whitelist:
       - http://${MINIO_HOST:localhost}:${MINIO_PORT:9000}

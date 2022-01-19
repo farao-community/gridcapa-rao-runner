@@ -49,9 +49,10 @@ public class RaoRunnerListener  implements MessageListener {
             RaoResponse raoResponse = raoRunnerServer.runRao(raoRequest);
             LOGGER.info("RAO response sent: {}", raoResponse);
             sendRaoResponse(raoResponse, replyTo, correlationId);
+            System.gc();
         } catch (RaoRunnerException e) {
             sendErrorResponse(e, replyTo, correlationId);
-        } catch (RuntimeException e) {
+        } catch (Exception e) {
             RaoRunnerException wrappingException = new RaoRunnerException("Unhandled exception: " + e.getMessage(), e);
             sendErrorResponse(wrappingException, replyTo, correlationId);
         }
