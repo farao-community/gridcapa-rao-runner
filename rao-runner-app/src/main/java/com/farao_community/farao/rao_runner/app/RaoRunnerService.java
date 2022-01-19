@@ -23,7 +23,6 @@ import com.farao_community.farao.rao_runner.api.resource.RaoResponse;
 import com.powsybl.iidm.network.Network;
 import com.powsybl.sensitivity.factors.variables.LinearGlsk;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.io.*;
@@ -36,13 +35,13 @@ import java.util.Optional;
  */
 @Service
 public class RaoRunnerService {
-    private static final Logger LOGGER = LoggerFactory.getLogger(RaoRunnerService.class);
-
+    private final Logger raoRunnerEventsLogger;
     private final Rao.Runner raoRunnerProvider;
     private final FileExporter fileExporter;
     private final FileImporter fileImporter;
 
-    public RaoRunnerService(Rao.Runner raoRunnerProvider, FileExporter fileExporter, FileImporter fileImporter) {
+    public RaoRunnerService(Logger raoRunnerEventsLogger, Rao.Runner raoRunnerProvider, FileExporter fileExporter, FileImporter fileImporter) {
+        this.raoRunnerEventsLogger = raoRunnerEventsLogger;
         this.raoRunnerProvider = raoRunnerProvider;
         this.fileExporter = fileExporter;
         this.fileImporter = fileImporter;
@@ -66,9 +65,8 @@ public class RaoRunnerService {
     private void logParameters(RaoParameters raoParameters) {
         try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
             JsonRaoParameters.write(raoParameters, baos);
-            if (LOGGER.isInfoEnabled()) {
-                LOGGER.info("Running RAO with following parameters:{}{}", System.lineSeparator(), baos);
-            }
+                raoRunnerEventsLogger.debug("Running RAO with following parameters:{}{}", System.lineSeparator(), baos);
+
         } catch (IOException e) {
             throw new RaoRunnerException(String.format("Exception occur while reading RAO parameters for logging: %s", e.getMessage()));
         }

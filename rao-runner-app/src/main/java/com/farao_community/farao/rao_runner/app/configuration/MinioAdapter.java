@@ -11,7 +11,6 @@ import io.minio.*;
 import io.minio.http.Method;
 import org.apache.commons.io.FilenameUtils;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
@@ -30,14 +29,14 @@ public class MinioAdapter {
     private final UrlWhitelistConfiguration urlWhitelistConfiguration;
     private final String minioBucket;
     private final String basePath;
+    private final Logger raoRunnerEventsLogger;
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(MinioAdapter.class);
-
-    public MinioAdapter(MinioConfiguration minioConfiguration, MinioClient minioClient, UrlWhitelistConfiguration urlWhitelistConfiguration) {
+    public MinioAdapter(MinioConfiguration minioConfiguration, MinioClient minioClient, UrlWhitelistConfiguration urlWhitelistConfiguration, Logger raoRunnerEventsLogger) {
         this.minioClient = minioClient;
         this.minioBucket = minioConfiguration.getBucket();
         this.basePath = minioConfiguration.getBasePath();
         this.urlWhitelistConfiguration = urlWhitelistConfiguration;
+        this.raoRunnerEventsLogger = raoRunnerEventsLogger;
     }
 
     public void uploadFile(String pathDestination, InputStream sourceInputStream) {
@@ -45,7 +44,7 @@ public class MinioAdapter {
             createBucketIfDoesNotExist();
             minioClient.putObject(PutObjectArgs.builder().bucket(minioBucket).object(pathDestination).stream(sourceInputStream, -1, 50000000).build());
         } catch (Exception e) {
-            LOGGER.error(e.getMessage(), e);
+            raoRunnerEventsLogger.error(e.getMessage(), e);
             throw new RaoRunnerException(String.format("Exception occurred while uploading file: %s, to minio server", pathDestination));
         }
     }
@@ -64,7 +63,7 @@ public class MinioAdapter {
                 minioClient.makeBucket(MakeBucketArgs.builder().bucket(minioBucket).build());
             }
         } catch (Exception e) {
-            LOGGER.error(String.format("Exception occurred while creating bucket: %s", minioBucket));
+            raoRunnerEventsLogger.error(String.format("Exception occurred while creating bucket: %s", minioBucket));
             throw new RaoRunnerException(String.format("Exception occurred while creating bucket: %s", minioBucket));
         }
     }

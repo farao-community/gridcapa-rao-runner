@@ -33,3 +33,12 @@ rao-runner:
       - http://${MINIO_HOST:localhost}:${MINIO_PORT:9000}
 server:
   port: ${RAO_ADAPTER_SERVER_PORT:3030}
+
+logback:
+  metadata:  # here the configuration of metadata names, not values
+    gridcapa-task-id: gridcapa-task-id
+    rao-request-id: rao-request-id
+    client-app-id: client-app-id
+  amqp:
+    exchange: rao-runners-logs-exchange
+    routing-key: "#"
