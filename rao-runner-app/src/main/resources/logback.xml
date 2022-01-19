@@ -12,7 +12,7 @@
     <appender name="amqp-business-events" class="org.springframework.amqp.rabbit.logback.AmqpAppender">
         <!-- Logstash encoder is used as a trick to convert plain text to json -->
         <encoder class="net.logstash.logback.encoder.LogstashEncoder">
-            <customFields>{"serviceName": "${serviceName}"}</customFields>
+            <customFields>{"service-name": "${serviceName}"}</customFields>
             <includeContext>false</includeContext>
             <fieldNames>
                 <timestamp>timestamp</timestamp>

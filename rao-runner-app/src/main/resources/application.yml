@@ -40,5 +40,5 @@ logback:
     rao-request-id: rao-request-id
     client-app-id: client-app-id
   amqp:
-    exchange: task-manager-logs-exchange
+    exchange: rao-runners-logs-exchange
     routing-key: "#"

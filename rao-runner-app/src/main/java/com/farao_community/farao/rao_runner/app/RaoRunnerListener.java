@@ -13,6 +13,8 @@ import com.farao_community.farao.rao_runner.api.resource.RaoResponse;
 import com.farao_community.farao.rao_runner.app.configuration.AmqpConfiguration;
 import com.farao_community.farao.rao_runner.app.configuration.RaoRunnerEventsLogging;
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 import org.springframework.amqp.core.*;
 import org.springframework.stereotype.Component;
 
@@ -49,16 +51,31 @@ public class RaoRunnerListener  implements MessageListener {
         String correlationId = message.getMessageProperties().getCorrelationId();
         try {
             RaoRequest raoRequest = jsonApiConverter.fromJsonMessage(message.getBody(), RaoRequest.class);
-            raoRunnerEventsLogging.addMetaDataToLogsModelContext(raoRequest.getId(), correlationId, message.getMessageProperties().getAppId());
-            raoRunnerEventsLogger.info("RAO request received: {}", raoRequest);
+
+            String processId = raoRequest.getId().substring(0, raoRequest.getId().lastIndexOf("-20210901"));
+            LoggerFactory.getLogger("TEST").info("processId {}", processId);
+            addMetaDataToLogsModelContext(processId, correlationId, message.getMessageProperties().getAppId());
+            LoggerFactory.getLogger("TEST").info("RAO request received: {}", raoRequest);
             RaoResponse raoResponse = raoRunnerServer.runRao(raoRequest);
+            LoggerFactory.getLogger("TEST").info("processId {}", processId);
             sendRaoResponse(raoResponse, replyTo, correlationId);
+            LoggerFactory.getLogger("TEST").info("processId {}", processId);
+
         } catch (RaoRunnerException e) {
+            LoggerFactory.getLogger("TEST").info("RaoRunnerException", e);
             sendErrorResponse(e, replyTo, correlationId);
         } catch (RuntimeException e) {
+            LoggerFactory.getLogger("TEST").info("RuntimeException", e);
+
             RaoRunnerException wrappingException = new RaoRunnerException("Unhandled exception: " + e.getMessage(), e);
             sendErrorResponse(wrappingException, replyTo, correlationId);
         }
+    }
+
+    public void addMetaDataToLogsModelContext(String gridcapaTaskId, String raoRequestId, String clientAppId) {
+        MDC.put("gridcapa-task-id", gridcapaTaskId);
+        MDC.put("rao-request-id", raoRequestId);
+        MDC.put("client-app-id", clientAppId);
     }
 
     private void sendRaoResponse(RaoResponse raoResponse, String replyTo, String correlationId) {
