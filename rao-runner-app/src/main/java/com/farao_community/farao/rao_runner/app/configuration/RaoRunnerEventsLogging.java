@@ -22,5 +22,4 @@ public class RaoRunnerEventsLogging {
         return  LoggerFactory.getLogger("RAO_RUNNER_BUSINESS_LOGGER");
     }
 
-
 }
