@@ -14,6 +14,7 @@
         <encoder class="net.logstash.logback.encoder.LogstashEncoder">
             <customFields>{"serviceName": "${serviceName}"}</customFields>
             <includeContext>false</includeContext>
+            <timestampPattern>%d{DEFAULT_NANOS}</timestampPattern>
             <fieldNames>
                 <timestamp>timestamp</timestamp>
                 <thread>[ignore]</thread>
@@ -58,7 +59,7 @@
 
     <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
-            <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+            <pattern>%d{DEFAULT_NANOS} [%thread] %-5level %logger{36} - %msg%n</pattern>
         </encoder>
     </appender>
     <root level="info">

@@ -6,6 +6,8 @@
  */
 package com.farao_community.farao.rao_runner.app;
 import com.farao_community.farao.rao_api.Rao;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
 
@@ -18,6 +20,11 @@ public class GeneralBeans {
     @Bean
     public Rao.Runner raoRunnerProvider() {
         return Rao.find();
+    }
+
+    @Bean
+    public Logger getLogger() {
+        return  LoggerFactory.getLogger("RAO_RUNNER_BUSINESS_LOGGER");
     }
 
 }
