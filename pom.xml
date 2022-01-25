@@ -49,8 +49,7 @@
         <jackson.datatype.version>2.12.2</jackson.datatype.version>
         <jsonapi.converter.version>0.11</jsonapi.converter.version>
         <junit.launcher.version>1.6.3</junit.launcher.version>
-
-        <farao.dependencies.version>1.0.0</farao.dependencies.version>
+        <farao.dependencies.version>1.1.0</farao.dependencies.version>
     </properties>
 
     <dependencyManagement>
@@ -72,7 +71,6 @@
                 <artifactId>commons-lang3</artifactId>
                 <version>${commons.lang.version}</version>
             </dependency>
-
             <dependency>
                 <groupId>com.farao-community.farao</groupId>
                 <artifactId>farao-dependencies</artifactId>
