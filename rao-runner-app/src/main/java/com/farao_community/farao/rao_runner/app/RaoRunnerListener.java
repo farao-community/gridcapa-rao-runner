@@ -13,6 +13,7 @@ import com.farao_community.farao.rao_runner.api.resource.RaoResponse;
 import com.farao_community.farao.rao_runner.app.configuration.AmqpConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 import org.springframework.amqp.core.*;
 import org.springframework.stereotype.Component;
 
@@ -46,6 +47,7 @@ public class RaoRunnerListener  implements MessageListener {
         try {
             RaoRequest raoRequest = jsonApiConverter.fromJsonMessage(message.getBody(), RaoRequest.class);
             LOGGER.info("RAO request received: {}", raoRequest);
+            addMetaDataToLogsModelContext(raoRequest.getId(), correlationId, message.getMessageProperties().getAppId());
             RaoResponse raoResponse = raoRunnerServer.runRao(raoRequest);
             LOGGER.info("RAO response sent: {}", raoResponse);
             sendRaoResponse(raoResponse, replyTo, correlationId);
@@ -56,6 +58,12 @@ public class RaoRunnerListener  implements MessageListener {
             RaoRunnerException wrappingException = new RaoRunnerException("Unhandled exception: " + e.getMessage(), e);
             sendErrorResponse(wrappingException, replyTo, correlationId);
         }
+    }
+
+    public void addMetaDataToLogsModelContext(String gridcapaTaskId, String raoRequestId, String clientAppId) {
+        MDC.put("gridcapaTaskId", gridcapaTaskId);
+        MDC.put("computationId", raoRequestId);
+        MDC.put("clientAppId", clientAppId);
     }
 
     private void sendRaoResponse(RaoResponse raoResponse, String replyTo, String correlationId) {

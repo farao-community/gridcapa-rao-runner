@@ -33,3 +33,8 @@ rao-runner:
       - http://${MINIO_HOST:localhost}:${MINIO_PORT:9000}
 server:
   port: ${RAO_ADAPTER_SERVER_PORT:3030}
+
+logback:
+  amqp:
+    exchange: rao-runners-logs-exchange
+    routing-key: "#"

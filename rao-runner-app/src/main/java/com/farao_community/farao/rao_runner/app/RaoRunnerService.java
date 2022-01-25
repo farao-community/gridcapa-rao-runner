@@ -41,11 +41,13 @@ public class RaoRunnerService {
     private final Rao.Runner raoRunnerProvider;
     private final FileExporter fileExporter;
     private final FileImporter fileImporter;
+    private final Logger eventsLogger;
 
-    public RaoRunnerService(Rao.Runner raoRunnerProvider, FileExporter fileExporter, FileImporter fileImporter) {
+    public RaoRunnerService(Rao.Runner raoRunnerProvider, FileExporter fileExporter, FileImporter fileImporter, Logger eventsLogger) {
         this.raoRunnerProvider = raoRunnerProvider;
         this.fileExporter = fileExporter;
         this.fileImporter = fileImporter;
+        this.eventsLogger = eventsLogger;
     }
 
     public RaoResponse runRao(RaoRequest raoRequest) {
@@ -56,6 +58,7 @@ public class RaoRunnerService {
         try {
             Instant computationStartInstant = Instant.now();
             RaoResult raoResult = raoRunnerProvider.run(getRaoInput(raoRequest, network, crac), raoParameters);
+            eventsLogger.info("Applying remedial actions for preventive state");
             applyRemedialActionsForState(network, raoResult, crac.getPreventiveState());
             return saveResultsAndCreateRaoResponse(raoRequest, crac, raoResult, network, computationStartInstant);
         } catch (FaraoException e) {
