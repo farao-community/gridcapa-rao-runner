@@ -43,26 +43,26 @@ public class RaoRunnerListener  implements MessageListener {
     @Override
     public void onMessage(Message message) {
         String replyTo = message.getMessageProperties().getReplyTo();
-        String correlationId = message.getMessageProperties().getCorrelationId();
+        String brokerCorrelationId = message.getMessageProperties().getCorrelationId();
         try {
             RaoRequest raoRequest = jsonApiConverter.fromJsonMessage(message.getBody(), RaoRequest.class);
             LOGGER.info("RAO request received: {}", raoRequest);
-            addMetaDataToLogsModelContext(raoRequest.getId(), correlationId, message.getMessageProperties().getAppId());
+            addMetaDataToLogsModelContext(raoRequest.getId(), brokerCorrelationId, message.getMessageProperties().getAppId());
             RaoResponse raoResponse = raoRunnerServer.runRao(raoRequest);
             LOGGER.info("RAO response sent: {}", raoResponse);
-            sendRaoResponse(raoResponse, replyTo, correlationId);
+            sendRaoResponse(raoResponse, replyTo, brokerCorrelationId);
             System.gc();
         } catch (RaoRunnerException e) {
-            sendErrorResponse(e, replyTo, correlationId);
+            sendErrorResponse(e, replyTo, brokerCorrelationId);
         } catch (Exception e) {
             RaoRunnerException wrappingException = new RaoRunnerException("Unhandled exception: " + e.getMessage(), e);
-            sendErrorResponse(wrappingException, replyTo, correlationId);
+            sendErrorResponse(wrappingException, replyTo, brokerCorrelationId);
         }
     }
 
-    public void addMetaDataToLogsModelContext(String gridcapaTaskId, String raoRequestId, String clientAppId) {
+    public void addMetaDataToLogsModelContext(String gridcapaTaskId, String computationId, String clientAppId) {
         MDC.put("gridcapaTaskId", gridcapaTaskId);
-        MDC.put("computationId", raoRequestId);
+        MDC.put("computationId", computationId);
         MDC.put("clientAppId", clientAppId);
     }
 
