@@ -41,6 +41,7 @@ public class AmqpConfiguration {
         simpleMessageListenerContainer.setConnectionFactory(connectionFactory);
         simpleMessageListenerContainer.setQueues(raoRequestQueue);
         simpleMessageListenerContainer.setMessageListener(listener);
+        simpleMessageListenerContainer.setPrefetchCount(1);
         return simpleMessageListenerContainer;
     }
 
