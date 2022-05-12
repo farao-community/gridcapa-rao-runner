@@ -79,14 +79,12 @@ public class RaoRunnerListener  implements MessageListener {
     }
 
     private void sendErrorResponse(RaoRunnerException exception, String replyTo, String correlationId) {
+        LOGGER.error("Exception occurred while running RAO", exception);
         Message errorMessage = createErrorResponse(exception, correlationId);
         if (replyTo != null) {
             amqpTemplate.send(replyTo, errorMessage);
         } else {
             amqpTemplate.send(amqpConfiguration.raoResponseExchange().getName(), "", errorMessage);
-        }
-        if (LOGGER.isInfoEnabled()) {
-            LOGGER.info("Response message: {}", new String(errorMessage.getBody()));
         }
     }
 
