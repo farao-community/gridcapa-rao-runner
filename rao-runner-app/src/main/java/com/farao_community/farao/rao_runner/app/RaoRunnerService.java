@@ -7,7 +7,6 @@
 package com.farao_community.farao.rao_runner.app;
 
 import com.farao_community.farao.commons.FaraoException;
-import com.farao_community.farao.commons.ZonalData;
 import com.farao_community.farao.data.crac_api.Crac;
 import com.farao_community.farao.data.crac_api.State;
 import com.farao_community.farao.data.glsk.virtual.hubs.GlskVirtualHubs;
@@ -20,8 +19,9 @@ import com.farao_community.farao.rao_api.parameters.RaoParameters;
 import com.farao_community.farao.rao_runner.api.exceptions.RaoRunnerException;
 import com.farao_community.farao.rao_runner.api.resource.RaoRequest;
 import com.farao_community.farao.rao_runner.api.resource.RaoResponse;
+import com.powsybl.glsk.commons.ZonalData;
 import com.powsybl.iidm.network.Network;
-import com.powsybl.sensitivity.factors.variables.LinearGlsk;
+import com.powsybl.sensitivity.SensitivityVariableSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -89,8 +89,8 @@ public class RaoRunnerService {
         Optional<String> optRefProgUrl = raoRequest.getRefprogFileUrl();
         if (optInstant.isPresent() && optGlskUrl.isPresent() && optRefProgUrl.isPresent()) {
             ReferenceProgram referenceProgram = fileImporter.importRefProg(optInstant.get(), optRefProgUrl.get());
-            ZonalData<LinearGlsk> glskProvider = fileImporter.importGlsk(optInstant.get(), optGlskUrl.get(), network);
-            ZonalData<LinearGlsk> glskOfVirtualHubs = GlskVirtualHubs.getVirtualHubGlsks(network, referenceProgram);
+            ZonalData<SensitivityVariableSet> glskProvider = fileImporter.importGlsk(optInstant.get(), optGlskUrl.get(), network);
+            ZonalData<SensitivityVariableSet> glskOfVirtualHubs = GlskVirtualHubs.getVirtualHubGlsks(network, referenceProgram);
             glskProvider.addAll(glskOfVirtualHubs);
             raoInputBuilder.withGlskProvider(glskProvider);
             raoInputBuilder.withRefProg(referenceProgram);
