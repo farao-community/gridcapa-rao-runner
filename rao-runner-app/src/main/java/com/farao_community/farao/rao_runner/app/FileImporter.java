@@ -7,20 +7,20 @@
 package com.farao_community.farao.rao_runner.app;
 
 import com.farao_community.farao.commons.FaraoException;
-import com.farao_community.farao.commons.ZonalData;
 import com.farao_community.farao.data.crac_api.Crac;
 import com.farao_community.farao.data.crac_io_api.CracImporters;
-import com.farao_community.farao.data.glsk.api.GlskDocument;
-import com.farao_community.farao.data.glsk.api.io.GlskDocumentImporters;
 import com.farao_community.farao.data.refprog.reference_program.ReferenceProgram;
 import com.farao_community.farao.data.refprog.refprog_xml_importer.RefProgImporter;
 import com.farao_community.farao.rao_api.json.JsonRaoParameters;
 import com.farao_community.farao.rao_api.parameters.RaoParameters;
 import com.farao_community.farao.rao_runner.api.exceptions.RaoRunnerException;
 import com.farao_community.farao.rao_runner.app.configuration.MinioAdapter;
+import com.powsybl.glsk.api.GlskDocument;
+import com.powsybl.glsk.api.io.GlskDocumentImporters;
+import com.powsybl.glsk.commons.ZonalData;
 import com.powsybl.iidm.import_.Importers;
 import com.powsybl.iidm.network.Network;
-import com.powsybl.sensitivity.factors.variables.LinearGlsk;
+import com.powsybl.sensitivity.SensitivityVariableSet;
 import org.springframework.stereotype.Service;
 
 import java.io.InputStream;
@@ -45,7 +45,7 @@ public class FileImporter {
         return JsonRaoParameters.update(defaultRaoParameters, customRaoParameters);
     }
 
-    ZonalData<LinearGlsk> importGlsk(String instant, String glskUrl, Network network) {
+    ZonalData<SensitivityVariableSet> importGlsk(String instant, String glskUrl, Network network) {
         try {
             InputStream glskFileInputStream = minioAdapter.getInputStreamFromUrl(glskUrl);
             GlskDocument ucteGlskProvider = GlskDocumentImporters.importGlsk(glskFileInputStream);

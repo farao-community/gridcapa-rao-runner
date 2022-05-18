@@ -45,10 +45,6 @@
         </dependency>
         <dependency>
             <groupId>com.farao-community.farao</groupId>
-            <artifactId>farao-glsk-document-io-api</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.farao-community.farao</groupId>
             <artifactId>farao-glsk-virtual-hubs</artifactId>
         </dependency>
         <dependency>
@@ -62,6 +58,10 @@
         <dependency>
             <groupId>com.farao-community.farao</groupId>
             <artifactId>farao-refprog-xml-importer</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.powsybl</groupId>
+            <artifactId>powsybl-glsk-document-io-api</artifactId>
         </dependency>
         <dependency>
             <groupId>io.minio</groupId>
@@ -93,17 +93,17 @@
         </dependency>
         <dependency>
             <groupId>com.farao-community.farao</groupId>
-            <artifactId>farao-glsk-document-ucte</artifactId>
-            <scope>runtime</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.farao-community.farao</groupId>
             <artifactId>farao-search-tree-rao</artifactId>
             <scope>runtime</scope>
         </dependency>
         <dependency>
             <groupId>com.powsybl</groupId>
             <artifactId>powsybl-config-classic</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.powsybl</groupId>
+            <artifactId>powsybl-glsk-document-ucte</artifactId>
             <scope>runtime</scope>
         </dependency>
         <dependency>

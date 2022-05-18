@@ -6,16 +6,16 @@
  */
 package com.farao_community.farao.rao_runner.app;
 
-import com.farao_community.farao.commons.ZonalData;
 import com.farao_community.farao.data.crac_api.Crac;
 import com.farao_community.farao.data.refprog.reference_program.ReferenceProgram;
 import com.farao_community.farao.rao_api.parameters.RaoParameters;
 import com.farao_community.farao.rao_runner.app.configuration.MinioAdapter;
 import com.farao_community.farao.search_tree_rao.castor.parameters.SearchTreeRaoParameters;
+import com.powsybl.glsk.commons.ZonalData;
 import com.powsybl.iidm.import_.Importers;
 import com.powsybl.iidm.network.Country;
 import com.powsybl.iidm.network.Network;
-import com.powsybl.sensitivity.factors.variables.LinearGlsk;
+import com.powsybl.sensitivity.SensitivityVariableSet;
 import com.rte_france.powsybl.iidm.export.adn.ADNLoadFlowParameters;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -87,9 +87,9 @@ class FileImporterTest {
     @Test
     void checkGlskIsImportedCorrectly() {
         Network network = Importers.loadNetwork("network.xiidm", getClass().getResourceAsStream("/rao_inputs/network.xiidm"));
-        ZonalData<LinearGlsk> glsks = fileImporter.importGlsk("2019-01-08T21:30:00Z", "glskFileUrl", network);
+        ZonalData<SensitivityVariableSet> glsks = fileImporter.importGlsk("2019-01-08T21:30:00Z", "glskFileUrl", network);
         assertEquals(4, glsks.getDataPerZone().size());
-        assertEquals(3, glsks.getData("10YFR-RTE------C").getGLSKs().size());
+        assertEquals(3, glsks.getData("10YFR-RTE------C").getVariables().size());
 
     }
 
