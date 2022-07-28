@@ -122,7 +122,7 @@ class FileImporterTest {
         assertEquals(15, searchTreeRaoParameters.getMaxCurativePstPerTso().size());
 
         ADNLoadFlowParameters adnLoadFlowParameters = raoParameters.getDefaultSensitivityAnalysisParameters().getLoadFlowParameters().getExtension(ADNLoadFlowParameters.class);
-        assertEquals("COURANT_CONTINU", adnLoadFlowParameters.getDcApproxType());
+        assertEquals(ADNLoadFlowParameters.TypeApproxActifSeul.COURANT_CONTINU, adnLoadFlowParameters.getDcApproxType());
         assertEquals(1.0, adnLoadFlowParameters.getDcCosphi(), .0);
         assertEquals(2, adnLoadFlowParameters.getNbThreads());
     }
