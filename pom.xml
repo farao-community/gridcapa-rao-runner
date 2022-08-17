@@ -50,7 +50,7 @@
         <jsonapi.converter.version>0.11</jsonapi.converter.version>
         <junit.launcher.version>1.6.3</junit.launcher.version>
         <logstash.version>7.0.1</logstash.version>
-        <farao.dependencies.version>1.4.0</farao.dependencies.version>
+        <farao.dependencies.version>1.4.1</farao.dependencies.version>
     </properties>
 
     <dependencyManagement>
