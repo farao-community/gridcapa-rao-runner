@@ -21,11 +21,12 @@ public class StopService {
         }
     }
 
-    private Optional<Thread> isRunning(String id) {
+    Optional<Thread> isRunning(String id) {
         return Thread.getAllStackTraces()
                 .keySet()
                 .stream()
                 .filter(t -> t.getName().equals(id))
                 .findFirst();
     }
+
 }
