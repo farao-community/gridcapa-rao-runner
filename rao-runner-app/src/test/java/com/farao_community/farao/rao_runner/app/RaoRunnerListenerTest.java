@@ -9,25 +9,10 @@ package com.farao_community.farao.rao_runner.app;
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.read.ListAppender;
-import com.farao_community.farao.rao_runner.api.resource.RaoRequest;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 import org.slf4j.LoggerFactory;
-import org.springframework.amqp.core.AmqpTemplate;
-import org.springframework.amqp.core.Message;
-import org.springframework.amqp.core.MessageBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.context.TestConfiguration;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Primary;
-import org.springframework.core.io.ClassPathResource;
-
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -39,44 +24,6 @@ class RaoRunnerListenerTest {
 
     @Autowired
     public RaoRunnerListener raoRunnerListener;
-
-    @MockBean
-    public RaoRunnerService raoRunnerServer;
-
-    @Autowired
-    private AmqpTemplate amqpTemplate;
-
-    @TestConfiguration
-    static class AmqpTestConfiguration {
-        @Bean
-        @Primary
-        public AmqpTemplate amqpTemplate() {
-            return Mockito.mock(AmqpTemplate.class);
-        }
-    }
-
-    @BeforeEach
-    public void resetMocks() {
-        Mockito.reset(amqpTemplate, raoRunnerServer);
-    }
-
-    @Test
-    void checkThatCorrectMessageIsHandledCorrectly() throws IOException {
-        File resource = new ClassPathResource("raoRequestMessage.json").getFile();
-        String inputMessage = new String(Files.readAllBytes(resource.toPath()));
-        Message message = MessageBuilder.withBody(inputMessage.getBytes()).build();
-        raoRunnerListener.onMessage(message);
-        Mockito.verify(raoRunnerServer, Mockito.times(1)).runRao(Mockito.any(RaoRequest.class));
-    }
-
-    @Test
-    void checkInvalidMessageReturnsError() throws IOException {
-        File resource = new ClassPathResource("fakeMessage.json").getFile();
-        String inputMessage = new String(Files.readAllBytes(resource.toPath()));
-        Message message = MessageBuilder.withBody(inputMessage.getBytes()).build();
-        raoRunnerListener.onMessage(message);
-        Mockito.verify(raoRunnerServer, Mockito.times(0)).runRao(Mockito.any(RaoRequest.class));
-    }
 
     @Test
     void checkThatMdcMetadataIsPropagatedCorrectly() {

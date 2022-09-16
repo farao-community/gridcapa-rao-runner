@@ -10,12 +10,15 @@ import com.farao_community.farao.rao_runner.api.JsonApiConverter;
 import com.farao_community.farao.rao_runner.api.exceptions.RaoRunnerException;
 import com.farao_community.farao.rao_runner.api.resource.RaoRequest;
 import com.farao_community.farao.rao_runner.api.resource.RaoResponse;
+import com.farao_community.farao.rao_runner.api.resource.ThreadLauncherResult;
 import com.farao_community.farao.rao_runner.app.configuration.AmqpConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 import org.springframework.amqp.core.*;
 import org.springframework.stereotype.Component;
+
+import java.util.Optional;
 
 /**
  * @author Mohamed BenRejeb {@literal <mohamed.ben-rejeb at rte-france.com>}
@@ -48,9 +51,20 @@ public class RaoRunnerListener  implements MessageListener {
             RaoRequest raoRequest = jsonApiConverter.fromJsonMessage(message.getBody(), RaoRequest.class);
             LOGGER.info("RAO request received: {}", raoRequest);
             addMetaDataToLogsModelContext(raoRequest.getId(), brokerCorrelationId, message.getMessageProperties().getAppId());
-            RaoResponse raoResponse = raoRunnerServer.runRao(raoRequest);
-            LOGGER.info("RAO response sent: {}", raoResponse);
-            sendRaoResponse(raoResponse, replyTo, brokerCorrelationId);
+            GenericThreadLauncher<RaoRunnerService, RaoResponse> launcher = new GenericThreadLauncher<>(raoRunnerServer, raoRequest.getId(), raoRequest);
+            launcher.start();
+            ThreadLauncherResult<RaoResponse> raoResponse = launcher.getResult();
+            if (raoResponse.hasError() && raoResponse.getException() != null) {
+                throw raoResponse.getException();
+            }
+            Optional<RaoResponse> resp = raoResponse.getResult();
+            if (resp.isPresent() && !raoResponse.hasError()) {
+                LOGGER.info("RAO response sent: {}", raoResponse.getResult());
+                sendRaoResponse(raoResponse.getResult().get(), replyTo, brokerCorrelationId);
+            } else {
+                LOGGER.info("RAO run has been interrupted");
+                sendRaoResponse(new RaoResponse(raoRequest.getId(), null, null, null, null, null, null), replyTo, brokerCorrelationId);
+            }
             System.gc();
         } catch (RaoRunnerException e) {
             sendErrorResponse(e, replyTo, brokerCorrelationId);
