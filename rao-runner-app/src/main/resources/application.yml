@@ -12,6 +12,14 @@ spring:
     password: ${RABBITMQ_PASSWORD:guest}
     template:
       reply-timeout: 12000000
+  cloud:
+    function:
+      definition: stop
+    stream:
+      bindings:
+        stop-in-0:
+          binder: rabbit
+          destination: rao-stop-task
 
 minio:
   bucket: ${MINIO_BUCKET:rao-integration-data}
