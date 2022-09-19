@@ -59,8 +59,8 @@ public class RaoRunnerListener  implements MessageListener {
             }
             Optional<RaoResponse> resp = raoResponse.getResult();
             if (resp.isPresent() && !raoResponse.hasError()) {
-                LOGGER.info("RAO response sent: {}", raoResponse.getResult());
-                sendRaoResponse(raoResponse.getResult().get(), replyTo, brokerCorrelationId);
+                LOGGER.info("RAO response sent: {}", resp);
+                sendRaoResponse(resp.get(), replyTo, brokerCorrelationId);
             } else {
                 LOGGER.info("RAO run has been interrupted");
                 sendRaoResponse(new RaoResponse(raoRequest.getId(), null, null, null, null, null, null), replyTo, brokerCorrelationId);
