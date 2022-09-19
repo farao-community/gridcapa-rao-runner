@@ -20,7 +20,6 @@ public class GenericThreadLauncher<T, U> extends Thread {
     private final T threadable;
     private final Method run;
     private final Object[] args;
-
     private ThreadLauncherResult<U> result;
 
     public GenericThreadLauncher(T threadable, String id, Object... args) {
@@ -37,13 +36,16 @@ public class GenericThreadLauncher<T, U> extends Thread {
             U threadResult = (U) this.run.invoke(threadable, args);
             this.result = ThreadLauncherResult.success(threadResult);
         } catch (IllegalAccessException | InvocationTargetException e) {
-            if (checkInterruption(e)) {
-                //an interruption is not considered as an error because it is intentional
-                this.result = ThreadLauncherResult.interrupt();
-            } else {
+            if (result == null) {
                 this.result = ThreadLauncherResult.error(e);
             }
         }
+    }
+
+    @Override
+    public void interrupt() {
+        this.result = ThreadLauncherResult.interrupt();
+        super.interrupt();
     }
 
     public ThreadLauncherResult<U> getResult() {
@@ -55,7 +57,7 @@ public class GenericThreadLauncher<T, U> extends Thread {
         return result;
     }
 
-    public static Method getMethodAnnotatedWith(final Class<?> type) {
+    private static Method getMethodAnnotatedWith(final Class<?> type) {
         List<Method> methods = getMethodsAnnotatedWith(type);
         if (methods.isEmpty()) {
             throw new RaoRunnerException("the class " + type.getCanonicalName() + " does not have his running method annotated with @Threadable");
@@ -82,15 +84,4 @@ public class GenericThreadLauncher<T, U> extends Thread {
         return methods;
     }
 
-    private boolean checkInterruption(Exception exception) {
-        boolean isInterrupt = false;
-        Throwable e = exception;
-        while (e != null && !isInterrupt) {
-            if ("interrupted".equals(e.getMessage())) {
-                isInterrupt = true;
-            }
-            e = e.getCause();
-        }
-        return isInterrupt;
-    }
 }
