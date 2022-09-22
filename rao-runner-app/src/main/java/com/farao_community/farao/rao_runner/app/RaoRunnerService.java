@@ -50,6 +50,7 @@ public class RaoRunnerService {
         this.eventsLogger = eventsLogger;
     }
 
+    @Threadable
     public RaoResponse runRao(RaoRequest raoRequest) {
         Network network = fileImporter.importNetwork(raoRequest.getNetworkFileUrl());
         Crac crac = fileImporter.importCrac(raoRequest.getCracFileUrl());
