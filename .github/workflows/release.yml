@@ -92,4 +92,4 @@ jobs:
         uses: dawidd6/action-delete-branch@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          branches: next-release-v${{ github.event.inputs.nextVersion }}
+          branches: next-release-v${{ github.event.inputs.nextVersion }},release-v${{ github.event.inputs.releaseVersion }}
