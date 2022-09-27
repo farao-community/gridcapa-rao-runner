@@ -28,16 +28,18 @@ public class MinioAdapter {
 
     private final MinioClient minioClient;
     private final UrlWhitelistConfiguration urlWhitelistConfiguration;
+    private final Logger businessLogger;
     private final String minioBucket;
     private final String basePath;
 
     private static final Logger LOGGER = LoggerFactory.getLogger(MinioAdapter.class);
 
-    public MinioAdapter(MinioConfiguration minioConfiguration, MinioClient minioClient, UrlWhitelistConfiguration urlWhitelistConfiguration) {
+    public MinioAdapter(MinioConfiguration minioConfiguration, MinioClient minioClient, UrlWhitelistConfiguration urlWhitelistConfiguration, Logger businessLogger) {
         this.minioClient = minioClient;
         this.minioBucket = minioConfiguration.getBucket();
         this.basePath = minioConfiguration.getBasePath();
         this.urlWhitelistConfiguration = urlWhitelistConfiguration;
+        this.businessLogger = businessLogger;
     }
 
     public void uploadFile(String pathDestination, InputStream sourceInputStream) {
@@ -80,6 +82,7 @@ public class MinioAdapter {
             }
             return new URL(url).openStream();
         } catch (IOException e) {
+            businessLogger.error("Error while retrieving content of file : {}, Link may have expired.", getFileNameFromUrl(url));
             throw new RaoRunnerException(String.format("Exception occurred while retrieving file content from : %s Cause: %s ", url, e.getMessage()));
         }
     }
