@@ -51,7 +51,12 @@ public class RaoRunnerListener  implements MessageListener {
             RaoRequest raoRequest = jsonApiConverter.fromJsonMessage(message.getBody(), RaoRequest.class);
             LOGGER.info("RAO request received: {}", raoRequest);
             addMetaDataToLogsModelContext(raoRequest.getId(), brokerCorrelationId, message.getMessageProperties().getAppId());
-            GenericThreadLauncher<RaoRunnerService, RaoResponse> launcher = new GenericThreadLauncher<>(raoRunnerServer, raoRequest.getId(), raoRequest);
+            GenericThreadLauncher<RaoRunnerService, RaoResponse> launcher = new GenericThreadLauncher<>(
+                raoRunnerServer,
+                raoRequest.getId(),
+                MDC.getCopyOfContextMap(),
+                raoRequest
+            );
             launcher.start();
             ThreadLauncherResult<RaoResponse> raoResponse = launcher.getResult();
             if (raoResponse.hasError() && raoResponse.getException() != null) {
