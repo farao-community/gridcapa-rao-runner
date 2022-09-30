@@ -11,6 +11,7 @@ import com.farao_community.farao.rao_runner.api.resource.ThreadLauncherResult;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
+import java.util.Collections;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -70,6 +71,7 @@ class GenericThreadLauncherTest {
         GenericThreadLauncher<LaunchWithThreadableAnnotation, Integer> gtl = new GenericThreadLauncher<>(
                 new LaunchWithThreadableAnnotation(),
                 "withThreadable",
+                Collections.emptyMap(),
                 10);
 
         gtl.start();
@@ -92,6 +94,7 @@ class GenericThreadLauncherTest {
             GenericThreadLauncher<LaunchWithoutThreadableAnnotation, Integer> gtl = new GenericThreadLauncher<>(
                     new LaunchWithoutThreadableAnnotation(),
                     "withThreadable",
+                    Collections.emptyMap(),
                     10);
         } catch (Exception e) {
             exception++;
@@ -109,6 +112,7 @@ class GenericThreadLauncherTest {
             GenericThreadLauncher<LaunchWithMultipleThreadableAnnotation, Integer> gtl = new GenericThreadLauncher<>(
                     new LaunchWithMultipleThreadableAnnotation(),
                     "withThreadable",
+                    Collections.emptyMap(),
                     10);
         } catch (Exception e) {
             exception++;
