@@ -19,7 +19,6 @@ import com.farao_community.farao.rao_runner.api.resource.RaoResponse;
 import com.powsybl.glsk.api.GlskDocument;
 import com.powsybl.glsk.api.io.GlskDocumentImporters;
 import com.powsybl.glsk.commons.ZonalData;
-import com.powsybl.iidm.import_.Importers;
 import com.powsybl.iidm.network.Network;
 import com.powsybl.sensitivity.SensitivityVariableSet;
 import org.junit.jupiter.api.BeforeEach;
@@ -61,7 +60,7 @@ class RaoRunnerServiceTest {
     @BeforeEach
     public void setUp() {
         InputStream raoResultInputStream = getClass().getResourceAsStream("/rao_inputs/raoResult.json");
-        network = Importers.loadNetwork("network.xiidm", getClass().getResourceAsStream("/rao_inputs/network.xiidm"));
+        network = Network.read("network.xiidm", getClass().getResourceAsStream("/rao_inputs/network.xiidm"));
         crac = CracImporters.importCrac("crac.json", Objects.requireNonNull(getClass().getResourceAsStream("/rao_inputs/crac.json")));
         raoResult = new RaoResultImporter().importRaoResult(raoResultInputStream, crac);
         Mockito.when(raoRunnerProv.run(Mockito.any(), Mockito.any())).thenReturn(raoResult);

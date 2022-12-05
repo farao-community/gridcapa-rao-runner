@@ -12,7 +12,6 @@ import com.farao_community.farao.data.rao_result_api.RaoResult;
 import com.farao_community.farao.data.rao_result_json.RaoResultImporter;
 import com.farao_community.farao.rao_runner.api.resource.RaoRequest;
 import com.farao_community.farao.rao_runner.app.configuration.MinioAdapter;
-import com.powsybl.iidm.import_.Importers;
 import com.powsybl.iidm.network.Network;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -71,7 +70,7 @@ class FileExporterTest {
     void checkNetworkSavingWithResultDestination() {
         Mockito.when(minioAdapter.generatePreSignedUrl("destination-key/networkWithPRA.xiidm")).thenReturn("networkWithPraUrl");
 
-        Network network = Importers.loadNetwork("network.xiidm", getClass().getResourceAsStream("/rao_inputs/network.xiidm"));
+        Network network = Network.read("network.xiidm", getClass().getResourceAsStream("/rao_inputs/network.xiidm"));
         String networkPraUrl = fileExporter.saveNetwork(network, raoRequestWithResultDestination);
         assertEquals("networkWithPraUrl", networkPraUrl);
     }
@@ -80,7 +79,7 @@ class FileExporterTest {
     void checkNetworkSavingWithNoResultDestination() {
         Mockito.when(minioAdapter.generatePreSignedUrl("base/path/id/networkWithPRA.xiidm")).thenReturn("networkWithPraUrl");
 
-        Network network = Importers.loadNetwork("network.xiidm", getClass().getResourceAsStream("/rao_inputs/network.xiidm"));
+        Network network = Network.read("network.xiidm", getClass().getResourceAsStream("/rao_inputs/network.xiidm"));
         String networkPraUrl = fileExporter.saveNetwork(network, simpleRaoRequest);
         assertEquals("networkWithPraUrl", networkPraUrl);
     }
