@@ -12,7 +12,6 @@ import com.farao_community.farao.data.rao_result_json.RaoResultExporter;
 import com.farao_community.farao.rao_runner.api.resource.RaoRequest;
 import com.farao_community.farao.rao_runner.app.configuration.MinioAdapter;
 import com.powsybl.commons.datasource.MemDataSource;
-import com.powsybl.iidm.export.Exporters;
 import com.powsybl.iidm.network.Network;
 import org.springframework.stereotype.Service;
 
@@ -38,7 +37,7 @@ public class FileExporter {
 
     String saveNetwork(Network network, RaoRequest raoRequest) {
         MemDataSource dataSource = new MemDataSource();
-        Exporters.export(IIDM_EXPORT_FORMAT, network, null, dataSource);
+        network.write(IIDM_EXPORT_FORMAT, null, dataSource);
         String networkWithPRADestinationPath = makeTargetDirectoryPath(raoRequest) + File.separator + NETWORK;
         minioAdapter.uploadFile(networkWithPRADestinationPath, new ByteArrayInputStream(dataSource.getData(null, IIDM_EXTENSION)));
         return minioAdapter.generatePreSignedUrl(networkWithPRADestinationPath);

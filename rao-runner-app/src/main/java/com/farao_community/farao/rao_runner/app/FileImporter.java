@@ -18,7 +18,6 @@ import com.farao_community.farao.rao_runner.app.configuration.MinioAdapter;
 import com.powsybl.glsk.api.GlskDocument;
 import com.powsybl.glsk.api.io.GlskDocumentImporters;
 import com.powsybl.glsk.commons.ZonalData;
-import com.powsybl.iidm.import_.Importers;
 import com.powsybl.iidm.network.Network;
 import com.powsybl.sensitivity.SensitivityVariableSet;
 import org.springframework.stereotype.Service;
@@ -85,7 +84,7 @@ public class FileImporter {
 
     Network importNetwork(String networkFileUrl) {
         try {
-            return Importers.loadNetwork(minioAdapter.getFileNameFromUrl(networkFileUrl), minioAdapter.getInputStreamFromUrl(networkFileUrl));
+            return Network.read(minioAdapter.getFileNameFromUrl(networkFileUrl), minioAdapter.getInputStreamFromUrl(networkFileUrl));
         } catch (Exception e) {
             throw new RaoRunnerException(String.format("Exception occurred while importing network : %s. Cause: %s ", minioAdapter.getFileNameFromUrl(networkFileUrl), e.getMessage()));
         }
