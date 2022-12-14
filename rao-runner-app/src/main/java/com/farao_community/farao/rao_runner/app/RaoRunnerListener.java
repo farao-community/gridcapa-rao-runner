@@ -50,12 +50,13 @@ public class RaoRunnerListener  implements MessageListener {
         try {
             RaoRequest raoRequest = jsonApiConverter.fromJsonMessage(message.getBody(), RaoRequest.class);
             LOGGER.info("RAO request received: {}", raoRequest);
-            addMetaDataToLogsModelContext(raoRequest.getId(), brokerCorrelationId, message.getMessageProperties().getAppId());
+            //todo add test
+            addMetaDataToLogsModelContext(raoRequest.getId(), brokerCorrelationId, message.getMessageProperties().getAppId(), raoRequest.getEventPrefix());
             GenericThreadLauncher<RaoRunnerService, RaoResponse> launcher = new GenericThreadLauncher<>(
-                raoRunnerServer,
-                raoRequest.getId(),
-                MDC.getCopyOfContextMap(),
-                raoRequest
+                    raoRunnerServer,
+                    raoRequest.getId(),
+                    MDC.getCopyOfContextMap(),
+                    raoRequest
             );
             launcher.start();
             ThreadLauncherResult<RaoResponse> raoResponse = launcher.getResult();
@@ -79,10 +80,11 @@ public class RaoRunnerListener  implements MessageListener {
         }
     }
 
-    public void addMetaDataToLogsModelContext(String gridcapaTaskId, String computationId, String clientAppId) {
+    public void addMetaDataToLogsModelContext(String gridcapaTaskId, String computationId, String clientAppId, Optional<String> optPrefix) {
         MDC.put("gridcapaTaskId", gridcapaTaskId);
         MDC.put("computationId", computationId);
         MDC.put("clientAppId", clientAppId);
+        optPrefix.ifPresent(prefix -> MDC.put("eventPrefix", prefix));
     }
 
     private void sendRaoResponse(RaoResponse raoResponse, String replyTo, String correlationId) {

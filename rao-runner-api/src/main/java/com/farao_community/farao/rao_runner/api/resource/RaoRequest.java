@@ -31,6 +31,7 @@ public class RaoRequest {
     private final String raoParametersFileUrl;
     private final String resultsDestination;
     private final Instant targetEndInstant;
+    private final String eventPrefix;
 
     @JsonCreator
     public RaoRequest(@JsonProperty("id") String id,
@@ -41,7 +42,8 @@ public class RaoRequest {
                       @JsonProperty("realGlskFileUrl") String realGlskFileUrl,
                       @JsonProperty("raoParametersFileUrl") String raoParametersFileUrl,
                       @JsonProperty("resultsDestination") String resultsDestination,
-                      @JsonProperty("targetEndInstant") Instant targetEndInstant) {
+                      @JsonProperty("targetEndInstant") Instant targetEndInstant,
+                      @JsonProperty("eventPrefix") String eventPrefix) {
         this.id = id;
         this.instant = instant;
         this.networkFileUrl = networkFileUrl;
@@ -51,13 +53,26 @@ public class RaoRequest {
         this.raoParametersFileUrl = raoParametersFileUrl;
         this.resultsDestination = resultsDestination;
         this.targetEndInstant = targetEndInstant;
+        this.eventPrefix = eventPrefix;
+    }
+
+    public RaoRequest(@JsonProperty("id") String id,
+                      @JsonProperty("instant") String instant,
+                      @JsonProperty("networkFileUrl") String networkFileUrl,
+                      @JsonProperty("cracFileUrl") String cracFileUrl,
+                      @JsonProperty("refprogFileUrl") String refprogFileUrl,
+                      @JsonProperty("realGlskFileUrl") String realGlskFileUrl,
+                      @JsonProperty("raoParametersFileUrl") String raoParametersFileUrl,
+                      @JsonProperty("resultsDestination") String resultsDestination,
+                      @JsonProperty("targetEndInstant") Instant targetEndInstant) {
+        this(id, instant, networkFileUrl, cracFileUrl, refprogFileUrl, realGlskFileUrl, raoParametersFileUrl, resultsDestination, targetEndInstant, null);
     }
 
     public RaoRequest(@JsonProperty("id") String id,
                       @JsonProperty("networkFileUrl") String networkFileUrl,
                       @JsonProperty("cracFileUrl") String cracFileUrl,
                       @JsonProperty("raoParametersFileUrl") String raoParametersFileUrl) {
-        this(id, null, networkFileUrl, cracFileUrl, null, null, raoParametersFileUrl, null, null);
+        this(id, null, networkFileUrl, cracFileUrl, null, null, raoParametersFileUrl, null, null, null);
     }
 
     public RaoRequest(@JsonProperty("id") String id,
@@ -65,7 +80,16 @@ public class RaoRequest {
                       @JsonProperty("cracFileUrl") String cracFileUrl,
                       @JsonProperty("raoParametersFileUrl") String raoParametersFileUrl,
                       @JsonProperty("resultsDestination") String resultsDestination) {
-        this(id, null, networkFileUrl, cracFileUrl, null, null, raoParametersFileUrl, resultsDestination, null);
+        this(id, null, networkFileUrl, cracFileUrl, null, null, raoParametersFileUrl, resultsDestination, null, null);
+    }
+
+    public RaoRequest(@JsonProperty("id") String id,
+                      @JsonProperty("networkFileUrl") String networkFileUrl,
+                      @JsonProperty("cracFileUrl") String cracFileUrl,
+                      @JsonProperty("raoParametersFileUrl") String raoParametersFileUrl,
+                      @JsonProperty("resultsDestination") String resultsDestination,
+                      @JsonProperty("eventPrefix") String eventPrefix) {
+        this(id, null, networkFileUrl, cracFileUrl, null, null, raoParametersFileUrl, resultsDestination, null, eventPrefix);
     }
 
     public String getId() {
@@ -102,6 +126,10 @@ public class RaoRequest {
 
     public Optional<Instant> getTargetEndInstant() {
         return Optional.ofNullable(targetEndInstant);
+    }
+
+    public Optional<String> getEventPrefix() {
+        return Optional.ofNullable(eventPrefix);
     }
 
     @Override

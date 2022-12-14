@@ -14,7 +14,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
+import java.util.Optional;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 /**
  * @author Mohamed BenRejeb {@literal <mohamed.ben-rejeb at rte-france.com>}
@@ -31,11 +34,27 @@ class RaoRunnerListenerTest {
         ListAppender<ILoggingEvent> listAppender = new ListAppender<>();
         listAppender.start();
         logger.addAppender(listAppender);
-        raoRunnerListener.addMetaDataToLogsModelContext("process-id", "request-id", "client-id");
+        raoRunnerListener.addMetaDataToLogsModelContext("process-id", "request-id", "client-id", Optional.of("prefix"));
+        logger.info("message");
+        assertEquals(4, listAppender.list.get(0).getMDCPropertyMap().size());
+        assertEquals("process-id", listAppender.list.get(0).getMDCPropertyMap().get("gridcapaTaskId"));
+        assertEquals("request-id", listAppender.list.get(0).getMDCPropertyMap().get("computationId"));
+        assertEquals("client-id", listAppender.list.get(0).getMDCPropertyMap().get("clientAppId"));
+        assertEquals("prefix", listAppender.list.get(0).getMDCPropertyMap().get("eventPrefix"));
+    }
+
+    @Test
+    void checkThatMdcMetadataIsPropagatedCorrectlyWithoutPrefix() {
+        Logger logger = (Logger) LoggerFactory.getLogger("LOGGER");
+        ListAppender<ILoggingEvent> listAppender = new ListAppender<>();
+        listAppender.start();
+        logger.addAppender(listAppender);
+        raoRunnerListener.addMetaDataToLogsModelContext("process-id", "request-id", "client-id", Optional.empty());
         logger.info("message");
         assertEquals(3, listAppender.list.get(0).getMDCPropertyMap().size());
         assertEquals("process-id", listAppender.list.get(0).getMDCPropertyMap().get("gridcapaTaskId"));
         assertEquals("request-id", listAppender.list.get(0).getMDCPropertyMap().get("computationId"));
         assertEquals("client-id", listAppender.list.get(0).getMDCPropertyMap().get("clientAppId"));
+        assertNull(listAppender.list.get(0).getMDCPropertyMap().get("eventPrefix"));
     }
 }

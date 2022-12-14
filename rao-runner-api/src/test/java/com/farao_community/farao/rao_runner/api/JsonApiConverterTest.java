@@ -16,8 +16,7 @@ import java.io.IOException;
 import java.time.Instant;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * @author Mohamed BenRejeb {@literal <mohamed.ben-rejeb at rte-france.com>}
@@ -38,6 +37,7 @@ class JsonApiConverterTest {
         assertEquals("raoParametersFileUrl", raoRequest.getRaoParametersFileUrl());
         assertEquals("resultsDestination", raoRequest.getResultsDestination().get());
         assertEquals(Instant.ofEpochSecond(1637052884, 944727000), raoRequest.getTargetEndInstant().get());
+        assertTrue(raoRequest.getEventPrefix().isEmpty());
     }
 
     private void roundTripTestOnRaoRequest(RaoRequest raoRequest) {
@@ -57,13 +57,13 @@ class JsonApiConverterTest {
 
     @Test
     void roundTripTest() {
-        RaoRequest raoRequest = new RaoRequest("id", "instant", "networkFileUrl", "cracFileUrl", "refprogFileUrl", "glskFileUrl", "raoParametersFileUrl", "resultsDestination", Instant.ofEpochSecond(1637052884, 944727000));
+        RaoRequest raoRequest = new RaoRequest("id", "instant", "networkFileUrl", "cracFileUrl", "refprogFileUrl", "glskFileUrl", "raoParametersFileUrl", "resultsDestination", Instant.ofEpochSecond(1637052884, 944727000), "eventPrefix");
         roundTripTestOnRaoRequest(raoRequest);
     }
 
     @Test
     void roundTripTestWithEmptyOptionals() {
-        RaoRequest raoRequest = new RaoRequest("id", "instant", "networkFileUrl", "cracFileUrl", "refprogFileUrl", "glskFileUrl", null, null, null);
+        RaoRequest raoRequest = new RaoRequest("id", "instant", "networkFileUrl", "cracFileUrl", "refprogFileUrl", "glskFileUrl", null, null, null, null);
         roundTripTestOnRaoRequest(raoRequest);
     }
 
@@ -81,6 +81,7 @@ class JsonApiConverterTest {
         assertEquals(Optional.empty(), raoRequest.getRealGlskFileUrl());
         assertEquals(Optional.empty(), raoRequest.getResultsDestination());
         assertEquals(Optional.empty(), raoRequest.getTargetEndInstant());
+        assertEquals(Optional.empty(), raoRequest.getEventPrefix());
     }
 
     @Test

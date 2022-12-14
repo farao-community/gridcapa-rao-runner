@@ -101,7 +101,8 @@ class RaoRunnerServiceTest {
                 "http://host:9000/glsk.xml",
                 "raoParametersWithAdnLoadflow.json",
                 "destination-key",
-                Instant.MAX);
+                Instant.MAX,
+                null);
 
         Mockito.when(fileImporter.importRaoParameters(coreRaoRequest.getRaoParametersFileUrl())).thenReturn(new RaoParameters());
         Mockito.when(fileImporter.importRefProg(coreRaoRequest.getInstant().get(), coreRaoRequest.getRefprogFileUrl().get()))
