@@ -17,7 +17,7 @@ class RaoRequestTest {
 
     @Test
     void checkRaoRequestNormalUsage() {
-        RaoRequest raoRequest = new RaoRequest("id", "instant", "networkFileUrl", "cracFileUrl", "refprogFileUrl", "glskFileUrl", "raoParametersFileUrl", "resultsDestination", null);
+        RaoRequest raoRequest = new RaoRequest("id", "instant", "networkFileUrl", "cracFileUrl", "refprogFileUrl", "glskFileUrl", "raoParametersFileUrl", "resultsDestination", null, null);
         assertNotNull(raoRequest);
         assertEquals("instant", raoRequest.getInstant().get());
         assertTrue(raoRequest.getTargetEndInstant().isEmpty());
@@ -28,5 +28,34 @@ class RaoRequestTest {
         RaoRequest raoRequest = new RaoRequest("id", "networkFileUrl", "cracFileUrl", "raoParametersFileUrl");
         assertNotNull(raoRequest);
         assertEquals("networkFileUrl", raoRequest.getNetworkFileUrl());
+        assertTrue(raoRequest.getEventPrefix().isEmpty());
+        assertTrue(raoRequest.getResultsDestination().isEmpty());
+    }
+
+    @Test
+    void checkRaoRequestWithEmptyOptionalsAndResultDestination() {
+        RaoRequest raoRequest = new RaoRequest("id", "networkFileUrl", "cracFileUrl", "raoParametersFileUrl", "resultDestination");
+        assertNotNull(raoRequest);
+        assertEquals("networkFileUrl", raoRequest.getNetworkFileUrl());
+        assertEquals("resultDestination", raoRequest.getResultsDestination().get());
+        assertTrue(raoRequest.getEventPrefix().isEmpty());
+    }
+
+    @Test
+    void checkRaoRequestWithEventPrefix() {
+        RaoRequest raoRequest = new RaoRequest("id", "networkFileUrl", "cracFileUrl", "raoParametersFileUrl", "resultsDestination", "eventPrefix");
+        assertNotNull(raoRequest);
+        assertEquals("networkFileUrl", raoRequest.getNetworkFileUrl());
+        assertEquals("eventPrefix", raoRequest.getEventPrefix().get());
+        assertTrue(raoRequest.getTargetEndInstant().isEmpty());
+    }
+
+    @Test
+    void checkRaoRequestWithoutEventPrefix() {
+        RaoRequest raoRequest = new RaoRequest("id", "instant", "networkFileUrl", "cracFileUrl", "refprogFileUrl", "glskFileUrl", "raoParametersFileUrl", "resultsDestination", null);
+        assertNotNull(raoRequest);
+        assertEquals("instant", raoRequest.getInstant().get());
+        assertTrue(raoRequest.getTargetEndInstant().isEmpty());
+        assertTrue(raoRequest.getEventPrefix().isEmpty());
     }
 }
