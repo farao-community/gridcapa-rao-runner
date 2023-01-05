@@ -83,7 +83,11 @@ public class RaoRunnerListener  implements MessageListener {
         MDC.put("gridcapaTaskId", gridcapaTaskId);
         MDC.put("computationId", computationId);
         MDC.put("clientAppId", clientAppId);
-        optPrefix.ifPresent(prefix -> MDC.put("eventPrefix", prefix));
+        if (optPrefix.isPresent()) {
+            MDC.put("eventPrefix", optPrefix.get());
+        } else {
+            MDC.remove("eventPrefix");
+        }
     }
 
     private void sendRaoResponse(RaoResponse raoResponse, String replyTo, String correlationId) {
