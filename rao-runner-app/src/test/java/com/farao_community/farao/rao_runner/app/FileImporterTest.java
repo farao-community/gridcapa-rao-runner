@@ -9,8 +9,8 @@ package com.farao_community.farao.rao_runner.app;
 import com.farao_community.farao.data.crac_api.Crac;
 import com.farao_community.farao.data.refprog.reference_program.ReferenceProgram;
 import com.farao_community.farao.rao_api.parameters.RaoParameters;
+import com.farao_community.farao.rao_api.parameters.extensions.LoopFlowParametersExtension;
 import com.farao_community.farao.rao_runner.app.configuration.MinioAdapter;
-import com.farao_community.farao.search_tree_rao.castor.parameters.SearchTreeRaoParameters;
 import com.powsybl.glsk.commons.ZonalData;
 import com.powsybl.iidm.network.Country;
 import com.powsybl.iidm.network.Network;
@@ -28,6 +28,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -104,23 +105,27 @@ class FileImporterTest {
         RaoParameters raoParameters = fileImporter.importRaoParameters("raoParametersAdnLoadflowFileUrl");
 
         List<String> expectedLoopFlowConstraintCountries = Arrays.asList("AT", "BE", "CZ", "DE", "FR", "HR", "HU", "NL", "PL", "RO", "SI", "SK");
-        List<String> actualLoopFlowConstraintCountries = raoParameters.getLoopflowCountries().stream().map(Country::toString).collect(Collectors.toList());
+        LoopFlowParametersExtension loopFlowParametersExtension = raoParameters.getExtension(LoopFlowParametersExtension.class);
+        List<String> actualLoopFlowConstraintCountries = loopFlowParametersExtension.getCountries().stream().map(Country::toString).collect(Collectors.toList());
         assertTrue(expectedLoopFlowConstraintCountries.size() == actualLoopFlowConstraintCountries.size()
                 && expectedLoopFlowConstraintCountries.containsAll(actualLoopFlowConstraintCountries)
                 && actualLoopFlowConstraintCountries.containsAll(expectedLoopFlowConstraintCountries));
-        SearchTreeRaoParameters searchTreeRaoParameters = raoParameters.getExtension(SearchTreeRaoParameters.class);
-        assertEquals(10.0, searchTreeRaoParameters.getAbsoluteNetworkActionMinimumImpactThreshold());
-        assertEquals(0, searchTreeRaoParameters.getMaxCurativeRaPerTso().get("AT"));
-        assertEquals(3, searchTreeRaoParameters.getMaxCurativeRaPerTso().get("BE"));
-        assertEquals(15, searchTreeRaoParameters.getMaxCurativeRaPerTso().size());
-        assertEquals(0, searchTreeRaoParameters.getMaxCurativeTopoPerTso().get("AT"));
-        assertEquals(1, searchTreeRaoParameters.getMaxCurativeTopoPerTso().get("BE"));
-        assertEquals(2, searchTreeRaoParameters.getMaxCurativeTopoPerTso().get("CZ"));
-        assertEquals(15, searchTreeRaoParameters.getMaxCurativeTopoPerTso().size());
-        assertEquals(0, searchTreeRaoParameters.getMaxCurativePstPerTso().get("AT"));
-        assertEquals(15, searchTreeRaoParameters.getMaxCurativePstPerTso().size());
+        Map<String, Integer> maxCurativeRaPerTso = raoParameters.getRaUsageLimitsPerContingencyParameters().getMaxCurativeRaPerTso();
+        Map<String, Integer>  getMaxCurativeTopoPerTso = raoParameters.getRaUsageLimitsPerContingencyParameters().getMaxCurativeTopoPerTso();
+        Map<String, Integer>  getMaxCurativePstPerTso = raoParameters.getRaUsageLimitsPerContingencyParameters().getMaxCurativePstPerTso();
 
-        ADNLoadFlowParameters adnLoadFlowParameters = raoParameters.getDefaultSensitivityAnalysisParameters().getLoadFlowParameters().getExtension(ADNLoadFlowParameters.class);
+        assertEquals(10.0, raoParameters.getTopoOptimizationParameters().getAbsoluteMinImpactThreshold());
+        assertEquals(0, maxCurativeRaPerTso.get("AT"));
+        assertEquals(3, maxCurativeRaPerTso.get("BE"));
+        assertEquals(15, maxCurativeRaPerTso.size());
+        assertEquals(0, getMaxCurativeTopoPerTso.get("AT"));
+        assertEquals(1, getMaxCurativeTopoPerTso.get("BE"));
+        assertEquals(2, getMaxCurativeTopoPerTso.get("CZ"));
+        assertEquals(15, getMaxCurativeTopoPerTso.size());
+        assertEquals(0, getMaxCurativePstPerTso.get("AT"));
+        assertEquals(15, getMaxCurativePstPerTso.size());
+
+        ADNLoadFlowParameters adnLoadFlowParameters = raoParameters.getLoadFlowAndSensitivityParameters().getSensitivityWithLoadFlowParameters().getLoadFlowParameters().getExtension(ADNLoadFlowParameters.class);
         assertEquals(ADNLoadFlowParameters.TypeApproxActifSeul.COURANT_CONTINU, adnLoadFlowParameters.getDcApproxType());
         assertEquals(1.0, adnLoadFlowParameters.getDcCosphi(), .0);
         assertEquals(2, adnLoadFlowParameters.getNbThreads());
