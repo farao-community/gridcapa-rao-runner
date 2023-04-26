@@ -109,7 +109,8 @@ public class RaoRunnerService {
                 raoRequest.getCracFileUrl(),
                 raoResultFileUrl,
                 computationStartInstant,
-                computationEndInstant);
+                computationEndInstant,
+                false);
     }
 
     private static void applyRemedialActionsForState(Network network, RaoResult raoResult, State state) {

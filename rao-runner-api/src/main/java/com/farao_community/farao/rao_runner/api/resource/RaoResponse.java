@@ -29,6 +29,7 @@ public class RaoResponse {
     private String raoResultFileUrl;
     private Instant computationStartInstant;
     private Instant computationEndInstant;
+    private boolean interrupted;
 
     @JsonCreator
     public RaoResponse(@JsonProperty("id") String id,
@@ -37,7 +38,8 @@ public class RaoResponse {
                        @JsonProperty("cracFileUrl") String cracFileUrl,
                        @JsonProperty("raoResultFileUrl") String raoResultFileUrl,
                        @JsonProperty("computationStartInstant") Instant computationStartInstant,
-                       @JsonProperty("computationEndInstant") Instant computationEndInstant) {
+                       @JsonProperty("computationEndInstant") Instant computationEndInstant,
+                       @JsonProperty("interrupted") boolean interrupted) {
         this.id = id;
         this.instant = instant;
         this.networkWithPraFileUrl = networkWithPraFileUrl;
@@ -45,6 +47,7 @@ public class RaoResponse {
         this.raoResultFileUrl = raoResultFileUrl;
         this.computationStartInstant = computationStartInstant;
         this.computationEndInstant = computationEndInstant;
+        this.interrupted = interrupted;
     }
 
     public String getId() {
@@ -73,6 +76,10 @@ public class RaoResponse {
 
     public Instant getComputationEndInstant() {
         return computationEndInstant;
+    }
+
+    public boolean isInterrupted() {
+        return interrupted;
     }
 
     @Override
