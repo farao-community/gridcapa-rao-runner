@@ -6,6 +6,7 @@
  */
 package com.farao_community.farao.rao_runner.app;
 
+import com.farao_community.farao.commons.Unit;
 import com.farao_community.farao.data.crac_api.Crac;
 import com.farao_community.farao.data.crac_io_api.CracImporters;
 import com.farao_community.farao.data.rao_result_api.RaoResult;
@@ -52,7 +53,7 @@ class FileExporterTest {
         InputStream raoResultInputStream = getClass().getResourceAsStream("/rao_inputs/raoResult.json");
         Crac crac = CracImporters.importCrac("crac.json", Objects.requireNonNull(getClass().getResourceAsStream("/rao_inputs/crac.json")));
         RaoResult raoResult = new RaoResultImporter().importRaoResult(raoResultInputStream, crac);
-        String resultsDestination = fileExporter.saveRaoResult(raoResult, crac, raoRequestWithResultDestination);
+        String resultsDestination = fileExporter.saveRaoResult(raoResult, crac, raoRequestWithResultDestination, Unit.AMPERE);
         assertEquals("raoResultUrl", resultsDestination);
     }
 
@@ -62,7 +63,7 @@ class FileExporterTest {
         InputStream raoResultInputStream = getClass().getResourceAsStream("/rao_inputs/raoResult.json");
         Crac crac = CracImporters.importCrac("crac.json", Objects.requireNonNull(getClass().getResourceAsStream("/rao_inputs/crac.json")));
         RaoResult raoResult = new RaoResultImporter().importRaoResult(raoResultInputStream, crac);
-        String resultsDestination = fileExporter.saveRaoResult(raoResult, crac, simpleRaoRequest);
+        String resultsDestination = fileExporter.saveRaoResult(raoResult, crac, simpleRaoRequest, Unit.AMPERE);
         assertEquals("raoResultUrl", resultsDestination);
     }
 

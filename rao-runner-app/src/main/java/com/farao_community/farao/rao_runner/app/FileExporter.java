@@ -6,6 +6,7 @@
  */
 package com.farao_community.farao.rao_runner.app;
 
+import com.farao_community.farao.commons.Unit;
 import com.farao_community.farao.data.crac_api.Crac;
 import com.farao_community.farao.data.rao_result_api.RaoResult;
 import com.farao_community.farao.data.rao_result_json.RaoResultExporter;
@@ -18,6 +19,7 @@ import org.springframework.stereotype.Service;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.util.Set;
 
 /**
  * @author Joris Mancini {@literal <joris.mancini at rte-france.com>}
@@ -43,9 +45,9 @@ public class FileExporter {
         return minioAdapter.generatePreSignedUrl(networkWithPRADestinationPath);
     }
 
-    String saveRaoResult(RaoResult raoResult, Crac crac, RaoRequest raoRequest) {
+    String saveRaoResult(RaoResult raoResult, Crac crac, RaoRequest raoRequest, Unit unit) {
         ByteArrayOutputStream outputStreamRaoResult = new ByteArrayOutputStream();
-        new RaoResultExporter().export(raoResult, crac, outputStreamRaoResult);
+        new RaoResultExporter().export(raoResult, crac, Set.of(unit), outputStreamRaoResult);
         String raoResultDestinationPath = makeTargetDirectoryPath(raoRequest) + File.separator + RAO_RESULT;
         minioAdapter.uploadFile(raoResultDestinationPath, new ByteArrayInputStream(outputStreamRaoResult.toByteArray()));
         return minioAdapter.generatePreSignedUrl(raoResultDestinationPath);
