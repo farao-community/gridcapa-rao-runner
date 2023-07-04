@@ -81,7 +81,8 @@ class RaoRunnerServiceTest {
         RaoRequest simpleRaoRequest = new RaoRequest("id", "http://host:9000/network.xiidm", "http://host:9000/crac.json", "http://host:9000/raoParameters.json");
 
         Mockito.when(fileExporter.saveNetwork(network, simpleRaoRequest)).thenReturn("simple-networkWithPRA-url");
-        Mockito.when(fileExporter.saveRaoResult(raoResult, crac, simpleRaoRequest)).thenReturn("simple-RaoResultJson-url");
+        Mockito.when(fileExporter.saveRaoResult(raoResult, crac, simpleRaoRequest, RaoParameters.load().getObjectiveFunctionParameters().getType().getUnit())).thenReturn("simple-RaoResultJson-url");
+        Mockito.when(fileImporter.importRaoParameters(simpleRaoRequest.getRaoParametersFileUrl())).thenReturn(new RaoParameters());
 
         RaoResponse raoResponse = raoRunnerService.runRao(simpleRaoRequest);
         assertEquals("id", raoResponse.getId());
@@ -111,7 +112,7 @@ class RaoRunnerServiceTest {
                 .thenReturn(glsks);
 
         Mockito.when(fileExporter.saveNetwork(network, coreRaoRequest)).thenReturn("simple-networkWithPRA-url");
-        Mockito.when(fileExporter.saveRaoResult(raoResult, crac, coreRaoRequest)).thenReturn("simple-RaoResultJson-url");
+        Mockito.when(fileExporter.saveRaoResult(raoResult, crac, coreRaoRequest, RaoParameters.load().getObjectiveFunctionParameters().getType().getUnit())).thenReturn("simple-RaoResultJson-url");
 
         RaoResponse raoResponse = raoRunnerService.runRao(coreRaoRequest);
         assertEquals("id", raoResponse.getId());

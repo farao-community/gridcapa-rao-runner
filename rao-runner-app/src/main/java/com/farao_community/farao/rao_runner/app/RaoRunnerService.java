@@ -61,7 +61,7 @@ public class RaoRunnerService {
             RaoResult raoResult = raoRunnerProvider.run(getRaoInput(raoRequest, network, crac), raoParameters);
             eventsLogger.info("Applying remedial actions for preventive state");
             applyRemedialActionsForState(network, raoResult, crac.getPreventiveState());
-            return saveResultsAndCreateRaoResponse(raoRequest, crac, raoResult, network, computationStartInstant);
+            return saveResultsAndCreateRaoResponse(raoRequest, crac, raoResult, network, computationStartInstant, raoParameters);
         } catch (FaraoException e) {
             throw new RaoRunnerException("FARAO exception occurred when running rao: " + e.getMessage(), e);
         }
@@ -98,8 +98,8 @@ public class RaoRunnerService {
         }
     }
 
-    private RaoResponse saveResultsAndCreateRaoResponse(RaoRequest raoRequest, Crac crac, RaoResult raoResult, Network network, Instant computationStartInstant) {
-        String raoResultFileUrl = fileExporter.saveRaoResult(raoResult, crac, raoRequest);
+    private RaoResponse saveResultsAndCreateRaoResponse(RaoRequest raoRequest, Crac crac, RaoResult raoResult, Network network, Instant computationStartInstant, RaoParameters raoParameters) {
+        String raoResultFileUrl = fileExporter.saveRaoResult(raoResult, crac, raoRequest, raoParameters.getObjectiveFunctionParameters().getType().getUnit());
         String networkWithPraFileUrl = fileExporter.saveNetwork(network, raoRequest);
         String raoInstant = raoRequest.getInstant().orElse(null);
         Instant computationEndInstant = Instant.now();
