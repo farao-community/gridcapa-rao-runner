@@ -59,6 +59,7 @@ public class RaoRunnerService {
         try {
             Instant computationStartInstant = Instant.now();
             RaoResult raoResult = raoRunnerProvider.run(getRaoInput(raoRequest, network, crac), raoParameters);
+            network = fileImporter.importNetwork(raoRequest.getNetworkFileUrl());
             eventsLogger.info("Applying remedial actions for preventive state");
             applyRemedialActionsForState(network, raoResult, crac.getPreventiveState());
             return saveResultsAndCreateRaoResponse(raoRequest, crac, raoResult, network, computationStartInstant, raoParameters);
@@ -114,6 +115,7 @@ public class RaoRunnerService {
 
     private static void applyRemedialActionsForState(Network network, RaoResult raoResult, State state) {
         raoResult.getActivatedNetworkActionsDuringState(state).forEach(networkAction -> networkAction.apply(network));
-        raoResult.getOptimizedSetPointsOnState(state).forEach((rangeAction, setPoint) -> rangeAction.apply(network, setPoint));
+        raoResult.getActivatedRangeActionsDuringState(state).forEach(rangeAction ->
+            rangeAction.apply(network, raoResult.getOptimizedSetPointsOnState(state).get(rangeAction)));
     }
 }
