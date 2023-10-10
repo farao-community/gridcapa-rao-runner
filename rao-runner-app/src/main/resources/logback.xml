@@ -39,6 +39,12 @@
         <deliveryMode>PERSISTENT</deliveryMode>
     </appender>
 
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{yyyy-MM-dd'T'HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
     <!-- This logger name must match Logger's names in java code
     Do not bind any logger with the appender "amqp-business-events"!
     You should bind with "amqp-business-events" appender only Loggers you want to see in gridcapa processes as a final user-->
@@ -51,16 +57,10 @@
     <logger name="com.farao_community.farao.commons.logs.RaoBusinessWarns" level="WARN">
         <appender-ref ref="amqp-business-events"/>
     </logger>
-    <logger name="com.farao_community.farao.commons.logs.TechnicalLogs" level="OFF">
-        <appender-ref ref="amqp-business-events"/>
+    <logger name="com.farao_community.farao.commons.logs.TechnicalLogs" level="TRACE">
+        <appender-ref ref="STDOUT" />
     </logger>
 
-
-    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
-        <encoder>
-            <pattern>%d{yyyy-MM-dd'T'HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
-        </encoder>
-    </appender>
     <root level="info">
         <appender-ref ref="STDOUT" />
     </root>
