@@ -16,6 +16,8 @@ import com.farao_community.farao.rao_api.Rao;
 import com.farao_community.farao.rao_api.parameters.RaoParameters;
 import com.farao_community.farao.rao_runner.api.resource.RaoRequest;
 import com.farao_community.farao.rao_runner.api.resource.RaoResponse;
+import com.farao_community.farao.virtual_hubs.VirtualHubsConfiguration;
+import com.farao_community.farao.virtual_hubs.xml.XmlVirtualHubsConfiguration;
 import com.powsybl.glsk.api.GlskDocument;
 import com.powsybl.glsk.api.io.GlskDocumentImporters;
 import com.powsybl.glsk.commons.ZonalData;
@@ -56,6 +58,7 @@ class RaoRunnerServiceTest {
     RaoResult raoResult;
     ZonalData<SensitivityVariableSet> glsks;
     ReferenceProgram referenceProgram;
+    VirtualHubsConfiguration virtualHubsConfiguration;
 
     @BeforeEach
     public void setUp() {
@@ -68,9 +71,11 @@ class RaoRunnerServiceTest {
         InputStream glskFileInputStream = getClass().getResourceAsStream("/rao_inputs/glsk.xml");
         GlskDocument ucteGlskProvider = GlskDocumentImporters.importGlsk(Objects.requireNonNull(glskFileInputStream));
         InputStream refProgFileInputStream = getClass().getResourceAsStream("/rao_inputs/refprog.xml");
+        InputStream virtualhubsFileInputStream = getClass().getResourceAsStream("/rao_inputs/virtualHubsConfigurationFile.xml");
 
         glsks = ucteGlskProvider.getZonalGlsks(network, OffsetDateTime.parse("2019-01-08T12:30:00Z").toInstant());
         referenceProgram = RefProgImporter.importRefProg(refProgFileInputStream, OffsetDateTime.parse("2019-01-08T12:30:00Z"));
+        virtualHubsConfiguration = XmlVirtualHubsConfiguration.importConfiguration(virtualhubsFileInputStream);
 
         Mockito.when(fileImporter.importNetwork(Mockito.any())).thenReturn(network);
         Mockito.when(fileImporter.importCrac(Mockito.any())).thenReturn(crac);
@@ -101,6 +106,7 @@ class RaoRunnerServiceTest {
                 "http://host:9000/refProg.xml",
                 "http://host:9000/glsk.xml",
                 "raoParametersWithAdnLoadflow.json",
+                "http://host:9000/virtualhubs.xml",
                 "destination-key",
                 Instant.MAX,
                 null);
@@ -111,6 +117,7 @@ class RaoRunnerServiceTest {
         Mockito.when(fileImporter.importGlsk(coreRaoRequest.getInstant().get(), coreRaoRequest.getRealGlskFileUrl().get(), network))
                 .thenReturn(glsks);
 
+        Mockito.when(fileImporter.importVirtualHubs(coreRaoRequest.getVirtualhubsFileUrl().get())).thenReturn(virtualHubsConfiguration);
         Mockito.when(fileExporter.saveNetwork(network, coreRaoRequest)).thenReturn("simple-networkWithPRA-url");
         Mockito.when(fileExporter.saveRaoResult(raoResult, crac, coreRaoRequest, RaoParameters.load().getObjectiveFunctionParameters().getType().getUnit())).thenReturn("simple-RaoResultJson-url");
 

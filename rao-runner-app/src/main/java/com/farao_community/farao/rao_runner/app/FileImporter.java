@@ -15,6 +15,8 @@ import com.farao_community.farao.rao_api.json.JsonRaoParameters;
 import com.farao_community.farao.rao_api.parameters.RaoParameters;
 import com.farao_community.farao.rao_runner.api.exceptions.RaoRunnerException;
 import com.farao_community.farao.rao_runner.app.configuration.MinioAdapter;
+import com.farao_community.farao.virtual_hubs.VirtualHubsConfiguration;
+import com.farao_community.farao.virtual_hubs.xml.XmlVirtualHubsConfiguration;
 import com.powsybl.glsk.api.GlskDocument;
 import com.powsybl.glsk.api.io.GlskDocumentImporters;
 import com.powsybl.glsk.commons.ZonalData;
@@ -70,6 +72,17 @@ public class FileImporter {
                     String.format("Error occurred during Reference Program creation for timestamp: %s, using refProg file: %s. Cause: %s",
                             instant,
                             minioAdapter.getFileNameFromUrl(refProgUrl),
+                            e.getMessage()));
+        }
+    }
+
+    public VirtualHubsConfiguration importVirtualHubs(String virtualHubsUrl) {
+        try (InputStream virtualHubsInputStream = minioAdapter.getInputStreamFromUrl(virtualHubsUrl)) {
+            return XmlVirtualHubsConfiguration.importConfiguration(virtualHubsInputStream);
+        } catch (Exception e) {
+            throw new RaoRunnerException(
+                    String.format("Error occurred during virtualhubs Configuration creation using virtualhubs file: %s. Cause: %s",
+                            minioAdapter.getFileNameFromUrl(virtualHubsUrl),
                             e.getMessage()));
         }
     }
