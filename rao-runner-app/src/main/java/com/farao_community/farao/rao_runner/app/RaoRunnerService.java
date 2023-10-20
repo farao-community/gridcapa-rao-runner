@@ -19,6 +19,7 @@ import com.farao_community.farao.rao_api.parameters.RaoParameters;
 import com.farao_community.farao.rao_runner.api.exceptions.RaoRunnerException;
 import com.farao_community.farao.rao_runner.api.resource.RaoRequest;
 import com.farao_community.farao.rao_runner.api.resource.RaoResponse;
+import com.farao_community.farao.virtual_hubs.VirtualHubsConfiguration;
 import com.powsybl.glsk.commons.ZonalData;
 import com.powsybl.iidm.network.Network;
 import com.powsybl.sensitivity.SensitivityVariableSet;
@@ -89,10 +90,12 @@ public class RaoRunnerService {
         Optional<String> optInstant = raoRequest.getInstant();
         Optional<String> optGlskUrl = raoRequest.getRealGlskFileUrl();
         Optional<String> optRefProgUrl = raoRequest.getRefprogFileUrl();
-        if (optInstant.isPresent() && optGlskUrl.isPresent() && optRefProgUrl.isPresent()) {
+        Optional<String> optVirtualHubsUrl = raoRequest.getVirtualhubsFileUrl();
+        if (optInstant.isPresent() && optGlskUrl.isPresent() && optRefProgUrl.isPresent() && optVirtualHubsUrl.isPresent()) {
             ReferenceProgram referenceProgram = fileImporter.importRefProg(optInstant.get(), optRefProgUrl.get());
             ZonalData<SensitivityVariableSet> glskProvider = fileImporter.importGlsk(optInstant.get(), optGlskUrl.get(), network);
-            ZonalData<SensitivityVariableSet> glskOfVirtualHubs = GlskVirtualHubs.getVirtualHubGlsks(network, referenceProgram);
+            VirtualHubsConfiguration virtualHubsConfiguration = fileImporter.importVirtualHubs(optVirtualHubsUrl.get());
+            ZonalData<SensitivityVariableSet> glskOfVirtualHubs = GlskVirtualHubs.getVirtualHubGlsks(virtualHubsConfiguration, network, referenceProgram);
             glskProvider.addAll(glskOfVirtualHubs);
             raoInputBuilder.withGlskProvider(glskProvider);
             raoInputBuilder.withRefProg(referenceProgram);

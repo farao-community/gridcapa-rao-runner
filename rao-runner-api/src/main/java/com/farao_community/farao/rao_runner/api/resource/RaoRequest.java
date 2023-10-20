@@ -29,6 +29,7 @@ public class RaoRequest {
     private final String refprogFileUrl;
     private final String realGlskFileUrl;
     private final String raoParametersFileUrl;
+    private final String virtualhubsFileUrl;
     private final String resultsDestination;
     private final Instant targetEndInstant;
     private final String eventPrefix;
@@ -41,6 +42,7 @@ public class RaoRequest {
                       @JsonProperty("refprogFileUrl") String refprogFileUrl,
                       @JsonProperty("realGlskFileUrl") String realGlskFileUrl,
                       @JsonProperty("raoParametersFileUrl") String raoParametersFileUrl,
+                      @JsonProperty("virtualhubsFileUrl") String virtualhubsFileUrl,
                       @JsonProperty("resultsDestination") String resultsDestination,
                       @JsonProperty("targetEndInstant") Instant targetEndInstant,
                       @JsonProperty("eventPrefix") String eventPrefix) {
@@ -51,6 +53,7 @@ public class RaoRequest {
         this.cracFileUrl = cracFileUrl;
         this.realGlskFileUrl = realGlskFileUrl;
         this.raoParametersFileUrl = raoParametersFileUrl;
+        this.virtualhubsFileUrl = virtualhubsFileUrl;
         this.resultsDestination = resultsDestination;
         this.targetEndInstant = targetEndInstant;
         this.eventPrefix = eventPrefix;
@@ -63,16 +66,17 @@ public class RaoRequest {
                       @JsonProperty("refprogFileUrl") String refprogFileUrl,
                       @JsonProperty("realGlskFileUrl") String realGlskFileUrl,
                       @JsonProperty("raoParametersFileUrl") String raoParametersFileUrl,
+                      @JsonProperty("virtualhubsFileUrl") String virtualhubsFileUrl,
                       @JsonProperty("resultsDestination") String resultsDestination,
                       @JsonProperty("targetEndInstant") Instant targetEndInstant) {
-        this(id, instant, networkFileUrl, cracFileUrl, refprogFileUrl, realGlskFileUrl, raoParametersFileUrl, resultsDestination, targetEndInstant, null);
+        this(id, instant, networkFileUrl, cracFileUrl, refprogFileUrl, realGlskFileUrl, raoParametersFileUrl, virtualhubsFileUrl, resultsDestination, targetEndInstant, null);
     }
 
     public RaoRequest(@JsonProperty("id") String id,
                       @JsonProperty("networkFileUrl") String networkFileUrl,
                       @JsonProperty("cracFileUrl") String cracFileUrl,
                       @JsonProperty("raoParametersFileUrl") String raoParametersFileUrl) {
-        this(id, null, networkFileUrl, cracFileUrl, null, null, raoParametersFileUrl, null, null, null);
+        this(id, null, networkFileUrl, cracFileUrl, null, null, raoParametersFileUrl, null, null, null, null);
     }
 
     public RaoRequest(@JsonProperty("id") String id,
@@ -80,7 +84,7 @@ public class RaoRequest {
                       @JsonProperty("cracFileUrl") String cracFileUrl,
                       @JsonProperty("raoParametersFileUrl") String raoParametersFileUrl,
                       @JsonProperty("resultsDestination") String resultsDestination) {
-        this(id, null, networkFileUrl, cracFileUrl, null, null, raoParametersFileUrl, resultsDestination, null, null);
+        this(id, null, networkFileUrl, cracFileUrl, null, null, raoParametersFileUrl, null, resultsDestination, null, null);
     }
 
     public RaoRequest(@JsonProperty("id") String id,
@@ -89,7 +93,7 @@ public class RaoRequest {
                       @JsonProperty("raoParametersFileUrl") String raoParametersFileUrl,
                       @JsonProperty("resultsDestination") String resultsDestination,
                       @JsonProperty("eventPrefix") String eventPrefix) {
-        this(id, null, networkFileUrl, cracFileUrl, null, null, raoParametersFileUrl, resultsDestination, null, eventPrefix);
+        this(id, null, networkFileUrl, cracFileUrl, null, null, raoParametersFileUrl, null, resultsDestination, null, eventPrefix);
     }
 
     public String getId() {
@@ -118,6 +122,10 @@ public class RaoRequest {
 
     public String getRaoParametersFileUrl() {
         return raoParametersFileUrl;
+    }
+
+    public Optional<String> getVirtualhubsFileUrl() {
+        return Optional.ofNullable(virtualhubsFileUrl);
     }
 
     public Optional<String> getResultsDestination() {

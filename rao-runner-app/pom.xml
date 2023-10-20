@@ -69,6 +69,10 @@
             <artifactId>farao-refprog-xml-importer</artifactId>
         </dependency>
         <dependency>
+            <groupId>com.farao-community.farao</groupId>
+            <artifactId>farao-virtual-hubs-xml</artifactId>
+        </dependency>
+        <dependency>
             <groupId>com.powsybl</groupId>
             <artifactId>powsybl-glsk-document-io-api</artifactId>
         </dependency>

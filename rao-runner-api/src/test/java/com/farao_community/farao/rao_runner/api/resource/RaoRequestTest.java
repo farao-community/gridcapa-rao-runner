@@ -17,7 +17,7 @@ class RaoRequestTest {
 
     @Test
     void checkRaoRequestNormalUsage() {
-        RaoRequest raoRequest = new RaoRequest("id", "instant", "networkFileUrl", "cracFileUrl", "refprogFileUrl", "glskFileUrl", "raoParametersFileUrl", "resultsDestination", null, null);
+        RaoRequest raoRequest = new RaoRequest("id", "instant", "networkFileUrl", "cracFileUrl", "refprogFileUrl", "glskFileUrl", "raoParametersFileUrl", "virtualhubsFileUrl", "resultsDestination", null, null);
         assertNotNull(raoRequest);
         assertEquals("instant", raoRequest.getInstant().get());
         assertTrue(raoRequest.getTargetEndInstant().isEmpty());
@@ -52,7 +52,7 @@ class RaoRequestTest {
 
     @Test
     void checkRaoRequestWithoutEventPrefix() {
-        RaoRequest raoRequest = new RaoRequest("id", "instant", "networkFileUrl", "cracFileUrl", "refprogFileUrl", "glskFileUrl", "raoParametersFileUrl", "resultsDestination", null);
+        RaoRequest raoRequest = new RaoRequest("id", "instant", "networkFileUrl", "cracFileUrl", "refprogFileUrl", "glskFileUrl", "raoParametersFileUrl", "virtualhubsFileUrl", "resultsDestination", null);
         assertNotNull(raoRequest);
         assertEquals("instant", raoRequest.getInstant().get());
         assertTrue(raoRequest.getTargetEndInstant().isEmpty());

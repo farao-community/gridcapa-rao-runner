@@ -9,6 +9,7 @@
       "refprogFileUrl": "refprogFileUrl",
       "realGlskFileUrl": "realGlskFileUrl",
       "raoParametersFileUrl": "raoParametersFileUrl",
+      "virtualhubsFileUrl": "virtualhubsFileUrl",
       "resultsDestination": "resultsDestination",
       "targetEndInstant": 1637052884.944727
     }
