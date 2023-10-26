@@ -83,7 +83,12 @@ class RaoRunnerServiceTest {
 
     @Test
     void checkSimpleRaoRun() {
-        RaoRequest simpleRaoRequest = new RaoRequest("id", "http://host:9000/network.xiidm", "http://host:9000/crac.json", "http://host:9000/raoParameters.json");
+        RaoRequest simpleRaoRequest = new RaoRequest.RaoRequestBuilder()
+                .withId("id")
+                .withNetworkFileUrl("http://host:9000/network.xiidm")
+                .withCracFileUrl("http://host:9000/crac.json")
+                .withRaoParametersFileUrl("http://host:9000/raoParameters.json")
+                .build();
 
         Mockito.when(fileExporter.saveNetwork(network, simpleRaoRequest)).thenReturn("simple-networkWithPRA-url");
         Mockito.when(fileExporter.saveRaoResult(raoResult, crac, simpleRaoRequest, RaoParameters.load().getObjectiveFunctionParameters().getType().getUnit())).thenReturn("simple-RaoResultJson-url");
@@ -99,17 +104,18 @@ class RaoRunnerServiceTest {
 
     @Test
     void checkCoreRaoRun() {
-        RaoRequest coreRaoRequest = new RaoRequest("id",
-                "2019-01-08T12:30:00Z",
-                "http://host:9000/network.xiidm",
-                "http://host:9000/crac.json",
-                "http://host:9000/refProg.xml",
-                "http://host:9000/glsk.xml",
-                "raoParametersWithAdnLoadflow.json",
-                "http://host:9000/virtualhubs.xml",
-                "destination-key",
-                Instant.MAX,
-                null);
+        RaoRequest coreRaoRequest = new RaoRequest.RaoRequestBuilder()
+                .withId("id")
+                .withInstant("2019-01-08T12:30:00Z")
+                .withNetworkFileUrl("http://host:9000/network.xiidm")
+                .withCracFileUrl("http://host:9000/crac.json")
+                .withRefprogFileUrl("http://host:9000/refProg.xml")
+                .withRealGlskFileUrl("http://host:9000/glsk.xml")
+                .withVirtualhubsFileUrl("http://host:9000/virtualhubs.xml")
+                .withRaoParametersFileUrl("raoParametersWithAdnLoadflow.json")
+                .withResultsDestination("destination-key")
+                .withTargetEndInstant(Instant.MAX)
+                .build();
 
         Mockito.when(fileImporter.importRaoParameters(coreRaoRequest.getRaoParametersFileUrl())).thenReturn(new RaoParameters());
         Mockito.when(fileImporter.importRefProg(coreRaoRequest.getInstant().get(), coreRaoRequest.getRefprogFileUrl().get()))

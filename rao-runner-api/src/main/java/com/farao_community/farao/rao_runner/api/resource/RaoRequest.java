@@ -8,6 +8,7 @@ package com.farao_community.farao.rao_runner.api.resource;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.github.jasminb.jsonapi.annotations.Id;
 import com.github.jasminb.jsonapi.annotations.Type;
 import org.apache.commons.lang3.builder.ToStringBuilder;
@@ -19,7 +20,8 @@ import java.util.Optional;
  * @author Mohamed BenRejeb {@literal <mohamed.ben-rejeb at rte-france.com>}
  */
 @Type("rao-request")
-public class RaoRequest {
+@JsonDeserialize(builder = RaoRequest.RaoRequestBuilder.class)
+public final class RaoRequest {
 
     @Id
     private final String id;
@@ -34,66 +36,103 @@ public class RaoRequest {
     private final Instant targetEndInstant;
     private final String eventPrefix;
 
-    @JsonCreator
-    public RaoRequest(@JsonProperty("id") String id,
-                      @JsonProperty("instant") String instant,
-                      @JsonProperty("networkFileUrl") String networkFileUrl,
-                      @JsonProperty("cracFileUrl") String cracFileUrl,
-                      @JsonProperty("refprogFileUrl") String refprogFileUrl,
-                      @JsonProperty("realGlskFileUrl") String realGlskFileUrl,
-                      @JsonProperty("raoParametersFileUrl") String raoParametersFileUrl,
-                      @JsonProperty("virtualhubsFileUrl") String virtualhubsFileUrl,
-                      @JsonProperty("resultsDestination") String resultsDestination,
-                      @JsonProperty("targetEndInstant") Instant targetEndInstant,
-                      @JsonProperty("eventPrefix") String eventPrefix) {
-        this.id = id;
-        this.instant = instant;
-        this.networkFileUrl = networkFileUrl;
-        this.refprogFileUrl = refprogFileUrl;
-        this.cracFileUrl = cracFileUrl;
-        this.realGlskFileUrl = realGlskFileUrl;
-        this.raoParametersFileUrl = raoParametersFileUrl;
-        this.virtualhubsFileUrl = virtualhubsFileUrl;
-        this.resultsDestination = resultsDestination;
-        this.targetEndInstant = targetEndInstant;
-        this.eventPrefix = eventPrefix;
+    private RaoRequest(RaoRequestBuilder builder) {
+        this.id = builder.id;
+        this.instant = builder.instant;
+        this.networkFileUrl = builder.networkFileUrl;
+        this.cracFileUrl = builder.cracFileUrl;
+        this.refprogFileUrl = builder.refprogFileUrl;
+        this.realGlskFileUrl = builder.realGlskFileUrl;
+        this.raoParametersFileUrl = builder.raoParametersFileUrl;
+        this.virtualhubsFileUrl = builder.virtualhubsFileUrl;
+        this.resultsDestination = builder.resultsDestination;
+        this.targetEndInstant = builder.targetEndInstant;
+        this.eventPrefix = builder.eventPrefix;
     }
 
-    public RaoRequest(@JsonProperty("id") String id,
-                      @JsonProperty("instant") String instant,
-                      @JsonProperty("networkFileUrl") String networkFileUrl,
-                      @JsonProperty("cracFileUrl") String cracFileUrl,
-                      @JsonProperty("refprogFileUrl") String refprogFileUrl,
-                      @JsonProperty("realGlskFileUrl") String realGlskFileUrl,
-                      @JsonProperty("raoParametersFileUrl") String raoParametersFileUrl,
-                      @JsonProperty("virtualhubsFileUrl") String virtualhubsFileUrl,
-                      @JsonProperty("resultsDestination") String resultsDestination,
-                      @JsonProperty("targetEndInstant") Instant targetEndInstant) {
-        this(id, instant, networkFileUrl, cracFileUrl, refprogFileUrl, realGlskFileUrl, raoParametersFileUrl, virtualhubsFileUrl, resultsDestination, targetEndInstant, null);
-    }
+    public static class RaoRequestBuilder {
+        private String id;
+        private String instant;
+        private String networkFileUrl;
+        private String cracFileUrl;
+        private String refprogFileUrl;
+        private String realGlskFileUrl;
+        private String raoParametersFileUrl;
+        private String virtualhubsFileUrl;
+        private String resultsDestination;
+        private Instant targetEndInstant;
+        private String eventPrefix;
 
-    public RaoRequest(@JsonProperty("id") String id,
-                      @JsonProperty("networkFileUrl") String networkFileUrl,
-                      @JsonProperty("cracFileUrl") String cracFileUrl,
-                      @JsonProperty("raoParametersFileUrl") String raoParametersFileUrl) {
-        this(id, null, networkFileUrl, cracFileUrl, null, null, raoParametersFileUrl, null, null, null, null);
-    }
+        @JsonProperty("id")
+        public RaoRequestBuilder withId(String id) {
+            this.id = id;
+            return this;
+        }
 
-    public RaoRequest(@JsonProperty("id") String id,
-                      @JsonProperty("networkFileUrl") String networkFileUrl,
-                      @JsonProperty("cracFileUrl") String cracFileUrl,
-                      @JsonProperty("raoParametersFileUrl") String raoParametersFileUrl,
-                      @JsonProperty("resultsDestination") String resultsDestination) {
-        this(id, null, networkFileUrl, cracFileUrl, null, null, raoParametersFileUrl, null, resultsDestination, null, null);
-    }
+        @JsonProperty("instant")
+        public RaoRequestBuilder withInstant(String instant) {
+            this.instant = instant;
+            return this;
+        }
 
-    public RaoRequest(@JsonProperty("id") String id,
-                      @JsonProperty("networkFileUrl") String networkFileUrl,
-                      @JsonProperty("cracFileUrl") String cracFileUrl,
-                      @JsonProperty("raoParametersFileUrl") String raoParametersFileUrl,
-                      @JsonProperty("resultsDestination") String resultsDestination,
-                      @JsonProperty("eventPrefix") String eventPrefix) {
-        this(id, null, networkFileUrl, cracFileUrl, null, null, raoParametersFileUrl, null, resultsDestination, null, eventPrefix);
+        @JsonProperty("networkFileUrl")
+        public RaoRequestBuilder withNetworkFileUrl(String networkFileUrl) {
+            this.networkFileUrl = networkFileUrl;
+            return this;
+        }
+
+        @JsonProperty("cracFileUrl")
+        public RaoRequestBuilder withCracFileUrl(String cracFileUrl) {
+            this.cracFileUrl = cracFileUrl;
+            return this;
+        }
+
+        @JsonProperty("refprogFileUrl")
+        public RaoRequestBuilder withRefprogFileUrl(String refprogFileUrl) {
+            this.refprogFileUrl = refprogFileUrl;
+            return this;
+        }
+
+        @JsonProperty("realGlskFileUrl")
+        public RaoRequestBuilder withRealGlskFileUrl(String realGlskFileUrl) {
+            this.realGlskFileUrl = realGlskFileUrl;
+            return this;
+        }
+
+        @JsonProperty("raoParametersFileUrl")
+        public RaoRequestBuilder withRaoParametersFileUrl(String raoParametersFileUrl) {
+            this.raoParametersFileUrl = raoParametersFileUrl;
+            return this;
+        }
+
+        @JsonProperty("virtualhubsFileUrl")
+        public RaoRequestBuilder withVirtualhubsFileUrl(String virtualhubsFileUrl) {
+            this.virtualhubsFileUrl = virtualhubsFileUrl;
+            return this;
+        }
+
+        @JsonProperty("resultsDestination")
+        public RaoRequestBuilder withResultsDestination(String resultsDestination) {
+            this.resultsDestination = resultsDestination;
+            return this;
+        }
+
+        @JsonProperty("targetEndInstant")
+        public RaoRequestBuilder withTargetEndInstant(Instant targetEndInstant) {
+            this.targetEndInstant = targetEndInstant;
+            return this;
+        }
+
+        @JsonProperty("eventPrefix")
+        public RaoRequestBuilder withEventPrefix(String eventPrefix) {
+            this.eventPrefix = eventPrefix;
+            return this;
+        }
+
+        @JsonCreator
+        public RaoRequest build() {
+            return new RaoRequest(this);
+        }
     }
 
     public String getId() {

@@ -20,7 +20,15 @@ class RaoResponseTest {
 
     @Test
     void checkRaoRequestNormalUsage() {
-        RaoResponse raoResponse = new RaoResponse("id", "instant", "networkWithPraFileUrl", "jsonCracFileUrl", "raoResultFileUrl", Instant.ofEpochSecond(3600), Instant.ofEpochSecond(7200));
+        RaoResponse raoResponse = new RaoResponse.RaoResponseBuilder()
+                .withId("id")
+                .withInstant("instant")
+                .withNetworkWithPraFileUrl("networkWithPraFileUrl")
+                .withCracFileUrl("jsonCracFileUrl")
+                .withRaoResultFileUrl("raoResultFileUrl")
+                .withComputationStartInstant(Instant.ofEpochSecond(3600))
+                .withComputationEndInstant(Instant.ofEpochSecond(7200))
+                .build();
         assertNotNull(raoResponse);
         assertEquals("instant", raoResponse.getInstant().get());
         assertEquals(Instant.ofEpochSecond(3600), raoResponse.getComputationStartInstant());
