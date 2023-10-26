@@ -42,7 +42,6 @@ public final class RaoResponse {
         this.computationEndInstant = builder.computationEndInstant;
     }
 
-    //    @JsonPOJOBuilder(withPrefix = "with")
     public static class RaoResponseBuilder {
         private String id;
         private String instant;
