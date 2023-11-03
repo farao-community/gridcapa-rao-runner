@@ -17,7 +17,16 @@ class RaoRequestTest {
 
     @Test
     void checkRaoRequestNormalUsage() {
-        RaoRequest raoRequest = new RaoRequest("id", "instant", "networkFileUrl", "cracFileUrl", "refprogFileUrl", "glskFileUrl", "raoParametersFileUrl", "virtualhubsFileUrl", "resultsDestination", null, null);
+        RaoRequest raoRequest = new RaoRequest.RaoRequestBuilder()
+                .withId("id")
+                .withInstant("instant")
+                .withNetworkFileUrl("networkFileUrl")
+                .withCracFileUrl("cracFileUrl")
+                .withRefprogFileUrl("refprogFileUrl")
+                .withRealGlskFileUrl("glskFileUrl")
+                .withRaoParametersFileUrl("raoParametersFileUrl")
+                .withResultsDestination("resultsDestination")
+                .build();
         assertNotNull(raoRequest);
         assertEquals("instant", raoRequest.getInstant().get());
         assertTrue(raoRequest.getTargetEndInstant().isEmpty());
@@ -25,7 +34,12 @@ class RaoRequestTest {
 
     @Test
     void checkRaoRequestWithEmptyOptionals() {
-        RaoRequest raoRequest = new RaoRequest("id", "networkFileUrl", "cracFileUrl", "raoParametersFileUrl");
+        RaoRequest raoRequest = new RaoRequest.RaoRequestBuilder()
+                .withId("id")
+                .withInstant("instant")
+                .withNetworkFileUrl("networkFileUrl")
+                .withCracFileUrl("cracFileUrl")
+                .build();
         assertNotNull(raoRequest);
         assertEquals("networkFileUrl", raoRequest.getNetworkFileUrl());
         assertTrue(raoRequest.getEventPrefix().isEmpty());
@@ -34,7 +48,14 @@ class RaoRequestTest {
 
     @Test
     void checkRaoRequestWithEmptyOptionalsAndResultDestination() {
-        RaoRequest raoRequest = new RaoRequest("id", "networkFileUrl", "cracFileUrl", "raoParametersFileUrl", "resultDestination");
+        RaoRequest raoRequest = new RaoRequest.RaoRequestBuilder()
+                .withId("id")
+                .withInstant("instant")
+                .withNetworkFileUrl("networkFileUrl")
+                .withCracFileUrl("cracFileUrl")
+                .withRaoParametersFileUrl("raoParametersFileUrl")
+                .withResultsDestination("resultDestination")
+                .build();
         assertNotNull(raoRequest);
         assertEquals("networkFileUrl", raoRequest.getNetworkFileUrl());
         assertEquals("resultDestination", raoRequest.getResultsDestination().get());
@@ -43,7 +64,17 @@ class RaoRequestTest {
 
     @Test
     void checkRaoRequestWithEventPrefix() {
-        RaoRequest raoRequest = new RaoRequest("id", "networkFileUrl", "cracFileUrl", "raoParametersFileUrl", "resultsDestination", "eventPrefix");
+        RaoRequest raoRequest = new RaoRequest.RaoRequestBuilder()
+                .withId("id")
+                .withInstant("instant")
+                .withNetworkFileUrl("networkFileUrl")
+                .withCracFileUrl("cracFileUrl")
+                .withRefprogFileUrl("refprogFileUrl")
+                .withRealGlskFileUrl("glskFileUrl")
+                .withRaoParametersFileUrl("raoParametersFileUrl")
+                .withResultsDestination("resultsDestination")
+                .withEventPrefix("eventPrefix")
+                .build();
         assertNotNull(raoRequest);
         assertEquals("networkFileUrl", raoRequest.getNetworkFileUrl());
         assertEquals("eventPrefix", raoRequest.getEventPrefix().get());
@@ -52,7 +83,16 @@ class RaoRequestTest {
 
     @Test
     void checkRaoRequestWithoutEventPrefix() {
-        RaoRequest raoRequest = new RaoRequest("id", "instant", "networkFileUrl", "cracFileUrl", "refprogFileUrl", "glskFileUrl", "raoParametersFileUrl", "virtualhubsFileUrl", "resultsDestination", null);
+        RaoRequest raoRequest = new RaoRequest.RaoRequestBuilder()
+                .withId("id")
+                .withInstant("instant")
+                .withNetworkFileUrl("networkFileUrl")
+                .withCracFileUrl("cracFileUrl")
+                .withRefprogFileUrl("refprogFileUrl")
+                .withRealGlskFileUrl("glskFileUrl")
+                .withRaoParametersFileUrl("raoParametersFileUrl")
+                .withResultsDestination("resultsDestination")
+                .build();
         assertNotNull(raoRequest);
         assertEquals("instant", raoRequest.getInstant().get());
         assertTrue(raoRequest.getTargetEndInstant().isEmpty());

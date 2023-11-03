@@ -58,13 +58,31 @@ class JsonApiConverterTest {
 
     @Test
     void roundTripTest() {
-        RaoRequest raoRequest = new RaoRequest("id", "instant", "networkFileUrl", "cracFileUrl", "refprogFileUrl", "glskFileUrl", "raoParametersFileUrl", "virtualhubFileUrl", "resultsDestination", Instant.ofEpochSecond(1637052884, 944727000), "eventPrefix");
+        RaoRequest raoRequest = new RaoRequest.RaoRequestBuilder()
+                .withId("id")
+                .withInstant("instant")
+                .withNetworkFileUrl("networkFileUrl")
+                .withCracFileUrl("cracFileUrl")
+                .withRefprogFileUrl("refprogFileUrl")
+                .withRealGlskFileUrl("glskFileUrl")
+                .withRaoParametersFileUrl("raoParametersFileUrl")
+                .withResultsDestination("resultsDestination")
+                .withTargetEndInstant(Instant.ofEpochSecond(1637052884, 944727000))
+                .withEventPrefix("eventPrefix")
+                .build();
+
         roundTripTestOnRaoRequest(raoRequest);
     }
 
     @Test
     void roundTripTestWithEmptyOptionals() {
-        RaoRequest raoRequest = new RaoRequest("id", "instant", "networkFileUrl", "cracFileUrl", "refprogFileUrl", "glskFileUrl", null, null, null, null, null);
+        RaoRequest raoRequest = new RaoRequest.RaoRequestBuilder()
+                .withId("id")
+                .withInstant("instant")
+                .withNetworkFileUrl("networkFileUrl")
+                .withCracFileUrl("cracFileUrl")
+                .withRefprogFileUrl("refprogFileUrl")
+                .build();
         roundTripTestOnRaoRequest(raoRequest);
     }
 

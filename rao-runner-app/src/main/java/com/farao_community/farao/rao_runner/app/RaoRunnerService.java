@@ -107,13 +107,15 @@ public class RaoRunnerService {
         String networkWithPraFileUrl = fileExporter.saveNetwork(network, raoRequest);
         String raoInstant = raoRequest.getInstant().orElse(null);
         Instant computationEndInstant = Instant.now();
-        return new RaoResponse(raoRequest.getId(),
-                raoInstant,
-                networkWithPraFileUrl,
-                raoRequest.getCracFileUrl(),
-                raoResultFileUrl,
-                computationStartInstant,
-                computationEndInstant);
+        return new RaoResponse.RaoResponseBuilder()
+                .withId(raoRequest.getId())
+                .withInstant(raoInstant)
+                .withNetworkWithPraFileUrl(networkWithPraFileUrl)
+                .withCracFileUrl(raoRequest.getCracFileUrl())
+                .withRaoResultFileUrl(raoResultFileUrl)
+                .withComputationStartInstant(computationStartInstant)
+                .withComputationEndInstant(computationEndInstant)
+                .build();
     }
 
     private static void applyRemedialActionsForState(Network network, RaoResult raoResult, State state) {
