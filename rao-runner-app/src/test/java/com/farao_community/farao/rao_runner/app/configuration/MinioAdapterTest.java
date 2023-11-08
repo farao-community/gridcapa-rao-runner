@@ -8,6 +8,13 @@ package com.farao_community.farao.rao_runner.app.configuration;
 
 import com.farao_community.farao.rao_runner.api.exceptions.RaoRunnerException;
 import io.minio.MinioClient;
+import io.minio.errors.ErrorResponseException;
+import io.minio.errors.InsufficientDataException;
+import io.minio.errors.InternalException;
+import io.minio.errors.InvalidResponseException;
+import io.minio.errors.ServerException;
+import io.minio.errors.XmlParserException;
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -16,6 +23,9 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -37,17 +47,63 @@ class MinioAdapterTest {
     }
 
     @Test
-    void checkuploadFile() throws Exception {
+    void checkUploadFile() throws Exception {
         minioAdapter.uploadFile("file/path", new ByteArrayInputStream("File content".getBytes()));
         Mockito.verify(minioClient, Mockito.times(1)).putObject(Mockito.any());
     }
 
     @Test
-    void checkGetPresignedObjectObject() throws Exception {
+    void uploadFileThrowsException() throws Exception {
+        Mockito.when(minioClient.bucketExists(Mockito.any())).thenThrow(new IOException("This is a test"));
+        ByteArrayInputStream sourceInputStream = new ByteArrayInputStream("File content".getBytes());
+        Assertions.assertThatThrownBy(() -> minioAdapter.uploadFile("file/path", sourceInputStream))
+            .isInstanceOf(RaoRunnerException.class)
+            .hasCauseInstanceOf(RaoRunnerException.class)
+            .hasMessageContaining("Exception occurred while uploading file")
+
+            .getCause()
+            .hasCauseInstanceOf(IOException.class)
+            .hasMessageContaining("Exception occurred while creating bucket")
+
+            .getCause()
+            .hasMessageContaining("This is a test");
+    }
+
+    @Test
+    void checkGeneratePresignedUrl() throws Exception {
         Mockito.when(minioClient.getPresignedObjectUrl(Mockito.any())).thenReturn("http://url");
         String url = minioAdapter.generatePreSignedUrl("file/path");
         Mockito.verify(minioClient, Mockito.times(1)).getPresignedObjectUrl(Mockito.any());
         assertEquals("http://url", url);
+    }
+
+    @Test
+    void generatePresignedUrlThrowsException() throws Exception {
+        Mockito.when(minioClient.getPresignedObjectUrl(Mockito.any())).thenThrow(new IOException("This is a test"));
+
+        Assertions.assertThatThrownBy(() -> minioAdapter.generatePreSignedUrl("file/path"))
+            .isInstanceOf(RaoRunnerException.class)
+            .hasCauseInstanceOf(IOException.class)
+            .hasMessageContaining("Exception in MinIO connection")
+
+            .getCause()
+            .hasMessageContaining("This is a test");
+    }
+
+    @Test
+    void getInputStreamFromUrlThrowsException() throws Exception {
+        Assertions.assertThatThrownBy(() -> minioAdapter.getInputStreamFromUrl("file:/non-existing-file"))
+            .isInstanceOf(RaoRunnerException.class)
+            .hasCauseInstanceOf(IOException.class)
+            .hasMessageContaining("Exception occurred while retrieving file content from");
+    }
+
+    @Test
+    void getFileNameFromUrlThrowsException() throws Exception {
+        Assertions.assertThatThrownBy(() -> minioAdapter.getFileNameFromUrl("no-protocol:/file"))
+            .isInstanceOf(RaoRunnerException.class)
+            .hasCauseInstanceOf(IOException.class)
+            .hasMessageContaining("Exception occurred while retrieving file name from");
     }
 
     @Test

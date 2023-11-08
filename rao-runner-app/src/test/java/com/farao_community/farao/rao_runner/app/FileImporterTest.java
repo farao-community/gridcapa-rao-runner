@@ -10,12 +10,14 @@ import com.farao_community.farao.data.crac_api.Crac;
 import com.farao_community.farao.data.refprog.reference_program.ReferenceProgram;
 import com.farao_community.farao.rao_api.parameters.RaoParameters;
 import com.farao_community.farao.rao_api.parameters.extensions.LoopFlowParametersExtension;
+import com.farao_community.farao.rao_runner.api.exceptions.RaoRunnerException;
 import com.farao_community.farao.rao_runner.app.configuration.MinioAdapter;
 import com.powsybl.glsk.commons.ZonalData;
 import com.powsybl.iidm.network.Country;
 import com.powsybl.iidm.network.Network;
 import com.powsybl.sensitivity.SensitivityVariableSet;
 import com.rte_france.powsybl.iidm.export.adn.ADNLoadFlowParameters;
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -77,11 +79,37 @@ class FileImporterTest {
     }
 
     @Test
+    void importNetworkThrowsException() {
+        Mockito.when(minioAdapter.getInputStreamFromUrl("networkUrl")).thenThrow(new RaoRunnerException("This is a test"));
+        Mockito.when(minioAdapter.getFileNameFromUrl("networkUrl")).thenReturn("test");
+        Assertions.assertThatThrownBy(() -> fileImporter.importNetwork("networkUrl"))
+            .isInstanceOf(RaoRunnerException.class)
+            .hasCauseInstanceOf(RaoRunnerException.class)
+            .hasMessageContaining("Exception occurred while importing network")
+
+            .getCause()
+            .hasMessageContaining("This is a test");
+    }
+
+    @Test
     void checkJsonCracIsImportedCorrectly() {
         Crac crac = fileImporter.importCrac("cracFileUrl");
         assertEquals("rao test crac", crac.getId());
         assertEquals(1, crac.getContingencies().size());
         assertEquals(11, crac.getFlowCnecs().size());
+    }
+
+    @Test
+    void importCracThrowsException() {
+        Mockito.when(minioAdapter.getInputStreamFromUrl("cracUrl")).thenThrow(new RaoRunnerException("This is a test"));
+        Mockito.when(minioAdapter.getFileNameFromUrl("cracUrl")).thenReturn("test");
+        Assertions.assertThatThrownBy(() -> fileImporter.importCrac("cracUrl"))
+            .isInstanceOf(RaoRunnerException.class)
+            .hasCauseInstanceOf(RaoRunnerException.class)
+            .hasMessageContaining("Exception occurred while importing CRAC file")
+
+            .getCause()
+            .hasMessageContaining("This is a test");
     }
 
     @Test
@@ -94,10 +122,50 @@ class FileImporterTest {
     }
 
     @Test
+    void importGlskThrowsException() {
+        Network network = Network.read("network.xiidm", getClass().getResourceAsStream("/rao_inputs/network.xiidm"));
+        Mockito.when(minioAdapter.getInputStreamFromUrl("glskUrl")).thenThrow(new RaoRunnerException("This is a test"));
+        Mockito.when(minioAdapter.getFileNameFromUrl("glskUrl")).thenReturn("test");
+        Assertions.assertThatThrownBy(() -> fileImporter.importGlsk(null, "glskUrl", network))
+            .isInstanceOf(RaoRunnerException.class)
+            .hasCauseInstanceOf(RaoRunnerException.class)
+            .hasMessageContaining("Error occurred during GLSK Provider creation for timestamp")
+
+            .getCause()
+            .hasMessageContaining("This is a test");
+    }
+
+    @Test
     void checkRefProgIsImportedCorrectly() {
         ReferenceProgram referenceProgram = fileImporter.importRefProg("2019-01-08T21:30:00Z", "refprogFileUrl");
         assertEquals(4, referenceProgram.getReferenceExchangeDataList().size());
         assertEquals(1600, referenceProgram.getExchange("10YFR-RTE------C", "10YCB-GERMANY--8"));
+    }
+
+    @Test
+    void importRefProgThrowsException() {
+        Mockito.when(minioAdapter.getInputStreamFromUrl("refprogUrl")).thenThrow(new RaoRunnerException("This is a test"));
+        Mockito.when(minioAdapter.getFileNameFromUrl("refprogUrl")).thenReturn("test");
+        Assertions.assertThatThrownBy(() -> fileImporter.importRefProg(null, "refprogUrl"))
+            .isInstanceOf(RaoRunnerException.class)
+            .hasCauseInstanceOf(RaoRunnerException.class)
+            .hasMessageContaining("Error occurred during Reference Program creation for timestamp")
+
+            .getCause()
+            .hasMessageContaining("This is a test");
+    }
+
+    @Test
+    void importVirtualHubsThrowsException() {
+        Mockito.when(minioAdapter.getInputStreamFromUrl("virtualhubsUrl")).thenThrow(new RaoRunnerException("This is a test"));
+        Mockito.when(minioAdapter.getFileNameFromUrl("virtualhubsUrl")).thenReturn("test");
+        Assertions.assertThatThrownBy(() -> fileImporter.importVirtualHubs("virtualhubsUrl"))
+            .isInstanceOf(RaoRunnerException.class)
+            .hasCauseInstanceOf(RaoRunnerException.class)
+            .hasMessageContaining("Error occurred during virtualhubs Configuration creation using virtualhubs file")
+
+            .getCause()
+            .hasMessageContaining("This is a test");
     }
 
     @Test
