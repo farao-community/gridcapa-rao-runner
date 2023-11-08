@@ -42,7 +42,10 @@ public class JsonApiConverter {
 
     public <T> byte[] toJsonMessage(T jsonApiObject) {
         ResourceConverter converter = createConverter();
-        JSONAPIDocument<?> jsonApiDocument = new JSONAPIDocument<>(jsonApiObject);
+        JSONAPIDocument<?> jsonApiDocument = jsonApiObject instanceof Error jsonApiObjectError
+            ? new JSONAPIDocument<>(jsonApiObjectError)
+            : new JSONAPIDocument<>(jsonApiObject);
+
         try {
             return converter.writeDocument(jsonApiDocument);
         } catch (DocumentSerializationException e) {
