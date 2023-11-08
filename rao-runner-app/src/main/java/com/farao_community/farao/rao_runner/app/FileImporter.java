@@ -53,12 +53,11 @@ public class FileImporter {
             OffsetDateTime offsetDateTime = OffsetDateTime.parse(instant);
             return ucteGlskProvider.getZonalGlsks(network, offsetDateTime.toInstant());
         } catch (Exception e) {
-            throw new RaoRunnerException(
-                    String.format("Error occurred during GLSK Provider creation for timestamp: %s, using GLSK file: %s, and CGM network file %s. Cause: %s",
-                            instant,
-                            minioAdapter.getFileNameFromUrl(glskUrl),
-                            network.getNameOrId(),
-                            e.getMessage()));
+            String message = String.format("Error occurred during GLSK Provider creation for timestamp %s, using GLSK file %s, and CGM network file %s",
+                instant,
+                minioAdapter.getFileNameFromUrl(glskUrl),
+                network.getNameOrId());
+            throw new RaoRunnerException(message, e);
         }
     }
 
@@ -68,11 +67,10 @@ public class FileImporter {
             OffsetDateTime offsetDateTime = OffsetDateTime.parse(instant);
             return RefProgImporter.importRefProg(refProgFileInputStream, offsetDateTime);
         } catch (Exception e) {
-            throw new RaoRunnerException(
-                    String.format("Error occurred during Reference Program creation for timestamp: %s, using refProg file: %s. Cause: %s",
-                            instant,
-                            minioAdapter.getFileNameFromUrl(refProgUrl),
-                            e.getMessage()));
+            String message = String.format("Error occurred during Reference Program creation for timestamp %s, using refProg file %s",
+                instant,
+                minioAdapter.getFileNameFromUrl(refProgUrl));
+            throw new RaoRunnerException(message, e);
         }
     }
 
@@ -80,10 +78,9 @@ public class FileImporter {
         try (InputStream virtualHubsInputStream = minioAdapter.getInputStreamFromUrl(virtualHubsUrl)) {
             return XmlVirtualHubsConfiguration.importConfiguration(virtualHubsInputStream);
         } catch (Exception e) {
-            throw new RaoRunnerException(
-                    String.format("Error occurred during virtualhubs Configuration creation using virtualhubs file: %s. Cause: %s",
-                            minioAdapter.getFileNameFromUrl(virtualHubsUrl),
-                            e.getMessage()));
+            String message = String.format("Error occurred during virtualhubs Configuration creation using virtualhubs file %s",
+                minioAdapter.getFileNameFromUrl(virtualHubsUrl));
+            throw new RaoRunnerException(message, e);
         }
     }
 
@@ -91,7 +88,8 @@ public class FileImporter {
         try {
             return CracImporters.importCrac(minioAdapter.getFileNameFromUrl(cracFileUrl), minioAdapter.getInputStreamFromUrl(cracFileUrl));
         } catch (FaraoException | RaoRunnerException e) {
-            throw new RaoRunnerException(String.format("Exception occurred while importing CRAC file: %s. Cause: %s", minioAdapter.getFileNameFromUrl(cracFileUrl), e.getMessage()));
+            String message = String.format("Exception occurred while importing CRAC file %s", minioAdapter.getFileNameFromUrl(cracFileUrl));
+            throw new RaoRunnerException(message, e);
         }
     }
 
@@ -99,7 +97,8 @@ public class FileImporter {
         try {
             return Network.read(minioAdapter.getFileNameFromUrl(networkFileUrl), minioAdapter.getInputStreamFromUrl(networkFileUrl));
         } catch (Exception e) {
-            throw new RaoRunnerException(String.format("Exception occurred while importing network : %s. Cause: %s ", minioAdapter.getFileNameFromUrl(networkFileUrl), e.getMessage()));
+            String message = String.format("Exception occurred while importing network %s", minioAdapter.getFileNameFromUrl(networkFileUrl));
+            throw new RaoRunnerException(message, e);
         }
     }
 }

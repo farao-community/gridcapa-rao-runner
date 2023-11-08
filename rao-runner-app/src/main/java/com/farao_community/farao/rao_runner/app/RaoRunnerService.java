@@ -76,7 +76,7 @@ public class RaoRunnerService {
                 LOGGER.info("Running RAO with following parameters:{}{}", System.lineSeparator(), baos);
             }
         } catch (IOException e) {
-            throw new RaoRunnerException(String.format("Exception occur while reading RAO parameters for logging: %s", e.getMessage()));
+            throw new RaoRunnerException("Exception occurred while reading RAO parameters for logging", e);
         }
     }
 
