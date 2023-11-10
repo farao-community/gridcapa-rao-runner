@@ -6,6 +6,7 @@
  */
 package com.farao_community.farao.rao_runner.app;
 
+import com.farao_community.farao.commons.FaraoException;
 import com.farao_community.farao.data.crac_api.Crac;
 import com.farao_community.farao.data.crac_io_api.CracImporters;
 import com.farao_community.farao.data.rao_result_api.RaoResult;
@@ -14,6 +15,7 @@ import com.farao_community.farao.data.refprog.reference_program.ReferenceProgram
 import com.farao_community.farao.data.refprog.refprog_xml_importer.RefProgImporter;
 import com.farao_community.farao.rao_api.Rao;
 import com.farao_community.farao.rao_api.parameters.RaoParameters;
+import com.farao_community.farao.rao_runner.api.exceptions.RaoRunnerException;
 import com.farao_community.farao.rao_runner.api.resource.RaoRequest;
 import com.farao_community.farao.rao_runner.api.resource.RaoResponse;
 import com.farao_community.farao.virtual_hubs.VirtualHubsConfiguration;
@@ -23,6 +25,7 @@ import com.powsybl.glsk.api.io.GlskDocumentImporters;
 import com.powsybl.glsk.commons.ZonalData;
 import com.powsybl.iidm.network.Network;
 import com.powsybl.sensitivity.SensitivityVariableSet;
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -133,5 +136,23 @@ class RaoRunnerServiceTest {
         assertEquals("simple-networkWithPRA-url", raoResponse.getNetworkWithPraFileUrl());
         assertEquals("simple-RaoResultJson-url", raoResponse.getRaoResultFileUrl());
         assertEquals(Optional.of("2019-01-08T12:30:00Z"), raoResponse.getInstant());
+    }
+
+    @Test
+    void runRaoThrowsFaraoException() {
+        RaoRequest simpleRaoRequest = new RaoRequest.RaoRequestBuilder()
+            .withId("id")
+            .withNetworkFileUrl("http://host:9000/network.xiidm")
+            .withCracFileUrl("http://host:9000/crac.json")
+            .withRaoParametersFileUrl("http://host:9000/raoParameters.json")
+            .build();
+
+        Mockito.when(fileImporter.importRaoParameters(simpleRaoRequest.getRaoParametersFileUrl())).thenReturn(new RaoParameters());
+        Mockito.when(raoRunnerProv.run(Mockito.any(), Mockito.any())).thenThrow(new FaraoException("This is a test"));
+
+        Assertions.assertThatThrownBy(() -> raoRunnerService.runRao(simpleRaoRequest))
+            .isInstanceOf(RaoRunnerException.class)
+            .hasCauseInstanceOf(FaraoException.class)
+            .hasMessageContaining("This is a test");
     }
 }

@@ -47,8 +47,9 @@ public class MinioAdapter {
             createBucketIfDoesNotExist();
             minioClient.putObject(PutObjectArgs.builder().bucket(minioBucket).object(pathDestination).stream(sourceInputStream, -1, 50000000).build());
         } catch (Exception e) {
-            LOGGER.error(e.getMessage(), e);
-            throw new RaoRunnerException(String.format("Exception occurred while uploading file: %s, to minio server", pathDestination));
+            String message = String.format("Exception occurred while uploading file \"%s\" to minio server", pathDestination);
+            LOGGER.error(message);
+            throw new RaoRunnerException(message, e);
         }
     }
 
@@ -56,7 +57,9 @@ public class MinioAdapter {
         try {
             return minioClient.getPresignedObjectUrl(GetPresignedObjectUrlArgs.builder().bucket(minioBucket).object(minioPath).expiry(DEFAULT_DOWNLOAD_LINK_EXPIRY_IN_DAYS, TimeUnit.DAYS).method(Method.GET).build());
         } catch (Exception e) {
-            throw new RaoRunnerException("Exception in MinIO connection.", e);
+            String message = "Exception in MinIO connection";
+            LOGGER.error(message);
+            throw new RaoRunnerException(message, e);
         }
     }
 
@@ -66,8 +69,9 @@ public class MinioAdapter {
                 minioClient.makeBucket(MakeBucketArgs.builder().bucket(minioBucket).build());
             }
         } catch (Exception e) {
-            LOGGER.error(String.format("Exception occurred while creating bucket: %s", minioBucket));
-            throw new RaoRunnerException(String.format("Exception occurred while creating bucket: %s", minioBucket));
+            String message = String.format("Exception occurred while creating bucket %s", minioBucket);
+            LOGGER.error(message);
+            throw new RaoRunnerException(message, e);
         }
     }
 
@@ -78,12 +82,14 @@ public class MinioAdapter {
     public InputStream getInputStreamFromUrl(String url) {
         try {
             if (urlWhitelistConfiguration.getWhitelist().stream().noneMatch(url::startsWith)) {
-                throw new RaoRunnerException(String.format("URL '%s' is not part of application's whitelisted url's.", url));
+                String message = String.format("URL '%s' is not part of application's whitelisted url's.", url);
+                LOGGER.error(message);
+                throw new RaoRunnerException(message);
             }
             return new URL(url).openStream();
         } catch (IOException e) {
-            businessLogger.error("Error while retrieving content of file : {}, Link may have expired.", getFileNameFromUrl(url));
-            throw new RaoRunnerException(String.format("Exception occurred while retrieving file content from : %s Cause: %s ", url, e.getMessage()));
+            businessLogger.error("Error while retrieving content of file \"{}\", link may have expired.", getFileNameFromUrl(url));
+            throw new RaoRunnerException(String.format("Exception occurred while retrieving file content from %s", url), e);
         }
     }
 
@@ -92,7 +98,9 @@ public class MinioAdapter {
             URL url = new URL(stringUrl);
             return FilenameUtils.getName(url.getPath());
         } catch (IOException e) {
-            throw new RaoRunnerException(String.format("Exception occurred while retrieving file name from : %s Cause: %s ", stringUrl, e.getMessage()));
+            String message = String.format("Exception occurred while retrieving file name from %s", stringUrl);
+            LOGGER.error(message);
+            throw new RaoRunnerException(message, e);
         }
     }
 }
