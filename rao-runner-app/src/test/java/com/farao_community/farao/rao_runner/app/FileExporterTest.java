@@ -11,8 +11,9 @@ import com.farao_community.farao.data.crac_api.Crac;
 import com.farao_community.farao.data.crac_io_api.CracImporters;
 import com.farao_community.farao.data.rao_result_api.RaoResult;
 import com.farao_community.farao.data.rao_result_json.RaoResultImporter;
+import com.farao_community.farao.minio_adapter.starter.MinioAdapter;
+import com.farao_community.farao.minio_adapter.starter.MinioAdapterProperties;
 import com.farao_community.farao.rao_runner.api.resource.RaoRequest;
-import com.farao_community.farao.rao_runner.app.configuration.MinioAdapter;
 import com.powsybl.iidm.network.Network;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -55,9 +56,8 @@ class FileExporterTest {
 
     @BeforeEach
     public void setUp() {
-        Mockito.when(minioAdapter.getFileNameFromUrl(Mockito.any())).thenCallRealMethod();
-        Mockito.when(minioAdapter.getDefaultBasePath()).thenReturn("base/path");
-        Mockito.doNothing().when(minioAdapter).uploadFile(Mockito.any(), Mockito.any());
+        Mockito.when(minioAdapter.getProperties()).thenReturn(new MinioAdapterProperties("bucket", "base/path", "http://test", "gridcapa", "gridcapa"));
+        Mockito.doNothing().when(minioAdapter).uploadArtifact(Mockito.any(), Mockito.any());
     }
 
     @Test

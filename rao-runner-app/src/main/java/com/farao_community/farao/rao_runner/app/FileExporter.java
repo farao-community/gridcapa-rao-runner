@@ -10,8 +10,8 @@ import com.farao_community.farao.commons.Unit;
 import com.farao_community.farao.data.crac_api.Crac;
 import com.farao_community.farao.data.rao_result_api.RaoResult;
 import com.farao_community.farao.data.rao_result_json.RaoResultExporter;
+import com.farao_community.farao.minio_adapter.starter.MinioAdapter;
 import com.farao_community.farao.rao_runner.api.resource.RaoRequest;
-import com.farao_community.farao.rao_runner.app.configuration.MinioAdapter;
 import com.powsybl.commons.datasource.MemDataSource;
 import com.powsybl.iidm.network.Network;
 import org.springframework.stereotype.Service;
@@ -41,7 +41,7 @@ public class FileExporter {
         MemDataSource dataSource = new MemDataSource();
         network.write(IIDM_EXPORT_FORMAT, null, dataSource);
         String networkWithPRADestinationPath = makeTargetDirectoryPath(raoRequest) + File.separator + NETWORK;
-        minioAdapter.uploadFile(networkWithPRADestinationPath, new ByteArrayInputStream(dataSource.getData(null, IIDM_EXTENSION)));
+        minioAdapter.uploadArtifact(networkWithPRADestinationPath, new ByteArrayInputStream(dataSource.getData(null, IIDM_EXTENSION)));
         return minioAdapter.generatePreSignedUrl(networkWithPRADestinationPath);
     }
 
@@ -49,12 +49,12 @@ public class FileExporter {
         ByteArrayOutputStream outputStreamRaoResult = new ByteArrayOutputStream();
         new RaoResultExporter().export(raoResult, crac, Set.of(unit), outputStreamRaoResult);
         String raoResultDestinationPath = makeTargetDirectoryPath(raoRequest) + File.separator + RAO_RESULT;
-        minioAdapter.uploadFile(raoResultDestinationPath, new ByteArrayInputStream(outputStreamRaoResult.toByteArray()));
+        minioAdapter.uploadArtifact(raoResultDestinationPath, new ByteArrayInputStream(outputStreamRaoResult.toByteArray()));
         return minioAdapter.generatePreSignedUrl(raoResultDestinationPath);
     }
 
     private String makeTargetDirectoryPath(RaoRequest raoRequest) {
         return raoRequest.getResultsDestination()
-                .orElse(minioAdapter.getDefaultBasePath() + "/" + raoRequest.getId());
+                .orElse(minioAdapter.getProperties().getBasePath() + "/" + raoRequest.getId());
     }
 }
