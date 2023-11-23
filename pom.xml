@@ -52,6 +52,7 @@
         <logstash.version>7.0.1</logstash.version>
         <farao.dependencies.version>1.22.0</farao.dependencies.version>
         <farao.virtual.hubs.version>0.0.9</farao.virtual.hubs.version>
+        <gridcapa.starter.minio.adapter.version>1.1.0</gridcapa.starter.minio.adapter.version>
     </properties>
 
     <dependencyManagement>
@@ -83,6 +84,11 @@
                 <groupId>com.farao-community.farao</groupId>
                 <artifactId>farao-virtual-hubs-xml</artifactId>
                 <version>${farao.virtual.hubs.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.farao-community.farao</groupId>
+                <artifactId>gridcapa-starter-minio-adapter</artifactId>
+                <version>${gridcapa.starter.minio.adapter.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.farao-community.farao</groupId>

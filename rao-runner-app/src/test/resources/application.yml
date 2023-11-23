@@ -5,10 +5,9 @@ spring:
     username: ${RABBITMQ_USERNAME:guest}
     password: ${RABBITMQ_PASSWORD:guest}
 
-minio:
-  access:
-    name: minioadmin-test
-    secret: minioadmin-test
+minio-adapter:
+  access-key: minioadmin-test
+  secret-key: minioadmin-test
   url: http://localhost-test:9000
   bucket: my-bucket
   base-path: base/path

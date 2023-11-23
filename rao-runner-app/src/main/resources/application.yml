@@ -21,12 +21,11 @@ spring:
           binder: rabbit
           destination: rao-stop-task
 
-minio:
+minio-adapter:
   bucket: ${MINIO_BUCKET:rao-integration-data}
   base-path: ${RAO_ADAPTER_SERVER_MINIO_BASE_PATH:default-base-path/}
-  access:
-    name: ${MINIO_USERNAME:minioadmin}
-    secret: ${MINIO_PASSWORD:minioadmin}
+  access-key: ${MINIO_USERNAME:minioadmin}
+  secret-key: ${MINIO_PASSWORD:minioadmin}
   url: http://${MINIO_HOST:localhost}:${MINIO_PORT:9000}
 
 rao-runner:

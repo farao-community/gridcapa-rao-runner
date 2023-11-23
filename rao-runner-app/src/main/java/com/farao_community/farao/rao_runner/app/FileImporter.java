@@ -14,7 +14,7 @@ import com.farao_community.farao.data.refprog.refprog_xml_importer.RefProgImport
 import com.farao_community.farao.rao_api.json.JsonRaoParameters;
 import com.farao_community.farao.rao_api.parameters.RaoParameters;
 import com.farao_community.farao.rao_runner.api.exceptions.RaoRunnerException;
-import com.farao_community.farao.rao_runner.app.configuration.MinioAdapter;
+import com.farao_community.farao.rao_runner.app.configuration.UrlWhitelistConfiguration;
 import com.farao_community.farao.virtual_hubs.VirtualHubsConfiguration;
 import com.farao_community.farao.virtual_hubs.xml.XmlVirtualHubsConfiguration;
 import com.powsybl.glsk.api.GlskDocument;
@@ -22,9 +22,12 @@ import com.powsybl.glsk.api.io.GlskDocumentImporters;
 import com.powsybl.glsk.commons.ZonalData;
 import com.powsybl.iidm.network.Network;
 import com.powsybl.sensitivity.SensitivityVariableSet;
+import org.apache.commons.io.FilenameUtils;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
 import java.io.InputStream;
+import java.net.URL;
 import java.time.OffsetDateTime;
 
 /**
@@ -33,29 +36,29 @@ import java.time.OffsetDateTime;
 @Service
 public class FileImporter {
 
-    private final MinioAdapter minioAdapter;
+    private final UrlWhitelistConfiguration urlWhitelistConfiguration;
 
-    public FileImporter(MinioAdapter minioAdapter) {
-        this.minioAdapter = minioAdapter;
+    public FileImporter(UrlWhitelistConfiguration urlWhitelistConfiguration) {
+        this.urlWhitelistConfiguration = urlWhitelistConfiguration;
     }
 
     RaoParameters importRaoParameters(String raoParametersFileUrl) {
         //keep using update method instead of read directly to avoid serialisation issues
         RaoParameters defaultRaoParameters = new RaoParameters();
-        InputStream customRaoParameters = minioAdapter.getInputStreamFromUrl(raoParametersFileUrl);
+        InputStream customRaoParameters = openUrlStream(raoParametersFileUrl);
         return JsonRaoParameters.update(defaultRaoParameters, customRaoParameters);
     }
 
     ZonalData<SensitivityVariableSet> importGlsk(String instant, String glskUrl, Network network) {
         try {
-            InputStream glskFileInputStream = minioAdapter.getInputStreamFromUrl(glskUrl);
+            InputStream glskFileInputStream = openUrlStream(glskUrl);
             GlskDocument ucteGlskProvider = GlskDocumentImporters.importGlsk(glskFileInputStream);
             OffsetDateTime offsetDateTime = OffsetDateTime.parse(instant);
             return ucteGlskProvider.getZonalGlsks(network, offsetDateTime.toInstant());
         } catch (Exception e) {
             String message = String.format("Error occurred during GLSK Provider creation for timestamp %s, using GLSK file %s, and CGM network file %s",
                 instant,
-                minioAdapter.getFileNameFromUrl(glskUrl),
+                getFileNameFromUrl(glskUrl),
                 network.getNameOrId());
             throw new RaoRunnerException(message, e);
         }
@@ -63,42 +66,63 @@ public class FileImporter {
 
     ReferenceProgram importRefProg(String instant, String refProgUrl) {
         try {
-            InputStream refProgFileInputStream = minioAdapter.getInputStreamFromUrl(refProgUrl);
+            InputStream refProgFileInputStream = openUrlStream(refProgUrl);
             OffsetDateTime offsetDateTime = OffsetDateTime.parse(instant);
             return RefProgImporter.importRefProg(refProgFileInputStream, offsetDateTime);
         } catch (Exception e) {
             String message = String.format("Error occurred during Reference Program creation for timestamp %s, using refProg file %s",
                 instant,
-                minioAdapter.getFileNameFromUrl(refProgUrl));
+                getFileNameFromUrl(refProgUrl));
             throw new RaoRunnerException(message, e);
         }
     }
 
     public VirtualHubsConfiguration importVirtualHubs(String virtualHubsUrl) {
-        try (InputStream virtualHubsInputStream = minioAdapter.getInputStreamFromUrl(virtualHubsUrl)) {
+        try (InputStream virtualHubsInputStream = openUrlStream(virtualHubsUrl)) {
             return XmlVirtualHubsConfiguration.importConfiguration(virtualHubsInputStream);
         } catch (Exception e) {
             String message = String.format("Error occurred during virtualhubs Configuration creation using virtualhubs file %s",
-                minioAdapter.getFileNameFromUrl(virtualHubsUrl));
+                    getFileNameFromUrl(virtualHubsUrl));
             throw new RaoRunnerException(message, e);
         }
     }
 
     Crac importCrac(String cracFileUrl) {
         try {
-            return CracImporters.importCrac(minioAdapter.getFileNameFromUrl(cracFileUrl), minioAdapter.getInputStreamFromUrl(cracFileUrl));
+            return CracImporters.importCrac(getFileNameFromUrl(cracFileUrl), openUrlStream(cracFileUrl));
         } catch (FaraoException | RaoRunnerException e) {
-            String message = String.format("Exception occurred while importing CRAC file %s", minioAdapter.getFileNameFromUrl(cracFileUrl));
+            String message = String.format("Exception occurred while importing CRAC file %s", getFileNameFromUrl(cracFileUrl));
             throw new RaoRunnerException(message, e);
         }
     }
 
     Network importNetwork(String networkFileUrl) {
         try {
-            return Network.read(minioAdapter.getFileNameFromUrl(networkFileUrl), minioAdapter.getInputStreamFromUrl(networkFileUrl));
+            return Network.read(getFileNameFromUrl(networkFileUrl), openUrlStream(networkFileUrl));
         } catch (Exception e) {
-            String message = String.format("Exception occurred while importing network %s", minioAdapter.getFileNameFromUrl(networkFileUrl));
+            String message = String.format("Exception occurred while importing network %s", getFileNameFromUrl(networkFileUrl));
             throw new RaoRunnerException(message, e);
+        }
+    }
+
+    private InputStream openUrlStream(String urlString) {
+        try {
+            if (urlWhitelistConfiguration.getWhitelist().stream().noneMatch(urlString::startsWith)) {
+                throw new RaoRunnerException(String.format("URL '%s' is not part of application's whitelisted url's.", urlString));
+            }
+            URL url = new URL(urlString);
+            return url.openStream(); // NOSONAR Usage of whitelist not triggered by Sonar quality assessment, even if listed as a solution to the vulnerability
+        } catch (IOException e) {
+            throw new RaoRunnerException(String.format("Exception occurred while retrieving file content from : %s", urlString), e);
+        }
+    }
+
+    private String getFileNameFromUrl(String stringUrl) {
+        try {
+            URL url = new URL(stringUrl);
+            return FilenameUtils.getName(url.getPath());
+        } catch (IOException e) {
+            throw new RaoRunnerException(String.format("Exception occurred while retrieving file name from : %s", stringUrl), e);
         }
     }
 }
