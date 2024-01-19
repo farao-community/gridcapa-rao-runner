@@ -15,7 +15,6 @@ import com.powsybl.glsk.commons.ZonalData;
 import com.powsybl.iidm.network.Country;
 import com.powsybl.iidm.network.Network;
 import com.powsybl.sensitivity.SensitivityVariableSet;
-import com.rte_france.powsybl.iidm.export.adn.ADNLoadFlowParameters;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -129,8 +128,8 @@ class FileImporterTest {
     }
 
     @Test
-    void checkParametersImportWithAdnLoadflow() {
-        RaoParameters raoParameters = fileImporter.importRaoParameters(Objects.requireNonNull(getClass().getResource("/rao_inputs/raoParametersWithAdnLoadflow.json")).toString());
+    void checkRaoParametersImport() {
+        RaoParameters raoParameters = fileImporter.importRaoParameters(Objects.requireNonNull(getClass().getResource("/rao_inputs/raoParameters.json")).toString());
 
         List<String> expectedLoopFlowConstraintCountries = Arrays.asList("AT", "BE", "CZ", "DE", "FR", "HR", "HU", "NL", "PL", "RO", "SI", "SK");
         LoopFlowParametersExtension loopFlowParametersExtension = raoParameters.getExtension(LoopFlowParametersExtension.class);
@@ -152,10 +151,5 @@ class FileImporterTest {
         assertEquals(15, getMaxCurativeTopoPerTso.size());
         assertEquals(0, getMaxCurativePstPerTso.get("AT"));
         assertEquals(15, getMaxCurativePstPerTso.size());
-
-        ADNLoadFlowParameters adnLoadFlowParameters = raoParameters.getLoadFlowAndSensitivityParameters().getSensitivityWithLoadFlowParameters().getLoadFlowParameters().getExtension(ADNLoadFlowParameters.class);
-        assertEquals(ADNLoadFlowParameters.TypeApproxActifSeul.COURANT_CONTINU, adnLoadFlowParameters.getDcApproxType());
-        assertEquals(1.0, adnLoadFlowParameters.getDcCosphi(), .0);
-        assertEquals(2, adnLoadFlowParameters.getNbThreads());
     }
 }
