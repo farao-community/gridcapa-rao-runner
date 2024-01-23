@@ -1,5 +1,5 @@
 {
-  "version" : "1.0",
+  "version" : "2.1",
   "objective-function" : {
     "type" : "MAX_MIN_MARGIN_IN_MEGAWATT",
     "preventive-stop-criterion" : "MIN_OBJECTIVE",
@@ -31,39 +31,7 @@
         "dc" : true,
         "distributedSlack" : true,
         "balanceType" : "PROPORTIONAL_TO_LOAD",
-        "hvdcAcEmulation" : true,
-        "extensions" : {
-          "ADNLoadFlowParameters" : {
-            "dcVoltageInitMode" : "V_NORMALISE_NDC",
-            "dcApproxType" : "COURANT_CONTINU",
-            "dcCosphi" : 1.0,
-            "dcVoltageCoeff400" : 1.0,
-            "dcVoltageCoeff225" : 1.0,
-            "nbMaxIterations" : -1,
-            "logLevel" : "DEBUG",
-            "normEpsilon" : -1.0,
-            "balanceNormEpsilon" : -1.0,
-            "minBusesNbInConnectedComponent" : 1,
-            "nbThreads" : 2,
-            "maxRealisticVoltage" : 150.0,
-            "minRealisticVoltage" : 50.0,
-            "detectPermanentLimitViolation" : false,
-            "limitReductions" : [ ],
-            "writeState" : false,
-            "oldJacobianComputation" : false,
-            "debugMode" : "NO_DEBUG",
-            "luFactorizationMode" : "RLU",
-            "anglePerte" : true,
-            "withMinimumReactance" : true,
-            "minimumReactancePerUnit" : 6.25E-4,
-            "transformerVoltageControlSimulationMode" : "SIMU_REG_HORS_NR",
-            "svcRegulationOn" : true,
-            "remoteVoltageGenerators" : true,
-            "nbMaxVoltageRegulationSwitch" : -1,
-            "slackNodeDeterminationMode" : "BILAN_400",
-            "bilanPV" : false
-          }
-        }
+        "hvdcAcEmulation" : true
       }
     }
   },
@@ -132,7 +100,7 @@
   "extensions" : {
     "loop-flow-parameters": {
       "acceptable-increase" : 10.0,
-      "approximation" : "FIXED_PTDF",
+      "ptdf-approximation" : "FIXED_PTDF",
       "constraint-adjustment-coefficient" : 0.0,
       "violation-cost" : 100000.0,
       "countries" : [ "AT", "BE", "CZ", "DE", "FR", "HR", "HU", "NL", "PL", "RO", "SI", "SK" ]

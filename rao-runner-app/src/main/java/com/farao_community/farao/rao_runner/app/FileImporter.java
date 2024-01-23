@@ -6,17 +6,17 @@
  */
 package com.farao_community.farao.rao_runner.app;
 
-import com.farao_community.farao.commons.FaraoException;
-import com.farao_community.farao.data.crac_api.Crac;
-import com.farao_community.farao.data.crac_io_api.CracImporters;
-import com.farao_community.farao.data.refprog.reference_program.ReferenceProgram;
-import com.farao_community.farao.data.refprog.refprog_xml_importer.RefProgImporter;
-import com.farao_community.farao.rao_api.json.JsonRaoParameters;
-import com.farao_community.farao.rao_api.parameters.RaoParameters;
+import com.powsybl.openrao.commons.OpenRaoException;
+import com.powsybl.openrao.data.cracapi.Crac;
+import com.powsybl.openrao.data.cracioapi.CracImporters;
+import com.powsybl.openrao.data.refprog.referenceprogram.ReferenceProgram;
+import com.powsybl.openrao.data.refprog.refprogxmlimporter.RefProgImporter;
+import com.powsybl.openrao.raoapi.json.JsonRaoParameters;
+import com.powsybl.openrao.raoapi.parameters.RaoParameters;
 import com.farao_community.farao.rao_runner.api.exceptions.RaoRunnerException;
 import com.farao_community.farao.rao_runner.app.configuration.UrlWhitelistConfiguration;
-import com.farao_community.farao.virtual_hubs.VirtualHubsConfiguration;
-import com.farao_community.farao.virtual_hubs.xml.XmlVirtualHubsConfiguration;
+import com.powsybl.openrao.virtualhubs.VirtualHubsConfiguration;
+import com.powsybl.openrao.virtualhubs.xml.XmlVirtualHubsConfiguration;
 import com.powsybl.glsk.api.GlskDocument;
 import com.powsybl.glsk.api.io.GlskDocumentImporters;
 import com.powsybl.glsk.commons.ZonalData;
@@ -90,7 +90,7 @@ public class FileImporter {
     Crac importCrac(String cracFileUrl) {
         try {
             return CracImporters.importCrac(getFileNameFromUrl(cracFileUrl), openUrlStream(cracFileUrl));
-        } catch (FaraoException | RaoRunnerException e) {
+        } catch (OpenRaoException | RaoRunnerException e) {
             String message = String.format("Exception occurred while importing CRAC file %s", getFileNameFromUrl(cracFileUrl));
             throw new RaoRunnerException(message, e);
         }

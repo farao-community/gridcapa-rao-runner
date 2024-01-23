@@ -6,20 +6,20 @@
  */
 package com.farao_community.farao.rao_runner.app;
 
-import com.farao_community.farao.commons.FaraoException;
-import com.farao_community.farao.data.crac_api.Crac;
-import com.farao_community.farao.data.crac_api.State;
-import com.farao_community.farao.data.glsk.virtual.hubs.GlskVirtualHubs;
-import com.farao_community.farao.data.rao_result_api.RaoResult;
-import com.farao_community.farao.data.refprog.reference_program.ReferenceProgram;
-import com.farao_community.farao.rao_api.Rao;
-import com.farao_community.farao.rao_api.RaoInput;
-import com.farao_community.farao.rao_api.json.JsonRaoParameters;
-import com.farao_community.farao.rao_api.parameters.RaoParameters;
+import com.powsybl.openrao.commons.OpenRaoException;
+import com.powsybl.openrao.data.cracapi.Crac;
+import com.powsybl.openrao.data.cracapi.State;
+import com.powsybl.openrao.data.glsk.virtual.hubs.GlskVirtualHubs;
+import com.powsybl.openrao.data.raoresultapi.RaoResult;
+import com.powsybl.openrao.data.refprog.referenceprogram.ReferenceProgram;
+import com.powsybl.openrao.raoapi.Rao;
+import com.powsybl.openrao.raoapi.RaoInput;
+import com.powsybl.openrao.raoapi.json.JsonRaoParameters;
+import com.powsybl.openrao.raoapi.parameters.RaoParameters;
 import com.farao_community.farao.rao_runner.api.exceptions.RaoRunnerException;
 import com.farao_community.farao.rao_runner.api.resource.RaoRequest;
 import com.farao_community.farao.rao_runner.api.resource.RaoResponse;
-import com.farao_community.farao.virtual_hubs.VirtualHubsConfiguration;
+import com.powsybl.openrao.virtualhubs.VirtualHubsConfiguration;
 import com.powsybl.glsk.commons.ZonalData;
 import com.powsybl.iidm.network.Network;
 import com.powsybl.sensitivity.SensitivityVariableSet;
@@ -64,7 +64,7 @@ public class RaoRunnerService {
             eventsLogger.info("Applying remedial actions for preventive state");
             applyRemedialActionsForState(network, raoResult, crac.getPreventiveState());
             return saveResultsAndCreateRaoResponse(raoRequest, crac, raoResult, network, computationStartInstant, raoParameters);
-        } catch (FaraoException e) {
+        } catch (OpenRaoException e) {
             throw new RaoRunnerException("FARAO exception occurred when running rao: " + e.getMessage(), e);
         }
     }

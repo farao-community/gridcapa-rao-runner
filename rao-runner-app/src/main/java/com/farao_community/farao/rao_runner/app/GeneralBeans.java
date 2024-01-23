@@ -5,7 +5,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 package com.farao_community.farao.rao_runner.app;
-import com.farao_community.farao.rao_api.Rao;
+import com.powsybl.openrao.raoapi.Rao;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Bean;
