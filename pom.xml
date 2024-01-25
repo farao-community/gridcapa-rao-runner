@@ -45,7 +45,7 @@
     </modules>
 
     <properties>
-        <commons.lang.version>3.12.0</commons.lang.version>
+        <commons.lang.version>3.13.0</commons.lang.version>
         <jackson.datatype.version>2.12.2</jackson.datatype.version>
         <jsonapi.converter.version>0.11</jsonapi.converter.version>
         <junit.launcher.version>1.6.3</junit.launcher.version>
