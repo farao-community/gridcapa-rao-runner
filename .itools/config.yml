@@ -1,0 +1,5 @@
+load-flow:
+  default-impl-name: OpenLoadFlow
+
+sensitivity-analysis:
+  default-impl-name: OpenLoadFlow
