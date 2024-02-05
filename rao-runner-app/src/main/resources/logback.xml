@@ -69,5 +69,5 @@
     <logger name="com.powsybl.openrao" level="INFO"/>
     <logger name="com.powsybl.openloadflow" level="ERROR"/>
     <logger name="com.powsybl.openrao.commons" level="WARN"/>
-    <logger name="com.powsybl.openrao.virtual_hubs" level="WARN"/>
+    <logger name="com.powsybl.openrao.virtualhubs" level="WARN"/>
 </configuration>
