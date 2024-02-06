@@ -51,13 +51,13 @@
         <appender-ref ref="amqp-business-events"/>
         <appender-ref ref="STDOUT"/>
     </logger>
-    <logger name="com.farao_community.farao.commons.logs.RaoBusinessLogs" level="INFO">
+    <logger name="com.powsybl.openrao.commons.logs.RaoBusinessLogs" level="INFO">
         <appender-ref ref="amqp-business-events"/>
     </logger>
-    <logger name="com.farao_community.farao.commons.logs.RaoBusinessWarns" level="WARN">
+    <logger name="com.powsybl.openrao.commons.logs.RaoBusinessWarns" level="WARN">
         <appender-ref ref="amqp-business-events"/>
     </logger>
-    <logger name="com.farao_community.farao.commons.logs.TechnicalLogs" level="OFF">
+    <logger name="com.powsybl.openrao.commons.logs.TechnicalLogs" level="OFF">
         <appender-ref ref="amqp-business-events"/>
     </logger>
 
@@ -66,6 +66,8 @@
         <appender-ref ref="STDOUT"/>
     </root>
 
-    <logger name="com.powsybl" level="OFF"/>
-    <logger name="com.rte_france.powsybl" level="OFF"/>
+    <logger name="com.powsybl.openrao" level="INFO"/>
+    <logger name="com.powsybl.openloadflow" level="ERROR"/>
+    <logger name="com.powsybl.openrao.commons" level="WARN"/>
+    <logger name="com.powsybl.openrao.virtualhubs" level="WARN"/>
 </configuration>

@@ -49,32 +49,32 @@
             <version>${project.version}</version>
         </dependency>
         <dependency>
-            <groupId>com.farao-community.farao</groupId>
-            <artifactId>farao-crac-api</artifactId>
+            <groupId>com.powsybl</groupId>
+            <artifactId>open-rao-crac-api</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.farao-community.farao</groupId>
-            <artifactId>farao-glsk-virtual-hubs</artifactId>
+            <groupId>com.powsybl</groupId>
+            <artifactId>open-rao-glsk-virtual-hubs</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.farao-community.farao</groupId>
-            <artifactId>farao-rao-api</artifactId>
+            <groupId>com.powsybl</groupId>
+            <artifactId>open-rao-rao-api</artifactId>
         </dependency>
         <dependency>
             <groupId>com.farao-community.farao</groupId>
             <artifactId>gridcapa-starter-minio-adapter</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.farao-community.farao</groupId>
-            <artifactId>farao-rao-result-json</artifactId>
+            <groupId>com.powsybl</groupId>
+            <artifactId>open-rao-rao-result-json</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.farao-community.farao</groupId>
-            <artifactId>farao-refprog-xml-importer</artifactId>
+            <groupId>com.powsybl</groupId>
+            <artifactId>open-rao-refprog-xml-importer</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.farao-community.farao</groupId>
-            <artifactId>farao-virtual-hubs-xml</artifactId>
+            <groupId>com.powsybl</groupId>
+            <artifactId>open-rao-virtual-hubs-xml</artifactId>
         </dependency>
         <dependency>
             <groupId>com.powsybl</groupId>
@@ -103,18 +103,18 @@
 
         <!-- RUNTIME DEPENDENCIES -->
         <dependency>
-            <groupId>com.farao-community.farao</groupId>
-            <artifactId>farao-crac-impl</artifactId>
+            <groupId>com.powsybl</groupId>
+            <artifactId>open-rao-crac-impl</artifactId>
             <scope>runtime</scope>
         </dependency>
         <dependency>
-            <groupId>com.farao-community.farao</groupId>
-            <artifactId>farao-crac-io-json</artifactId>
+            <groupId>com.powsybl</groupId>
+            <artifactId>open-rao-crac-io-json</artifactId>
             <scope>runtime</scope>
         </dependency>
         <dependency>
-            <groupId>com.farao-community.farao</groupId>
-            <artifactId>farao-search-tree-rao</artifactId>
+            <groupId>com.powsybl</groupId>
+            <artifactId>open-rao-search-tree-rao</artifactId>
             <scope>runtime</scope>
         </dependency>
         <dependency>
@@ -144,17 +144,12 @@
         </dependency>
         <dependency>
             <groupId>com.powsybl</groupId>
-            <artifactId>powsybl-iidm-xml-converter</artifactId>
+            <artifactId>powsybl-iidm-serde</artifactId>
             <scope>runtime</scope>
         </dependency>
         <dependency>
             <groupId>com.powsybl</groupId>
             <artifactId>powsybl-iidm-scripting</artifactId>
-            <scope>runtime</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.rte-france.powsybl</groupId>
-            <artifactId>powsybl-hades2-integration</artifactId>
             <scope>runtime</scope>
         </dependency>
         <dependency>

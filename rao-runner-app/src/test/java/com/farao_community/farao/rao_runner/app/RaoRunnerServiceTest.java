@@ -6,20 +6,20 @@
  */
 package com.farao_community.farao.rao_runner.app;
 
-import com.farao_community.farao.commons.FaraoException;
-import com.farao_community.farao.data.crac_api.Crac;
-import com.farao_community.farao.data.crac_io_api.CracImporters;
-import com.farao_community.farao.data.rao_result_api.RaoResult;
-import com.farao_community.farao.data.rao_result_json.RaoResultImporter;
-import com.farao_community.farao.data.refprog.reference_program.ReferenceProgram;
-import com.farao_community.farao.data.refprog.refprog_xml_importer.RefProgImporter;
-import com.farao_community.farao.rao_api.Rao;
-import com.farao_community.farao.rao_api.parameters.RaoParameters;
+import com.powsybl.openrao.commons.OpenRaoException;
+import com.powsybl.openrao.data.cracapi.Crac;
+import com.powsybl.openrao.data.cracioapi.CracImporters;
+import com.powsybl.openrao.data.raoresultapi.RaoResult;
+import com.powsybl.openrao.data.raoresultjson.RaoResultImporter;
+import com.powsybl.openrao.data.refprog.referenceprogram.ReferenceProgram;
+import com.powsybl.openrao.data.refprog.refprogxmlimporter.RefProgImporter;
+import com.powsybl.openrao.raoapi.Rao;
+import com.powsybl.openrao.raoapi.parameters.RaoParameters;
 import com.farao_community.farao.rao_runner.api.exceptions.RaoRunnerException;
 import com.farao_community.farao.rao_runner.api.resource.RaoRequest;
 import com.farao_community.farao.rao_runner.api.resource.RaoResponse;
-import com.farao_community.farao.virtual_hubs.VirtualHubsConfiguration;
-import com.farao_community.farao.virtual_hubs.xml.XmlVirtualHubsConfiguration;
+import com.powsybl.openrao.virtualhubs.VirtualHubsConfiguration;
+import com.powsybl.openrao.virtualhubs.xml.XmlVirtualHubsConfiguration;
 import com.powsybl.glsk.api.GlskDocument;
 import com.powsybl.glsk.api.io.GlskDocumentImporters;
 import com.powsybl.glsk.commons.ZonalData;
@@ -115,7 +115,7 @@ class RaoRunnerServiceTest {
                 .withRefprogFileUrl("http://host:9000/refProg.xml")
                 .withRealGlskFileUrl("http://host:9000/glsk.xml")
                 .withVirtualhubsFileUrl("http://host:9000/virtualhubs.xml")
-                .withRaoParametersFileUrl("raoParametersWithAdnLoadflow.json")
+                .withRaoParametersFileUrl("raoParameters.json")
                 .withResultsDestination("destination-key")
                 .withTargetEndInstant(Instant.MAX)
                 .build();
@@ -139,7 +139,7 @@ class RaoRunnerServiceTest {
     }
 
     @Test
-    void runRaoThrowsFaraoException() {
+    void runRaoThrowsOpenRaoException() {
         RaoRequest simpleRaoRequest = new RaoRequest.RaoRequestBuilder()
             .withId("id")
             .withNetworkFileUrl("http://host:9000/network.xiidm")
@@ -148,11 +148,11 @@ class RaoRunnerServiceTest {
             .build();
 
         Mockito.when(fileImporter.importRaoParameters(simpleRaoRequest.getRaoParametersFileUrl())).thenReturn(new RaoParameters());
-        Mockito.when(raoRunnerProv.run(Mockito.any(), Mockito.any())).thenThrow(new FaraoException("This is a test"));
+        Mockito.when(raoRunnerProv.run(Mockito.any(), Mockito.any())).thenThrow(new OpenRaoException("This is a test"));
 
         Assertions.assertThatThrownBy(() -> raoRunnerService.runRao(simpleRaoRequest))
             .isInstanceOf(RaoRunnerException.class)
-            .hasCauseInstanceOf(FaraoException.class)
+            .hasCauseInstanceOf(OpenRaoException.class)
             .hasMessageContaining("This is a test");
     }
 }
