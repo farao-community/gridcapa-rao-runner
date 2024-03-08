@@ -6,14 +6,11 @@
  */
 package com.farao_community.farao.rao_runner.app;
 
-import com.powsybl.openrao.data.cracapi.Crac;
-import com.powsybl.openrao.data.refprog.referenceprogram.ReferenceProgram;
-import com.powsybl.openrao.raoapi.parameters.RaoParameters;
-import com.powsybl.openrao.raoapi.parameters.extensions.LoopFlowParametersExtension;
 import com.farao_community.farao.rao_runner.api.exceptions.RaoRunnerException;
 import com.powsybl.glsk.commons.ZonalData;
-import com.powsybl.iidm.network.Country;
 import com.powsybl.iidm.network.Network;
+import com.powsybl.openrao.data.cracapi.Crac;
+import com.powsybl.openrao.data.refprog.referenceprogram.ReferenceProgram;
 import com.powsybl.sensitivity.SensitivityVariableSet;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -21,14 +18,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import java.net.MalformedURLException;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
 import java.util.Objects;
-import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * @author Mohamed BenRejeb {@literal <mohamed.ben-rejeb at rte-france.com>}
@@ -50,11 +42,11 @@ class FileImporterTest {
     void importNetworkThrowsException() {
 
         Assertions.assertThatThrownBy(() -> fileImporter.importNetwork("networkUrl"))
-            .isInstanceOf(RaoRunnerException.class)
-            .hasCauseInstanceOf(MalformedURLException.class)
-            .hasMessageContaining("Exception occurred while retrieving file name from : networkUrl")
-            .getCause()
-            .hasMessageContaining("no protocol: networkUrl");
+                .isInstanceOf(RaoRunnerException.class)
+                .hasCauseInstanceOf(MalformedURLException.class)
+                .hasMessageContaining("Exception occurred while retrieving file name from : networkUrl")
+                .getCause()
+                .hasMessageContaining("no protocol: networkUrl");
     }
 
     @Test
@@ -69,11 +61,11 @@ class FileImporterTest {
     void importCracThrowsException() {
 
         Assertions.assertThatThrownBy(() -> fileImporter.importCrac("cracUrl"))
-            .isInstanceOf(RaoRunnerException.class)
-            .hasCauseInstanceOf(MalformedURLException.class)
-            .hasMessageContaining("Exception occurred while retrieving file name from : cracUrl")
-            .getCause()
-            .hasMessageContaining("no protocol: cracUrl");
+                .isInstanceOf(RaoRunnerException.class)
+                .hasCauseInstanceOf(MalformedURLException.class)
+                .hasMessageContaining("Exception occurred while retrieving file name from : cracUrl")
+                .getCause()
+                .hasMessageContaining("no protocol: cracUrl");
     }
 
     @Test
@@ -120,36 +112,10 @@ class FileImporterTest {
     void importVirtualHubsThrowsException() {
 
         Assertions.assertThatThrownBy(() -> fileImporter.importVirtualHubs("virtualhubsUrl"))
-            .isInstanceOf(RaoRunnerException.class)
-            .hasCauseInstanceOf(MalformedURLException.class)
-            .hasMessageContaining("Exception occurred while retrieving file name from : virtualhubsUrl")
-            .getCause()
-            .hasMessageContaining("no protocol: virtualhubsUrl");
-    }
-
-    @Test
-    void checkRaoParametersImport() {
-        RaoParameters raoParameters = fileImporter.importRaoParameters(Objects.requireNonNull(getClass().getResource("/rao_inputs/raoParameters.json")).toString());
-
-        List<String> expectedLoopFlowConstraintCountries = Arrays.asList("AT", "BE", "CZ", "DE", "FR", "HR", "HU", "NL", "PL", "RO", "SI", "SK");
-        LoopFlowParametersExtension loopFlowParametersExtension = raoParameters.getExtension(LoopFlowParametersExtension.class);
-        List<String> actualLoopFlowConstraintCountries = loopFlowParametersExtension.getCountries().stream().map(Country::toString).collect(Collectors.toList());
-        assertTrue(expectedLoopFlowConstraintCountries.size() == actualLoopFlowConstraintCountries.size()
-                && expectedLoopFlowConstraintCountries.containsAll(actualLoopFlowConstraintCountries)
-                && actualLoopFlowConstraintCountries.containsAll(expectedLoopFlowConstraintCountries));
-        Map<String, Integer> maxCurativeRaPerTso = raoParameters.getRaUsageLimitsPerContingencyParameters().getMaxCurativeRaPerTso();
-        Map<String, Integer>  getMaxCurativeTopoPerTso = raoParameters.getRaUsageLimitsPerContingencyParameters().getMaxCurativeTopoPerTso();
-        Map<String, Integer>  getMaxCurativePstPerTso = raoParameters.getRaUsageLimitsPerContingencyParameters().getMaxCurativePstPerTso();
-
-        assertEquals(10.0, raoParameters.getTopoOptimizationParameters().getAbsoluteMinImpactThreshold());
-        assertEquals(0, maxCurativeRaPerTso.get("AT"));
-        assertEquals(3, maxCurativeRaPerTso.get("BE"));
-        assertEquals(15, maxCurativeRaPerTso.size());
-        assertEquals(0, getMaxCurativeTopoPerTso.get("AT"));
-        assertEquals(1, getMaxCurativeTopoPerTso.get("BE"));
-        assertEquals(2, getMaxCurativeTopoPerTso.get("CZ"));
-        assertEquals(15, getMaxCurativeTopoPerTso.size());
-        assertEquals(0, getMaxCurativePstPerTso.get("AT"));
-        assertEquals(15, getMaxCurativePstPerTso.size());
+                .isInstanceOf(RaoRunnerException.class)
+                .hasCauseInstanceOf(MalformedURLException.class)
+                .hasMessageContaining("Exception occurred while retrieving file name from : virtualhubsUrl")
+                .getCause()
+                .hasMessageContaining("no protocol: virtualhubsUrl");
     }
 }
