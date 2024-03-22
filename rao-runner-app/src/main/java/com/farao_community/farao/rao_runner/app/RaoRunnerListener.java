@@ -73,7 +73,7 @@ public class RaoRunnerListener  implements MessageListener {
             } else {
                 businessLogger.info("RAO computation has been interrupted");
                 LOGGER.info("RAO run has been interrupted");
-                sendRaoResponse(new RaoResponse.RaoResponseBuilder().withId(raoRequest.getId()).build(),
+                sendRaoResponse(new RaoResponse.RaoResponseBuilder().withId(raoRequest.getId()).withInterrupted(true).build(),
                         replyTo,
                         brokerCorrelationId);
             }
