@@ -38,33 +38,36 @@
         <durable>true</durable>
         <deliveryMode>PERSISTENT</deliveryMode>
     </appender>
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{yyyy-MM-dd'T'HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
 
     <!-- This logger name must match Logger's names in java code
     Do not bind any logger with the appender "amqp-business-events"!
     You should bind with "amqp-business-events" appender only Loggers you want to see in gridcapa processes as a final user-->
     <logger name="RAO_RUNNER_BUSINESS_LOGGER" additivity="false" level="INFO">
         <appender-ref ref="amqp-business-events"/>
+        <appender-ref ref="STDOUT"/>
     </logger>
-    <logger name="com.farao_community.farao.commons.logs.RaoBusinessLogs" level="INFO">
+    <logger name="com.powsybl.openrao.commons.logs.RaoBusinessLogs" level="INFO">
         <appender-ref ref="amqp-business-events"/>
     </logger>
-    <logger name="com.farao_community.farao.commons.logs.RaoBusinessWarns" level="WARN">
+    <logger name="com.powsybl.openrao.commons.logs.RaoBusinessWarns" level="WARN">
         <appender-ref ref="amqp-business-events"/>
     </logger>
-    <logger name="com.farao_community.farao.commons.logs.TechnicalLogs" level="OFF">
+    <logger name="com.powsybl.openrao.commons.logs.TechnicalLogs" level="OFF">
         <appender-ref ref="amqp-business-events"/>
     </logger>
 
 
-    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
-        <encoder>
-            <pattern>%d{yyyy-MM-dd'T'HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
-        </encoder>
-    </appender>
     <root level="info">
-        <appender-ref ref="STDOUT" />
+        <appender-ref ref="STDOUT"/>
     </root>
 
-    <logger name="com.powsybl" level="OFF"/>
-    <logger name="com.rte_france.powsybl" level="OFF"/>
+    <logger name="com.powsybl.openrao" level="INFO"/>
+    <logger name="com.powsybl.openloadflow" level="ERROR"/>
+    <logger name="com.powsybl.openrao.commons" level="WARN"/>
+    <logger name="com.powsybl.openrao.virtualhubs" level="WARN"/>
 </configuration>

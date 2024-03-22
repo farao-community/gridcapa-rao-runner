@@ -6,21 +6,26 @@
  */
 package com.farao_community.farao.rao_runner.app;
 
-import com.farao_community.farao.data.crac_api.Crac;
-import com.farao_community.farao.data.crac_io_api.CracImporters;
-import com.farao_community.farao.data.rao_result_api.RaoResult;
-import com.farao_community.farao.data.rao_result_json.RaoResultImporter;
-import com.farao_community.farao.data.refprog.reference_program.ReferenceProgram;
-import com.farao_community.farao.data.refprog.refprog_xml_importer.RefProgImporter;
-import com.farao_community.farao.rao_api.Rao;
-import com.farao_community.farao.rao_api.parameters.RaoParameters;
+import com.powsybl.openrao.commons.OpenRaoException;
+import com.powsybl.openrao.data.cracapi.Crac;
+import com.powsybl.openrao.data.cracioapi.CracImporters;
+import com.powsybl.openrao.data.raoresultapi.RaoResult;
+import com.powsybl.openrao.data.raoresultjson.RaoResultImporter;
+import com.powsybl.openrao.data.refprog.referenceprogram.ReferenceProgram;
+import com.powsybl.openrao.data.refprog.refprogxmlimporter.RefProgImporter;
+import com.powsybl.openrao.raoapi.Rao;
+import com.powsybl.openrao.raoapi.parameters.RaoParameters;
+import com.farao_community.farao.rao_runner.api.exceptions.RaoRunnerException;
 import com.farao_community.farao.rao_runner.api.resource.RaoRequest;
 import com.farao_community.farao.rao_runner.api.resource.RaoResponse;
+import com.powsybl.openrao.virtualhubs.VirtualHubsConfiguration;
+import com.powsybl.openrao.virtualhubs.xml.XmlVirtualHubsConfiguration;
 import com.powsybl.glsk.api.GlskDocument;
 import com.powsybl.glsk.api.io.GlskDocumentImporters;
 import com.powsybl.glsk.commons.ZonalData;
 import com.powsybl.iidm.network.Network;
 import com.powsybl.sensitivity.SensitivityVariableSet;
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -56,6 +61,7 @@ class RaoRunnerServiceTest {
     RaoResult raoResult;
     ZonalData<SensitivityVariableSet> glsks;
     ReferenceProgram referenceProgram;
+    VirtualHubsConfiguration virtualHubsConfiguration;
 
     @BeforeEach
     public void setUp() {
@@ -68,9 +74,11 @@ class RaoRunnerServiceTest {
         InputStream glskFileInputStream = getClass().getResourceAsStream("/rao_inputs/glsk.xml");
         GlskDocument ucteGlskProvider = GlskDocumentImporters.importGlsk(Objects.requireNonNull(glskFileInputStream));
         InputStream refProgFileInputStream = getClass().getResourceAsStream("/rao_inputs/refprog.xml");
+        InputStream virtualhubsFileInputStream = getClass().getResourceAsStream("/rao_inputs/virtualHubsConfigurationFile.xml");
 
         glsks = ucteGlskProvider.getZonalGlsks(network, OffsetDateTime.parse("2019-01-08T12:30:00Z").toInstant());
         referenceProgram = RefProgImporter.importRefProg(refProgFileInputStream, OffsetDateTime.parse("2019-01-08T12:30:00Z"));
+        virtualHubsConfiguration = XmlVirtualHubsConfiguration.importConfiguration(virtualhubsFileInputStream);
 
         Mockito.when(fileImporter.importNetwork(Mockito.any())).thenReturn(network);
         Mockito.when(fileImporter.importCrac(Mockito.any())).thenReturn(crac);
@@ -78,10 +86,16 @@ class RaoRunnerServiceTest {
 
     @Test
     void checkSimpleRaoRun() {
-        RaoRequest simpleRaoRequest = new RaoRequest("id", "http://host:9000/network.xiidm", "http://host:9000/crac.json", "http://host:9000/raoParameters.json");
+        RaoRequest simpleRaoRequest = new RaoRequest.RaoRequestBuilder()
+                .withId("id")
+                .withNetworkFileUrl("http://host:9000/network.xiidm")
+                .withCracFileUrl("http://host:9000/crac.json")
+                .withRaoParametersFileUrl("http://host:9000/raoParameters.json")
+                .build();
 
         Mockito.when(fileExporter.saveNetwork(network, simpleRaoRequest)).thenReturn("simple-networkWithPRA-url");
-        Mockito.when(fileExporter.saveRaoResult(raoResult, crac, simpleRaoRequest)).thenReturn("simple-RaoResultJson-url");
+        Mockito.when(fileExporter.saveRaoResult(raoResult, crac, simpleRaoRequest, RaoParameters.load().getObjectiveFunctionParameters().getType().getUnit())).thenReturn("simple-RaoResultJson-url");
+        Mockito.when(fileImporter.importRaoParameters(simpleRaoRequest.getRaoParametersFileUrl())).thenReturn(new RaoParameters());
 
         RaoResponse raoResponse = raoRunnerService.runRao(simpleRaoRequest);
         assertEquals("id", raoResponse.getId());
@@ -93,16 +107,18 @@ class RaoRunnerServiceTest {
 
     @Test
     void checkCoreRaoRun() {
-        RaoRequest coreRaoRequest = new RaoRequest("id",
-                "2019-01-08T12:30:00Z",
-                "http://host:9000/network.xiidm",
-                "http://host:9000/crac.json",
-                "http://host:9000/refProg.xml",
-                "http://host:9000/glsk.xml",
-                "raoParametersWithAdnLoadflow.json",
-                "destination-key",
-                Instant.MAX,
-                null);
+        RaoRequest coreRaoRequest = new RaoRequest.RaoRequestBuilder()
+                .withId("id")
+                .withInstant("2019-01-08T12:30:00Z")
+                .withNetworkFileUrl("http://host:9000/network.xiidm")
+                .withCracFileUrl("http://host:9000/crac.json")
+                .withRefprogFileUrl("http://host:9000/refProg.xml")
+                .withRealGlskFileUrl("http://host:9000/glsk.xml")
+                .withVirtualhubsFileUrl("http://host:9000/virtualhubs.xml")
+                .withRaoParametersFileUrl("raoParameters.json")
+                .withResultsDestination("destination-key")
+                .withTargetEndInstant(Instant.MAX)
+                .build();
 
         Mockito.when(fileImporter.importRaoParameters(coreRaoRequest.getRaoParametersFileUrl())).thenReturn(new RaoParameters());
         Mockito.when(fileImporter.importRefProg(coreRaoRequest.getInstant().get(), coreRaoRequest.getRefprogFileUrl().get()))
@@ -110,8 +126,9 @@ class RaoRunnerServiceTest {
         Mockito.when(fileImporter.importGlsk(coreRaoRequest.getInstant().get(), coreRaoRequest.getRealGlskFileUrl().get(), network))
                 .thenReturn(glsks);
 
+        Mockito.when(fileImporter.importVirtualHubs(coreRaoRequest.getVirtualhubsFileUrl().get())).thenReturn(virtualHubsConfiguration);
         Mockito.when(fileExporter.saveNetwork(network, coreRaoRequest)).thenReturn("simple-networkWithPRA-url");
-        Mockito.when(fileExporter.saveRaoResult(raoResult, crac, coreRaoRequest)).thenReturn("simple-RaoResultJson-url");
+        Mockito.when(fileExporter.saveRaoResult(raoResult, crac, coreRaoRequest, RaoParameters.load().getObjectiveFunctionParameters().getType().getUnit())).thenReturn("simple-RaoResultJson-url");
 
         RaoResponse raoResponse = raoRunnerService.runRao(coreRaoRequest);
         assertEquals("id", raoResponse.getId());
@@ -119,5 +136,23 @@ class RaoRunnerServiceTest {
         assertEquals("simple-networkWithPRA-url", raoResponse.getNetworkWithPraFileUrl());
         assertEquals("simple-RaoResultJson-url", raoResponse.getRaoResultFileUrl());
         assertEquals(Optional.of("2019-01-08T12:30:00Z"), raoResponse.getInstant());
+    }
+
+    @Test
+    void runRaoThrowsOpenRaoException() {
+        RaoRequest simpleRaoRequest = new RaoRequest.RaoRequestBuilder()
+            .withId("id")
+            .withNetworkFileUrl("http://host:9000/network.xiidm")
+            .withCracFileUrl("http://host:9000/crac.json")
+            .withRaoParametersFileUrl("http://host:9000/raoParameters.json")
+            .build();
+
+        Mockito.when(fileImporter.importRaoParameters(simpleRaoRequest.getRaoParametersFileUrl())).thenReturn(new RaoParameters());
+        Mockito.when(raoRunnerProv.run(Mockito.any(), Mockito.any())).thenThrow(new OpenRaoException("This is a test"));
+
+        Assertions.assertThatThrownBy(() -> raoRunnerService.runRao(simpleRaoRequest))
+            .isInstanceOf(RaoRunnerException.class)
+            .hasCauseInstanceOf(OpenRaoException.class)
+            .hasMessageContaining("This is a test");
     }
 }

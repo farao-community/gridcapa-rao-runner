@@ -6,19 +6,20 @@
  */
 package com.farao_community.farao.rao_runner.app;
 
-import com.farao_community.farao.commons.FaraoException;
-import com.farao_community.farao.data.crac_api.Crac;
-import com.farao_community.farao.data.crac_api.State;
-import com.farao_community.farao.data.glsk.virtual.hubs.GlskVirtualHubs;
-import com.farao_community.farao.data.rao_result_api.RaoResult;
-import com.farao_community.farao.data.refprog.reference_program.ReferenceProgram;
-import com.farao_community.farao.rao_api.Rao;
-import com.farao_community.farao.rao_api.RaoInput;
-import com.farao_community.farao.rao_api.json.JsonRaoParameters;
-import com.farao_community.farao.rao_api.parameters.RaoParameters;
+import com.powsybl.openrao.commons.OpenRaoException;
+import com.powsybl.openrao.data.cracapi.Crac;
+import com.powsybl.openrao.data.cracapi.State;
+import com.powsybl.openrao.data.glsk.virtual.hubs.GlskVirtualHubs;
+import com.powsybl.openrao.data.raoresultapi.RaoResult;
+import com.powsybl.openrao.data.refprog.referenceprogram.ReferenceProgram;
+import com.powsybl.openrao.raoapi.Rao;
+import com.powsybl.openrao.raoapi.RaoInput;
+import com.powsybl.openrao.raoapi.json.JsonRaoParameters;
+import com.powsybl.openrao.raoapi.parameters.RaoParameters;
 import com.farao_community.farao.rao_runner.api.exceptions.RaoRunnerException;
 import com.farao_community.farao.rao_runner.api.resource.RaoRequest;
 import com.farao_community.farao.rao_runner.api.resource.RaoResponse;
+import com.powsybl.openrao.virtualhubs.VirtualHubsConfiguration;
 import com.powsybl.glsk.commons.ZonalData;
 import com.powsybl.iidm.network.Network;
 import com.powsybl.sensitivity.SensitivityVariableSet;
@@ -59,10 +60,11 @@ public class RaoRunnerService {
         try {
             Instant computationStartInstant = Instant.now();
             RaoResult raoResult = raoRunnerProvider.run(getRaoInput(raoRequest, network, crac), raoParameters);
+            network = fileImporter.importNetwork(raoRequest.getNetworkFileUrl());
             eventsLogger.info("Applying remedial actions for preventive state");
             applyRemedialActionsForState(network, raoResult, crac.getPreventiveState());
-            return saveResultsAndCreateRaoResponse(raoRequest, crac, raoResult, network, computationStartInstant);
-        } catch (FaraoException e) {
+            return saveResultsAndCreateRaoResponse(raoRequest, crac, raoResult, network, computationStartInstant, raoParameters);
+        } catch (OpenRaoException e) {
             throw new RaoRunnerException("FARAO exception occurred when running rao: " + e.getMessage(), e);
         }
     }
@@ -74,7 +76,7 @@ public class RaoRunnerService {
                 LOGGER.info("Running RAO with following parameters:{}{}", System.lineSeparator(), baos);
             }
         } catch (IOException e) {
-            throw new RaoRunnerException(String.format("Exception occur while reading RAO parameters for logging: %s", e.getMessage()));
+            throw new RaoRunnerException("Exception occurred while reading RAO parameters for logging", e);
         }
     }
 
@@ -88,33 +90,38 @@ public class RaoRunnerService {
         Optional<String> optInstant = raoRequest.getInstant();
         Optional<String> optGlskUrl = raoRequest.getRealGlskFileUrl();
         Optional<String> optRefProgUrl = raoRequest.getRefprogFileUrl();
-        if (optInstant.isPresent() && optGlskUrl.isPresent() && optRefProgUrl.isPresent()) {
+        Optional<String> optVirtualHubsUrl = raoRequest.getVirtualhubsFileUrl();
+        if (optInstant.isPresent() && optGlskUrl.isPresent() && optRefProgUrl.isPresent() && optVirtualHubsUrl.isPresent()) {
             ReferenceProgram referenceProgram = fileImporter.importRefProg(optInstant.get(), optRefProgUrl.get());
             ZonalData<SensitivityVariableSet> glskProvider = fileImporter.importGlsk(optInstant.get(), optGlskUrl.get(), network);
-            ZonalData<SensitivityVariableSet> glskOfVirtualHubs = GlskVirtualHubs.getVirtualHubGlsks(network, referenceProgram);
+            VirtualHubsConfiguration virtualHubsConfiguration = fileImporter.importVirtualHubs(optVirtualHubsUrl.get());
+            ZonalData<SensitivityVariableSet> glskOfVirtualHubs = GlskVirtualHubs.getVirtualHubGlsks(virtualHubsConfiguration, network, referenceProgram);
             glskProvider.addAll(glskOfVirtualHubs);
             raoInputBuilder.withGlskProvider(glskProvider);
             raoInputBuilder.withRefProg(referenceProgram);
         }
     }
 
-    private RaoResponse saveResultsAndCreateRaoResponse(RaoRequest raoRequest, Crac crac, RaoResult raoResult, Network network, Instant computationStartInstant) {
-        String raoResultFileUrl = fileExporter.saveRaoResult(raoResult, crac, raoRequest);
+    private RaoResponse saveResultsAndCreateRaoResponse(RaoRequest raoRequest, Crac crac, RaoResult raoResult, Network network, Instant computationStartInstant, RaoParameters raoParameters) {
+        String raoResultFileUrl = fileExporter.saveRaoResult(raoResult, crac, raoRequest, raoParameters.getObjectiveFunctionParameters().getType().getUnit());
         String networkWithPraFileUrl = fileExporter.saveNetwork(network, raoRequest);
         String raoInstant = raoRequest.getInstant().orElse(null);
         Instant computationEndInstant = Instant.now();
-        return new RaoResponse(raoRequest.getId(),
-                raoInstant,
-                networkWithPraFileUrl,
-                raoRequest.getCracFileUrl(),
-                raoResultFileUrl,
-                computationStartInstant,
-                computationEndInstant,
-                false);
+        return new RaoResponse.RaoResponseBuilder()
+                .withId(raoRequest.getId())
+                .withInstant(raoInstant)
+                .withNetworkWithPraFileUrl(networkWithPraFileUrl)
+                .withCracFileUrl(raoRequest.getCracFileUrl())
+                .withRaoResultFileUrl(raoResultFileUrl)
+                .withComputationStartInstant(computationStartInstant)
+                .withComputationEndInstant(computationEndInstant)
+                .withInterrupted(false)
+                .build();
     }
 
     private static void applyRemedialActionsForState(Network network, RaoResult raoResult, State state) {
         raoResult.getActivatedNetworkActionsDuringState(state).forEach(networkAction -> networkAction.apply(network));
-        raoResult.getOptimizedSetPointsOnState(state).forEach((rangeAction, setPoint) -> rangeAction.apply(network, setPoint));
+        raoResult.getActivatedRangeActionsDuringState(state).forEach(rangeAction ->
+            rangeAction.apply(network, raoResult.getOptimizedSetPointsOnState(state).get(rangeAction)));
     }
 }

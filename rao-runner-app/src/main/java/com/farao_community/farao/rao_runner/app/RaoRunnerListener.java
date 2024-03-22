@@ -35,8 +35,10 @@ public class RaoRunnerListener  implements MessageListener {
     private final RaoRunnerService raoRunnerServer;
     private final AmqpTemplate amqpTemplate;
     private final AmqpConfiguration amqpConfiguration;
+    private final Logger businessLogger;
 
-    public RaoRunnerListener(RaoRunnerService raoRunnerServer, AmqpTemplate amqpTemplate, AmqpConfiguration amqpConfiguration) {
+    public RaoRunnerListener(RaoRunnerService raoRunnerServer, AmqpTemplate amqpTemplate, AmqpConfiguration amqpConfiguration, Logger businessLogger) {
+        this.businessLogger = businessLogger;
         this.jsonApiConverter = new JsonApiConverter();
         this.raoRunnerServer = raoRunnerServer;
         this.amqpTemplate = amqpTemplate;
@@ -57,6 +59,7 @@ public class RaoRunnerListener  implements MessageListener {
                     MDC.getCopyOfContextMap(),
                     raoRequest
             );
+            businessLogger.info("Starting the RAO computation");
             launcher.start();
             ThreadLauncherResult<RaoResponse> raoResponse = launcher.getResult();
             if (raoResponse.hasError() && raoResponse.getException() != null) {
@@ -64,11 +67,15 @@ public class RaoRunnerListener  implements MessageListener {
             }
             Optional<RaoResponse> resp = raoResponse.getResult();
             if (resp.isPresent() && !raoResponse.hasError()) {
+                businessLogger.info("RAO computation is finished");
                 LOGGER.info("RAO response sent: {}", resp);
                 sendRaoResponse(resp.get(), replyTo, brokerCorrelationId);
             } else {
+                businessLogger.info("RAO computation has been interrupted");
                 LOGGER.info("RAO run has been interrupted");
-                sendRaoResponse(new RaoResponse(raoRequest.getId(), null, null, null, null, null, null, true), replyTo, brokerCorrelationId);
+                sendRaoResponse(new RaoResponse.RaoResponseBuilder().withId(raoRequest.getId()).withInterrupted(true).build(),
+                        replyTo,
+                        brokerCorrelationId);
             }
             System.gc();
         } catch (RaoRunnerException e) {

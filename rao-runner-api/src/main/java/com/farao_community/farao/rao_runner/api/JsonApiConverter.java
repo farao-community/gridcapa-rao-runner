@@ -42,7 +42,10 @@ public class JsonApiConverter {
 
     public <T> byte[] toJsonMessage(T jsonApiObject) {
         ResourceConverter converter = createConverter();
-        JSONAPIDocument<?> jsonApiDocument = new JSONAPIDocument<>(jsonApiObject);
+        JSONAPIDocument<?> jsonApiDocument = jsonApiObject instanceof Error jsonApiObjectError
+            ? new JSONAPIDocument<>(jsonApiObjectError)
+            : new JSONAPIDocument<>(jsonApiObject);
+
         try {
             return converter.writeDocument(jsonApiDocument);
         } catch (DocumentSerializationException e) {
@@ -51,13 +54,7 @@ public class JsonApiConverter {
     }
 
     public byte[] toJsonMessage(AbstractRaoRunnerException exception) {
-        ResourceConverter converter = createConverter();
-        JSONAPIDocument<?> jsonApiDocument = new JSONAPIDocument<>(convertExceptionToJsonError(exception));
-        try {
-            return converter.writeDocument(jsonApiDocument);
-        } catch (DocumentSerializationException e) {
-            throw new RaoRunnerException("Exception occurred during message conversion", e);
-        }
+        return toJsonMessage(convertExceptionToJsonError(exception));
     }
 
     private ResourceConverter createConverter() {

@@ -7,11 +7,11 @@
     <parent>
         <groupId>com.farao-community.farao</groupId>
         <artifactId>farao-parent-ws</artifactId>
-        <version>1.4.0</version>
+        <version>1.7.0</version>
     </parent>
 
     <artifactId>gridcapa-rao-runner</artifactId>
-    <version>1.14.0-SNAPSHOT</version>
+    <version>1.21.0-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <name>GridCapa RAO runner</name>
@@ -45,12 +45,12 @@
     </modules>
 
     <properties>
-        <commons.lang.version>3.12.0</commons.lang.version>
         <jackson.datatype.version>2.12.2</jackson.datatype.version>
         <jsonapi.converter.version>0.11</jsonapi.converter.version>
         <junit.launcher.version>1.6.3</junit.launcher.version>
         <logstash.version>7.0.1</logstash.version>
-        <farao.dependencies.version>1.13.0</farao.dependencies.version>
+        <farao.dependencies.version>1.26.0</farao.dependencies.version>
+        <gridcapa.starter.minio.adapter.version>1.1.0</gridcapa.starter.minio.adapter.version>
     </properties>
 
     <dependencyManagement>
@@ -68,15 +68,15 @@
                 <version>${jsonapi.converter.version}</version>
             </dependency>
             <dependency>
-                <groupId>org.apache.commons</groupId>
-                <artifactId>commons-lang3</artifactId>
-                <version>${commons.lang.version}</version>
-            </dependency>
-            <dependency>
                 <groupId>net.logstash.logback</groupId>
                 <artifactId>logstash-logback-encoder</artifactId>
                 <version>${logstash.version}</version>
                 <scope>runtime</scope>
+            </dependency>
+            <dependency>
+                <groupId>com.farao-community.farao</groupId>
+                <artifactId>gridcapa-starter-minio-adapter</artifactId>
+                <version>${gridcapa.starter.minio.adapter.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.farao-community.farao</groupId>
