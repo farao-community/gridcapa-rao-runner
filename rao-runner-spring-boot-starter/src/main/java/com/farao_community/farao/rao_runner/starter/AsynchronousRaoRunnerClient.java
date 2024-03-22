@@ -33,7 +33,7 @@ public class AsynchronousRaoRunnerClient {
 
     public CompletableFuture<RaoResponse> runRaoAsynchronously(RaoRequest raoRequest) {
         return asyncAmqpTemplate.sendAndReceive(raoRunnerClientProperties.getAmqp().getQueueName(), buildMessage(raoRequest))
-            .completable().thenApplyAsync(message -> RaoResponseConversionHelper.convertRaoResponse(message, jsonConverter),
+            .thenApplyAsync(message -> RaoResponseConversionHelper.convertRaoResponse(message, jsonConverter),
                 new MDCAwareForkJoinPool());
     }
 
