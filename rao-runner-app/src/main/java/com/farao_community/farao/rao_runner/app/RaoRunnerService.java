@@ -115,6 +115,7 @@ public class RaoRunnerService {
                 .withRaoResultFileUrl(raoResultFileUrl)
                 .withComputationStartInstant(computationStartInstant)
                 .withComputationEndInstant(computationEndInstant)
+                .withInterrupted(false)
                 .build();
     }
 

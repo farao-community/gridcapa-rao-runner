@@ -31,6 +31,7 @@ public final class RaoResponse {
     private final String raoResultFileUrl;
     private final Instant computationStartInstant;
     private final Instant computationEndInstant;
+    private final boolean interrupted;
 
     private RaoResponse(RaoResponseBuilder builder) {
         this.id = builder.id;
@@ -40,6 +41,7 @@ public final class RaoResponse {
         this.raoResultFileUrl = builder.raoResultFileUrl;
         this.computationStartInstant = builder.computationStartInstant;
         this.computationEndInstant = builder.computationEndInstant;
+        this.interrupted = builder.interrupted;
     }
 
     public static class RaoResponseBuilder {
@@ -50,6 +52,7 @@ public final class RaoResponse {
         private String raoResultFileUrl;
         private Instant computationStartInstant;
         private Instant computationEndInstant;
+        private  boolean interrupted;
 
         @JsonProperty("id")
         public RaoResponseBuilder withId(String id) {
@@ -93,6 +96,12 @@ public final class RaoResponse {
             return this;
         }
 
+        @JsonProperty("interrupted")
+        public RaoResponseBuilder withInterrupted(boolean interrupted) {
+            this.interrupted = interrupted;
+            return this;
+        }
+
         @JsonCreator
         public RaoResponse build() {
             return new RaoResponse(this);
@@ -125,6 +134,10 @@ public final class RaoResponse {
 
     public Instant getComputationEndInstant() {
         return computationEndInstant;
+    }
+
+    public boolean isInterrupted() {
+        return interrupted;
     }
 
     @Override
