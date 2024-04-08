@@ -7,7 +7,7 @@
     <parent>
         <groupId>com.farao-community.farao</groupId>
         <artifactId>gridcapa-rao-runner</artifactId>
-        <version>1.21.1</version>
+        <version>1.21.2-SNAPSHOT</version>
     </parent>
 
     <artifactId>gridcapa-rao-runner-api</artifactId>
