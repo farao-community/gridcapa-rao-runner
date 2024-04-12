@@ -26,7 +26,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 class RaoRunnerListenerTest {
 
     @Autowired
-    public RaoRunnerListener raoRunnerListener;
+    private RaoRunnerListener raoRunnerListener;
 
     @Test
     void checkThatMdcMetadataIsPropagatedCorrectly() {
