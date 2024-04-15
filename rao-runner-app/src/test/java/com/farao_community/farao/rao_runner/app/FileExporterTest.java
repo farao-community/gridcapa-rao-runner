@@ -53,6 +53,7 @@ class FileExporterTest {
             .withRaoParametersFileUrl("raoParametersFileUrl")
             .withResultsDestination("destination-key")
             .build();
+    Network network = Network.read("network.xiidm", getClass().getResourceAsStream("/rao_inputs/network.xiidm"));
 
     @BeforeEach
     public void setUp() {
@@ -64,7 +65,7 @@ class FileExporterTest {
     void checkRaoResultSavingWithResultDestination() {
         Mockito.when(minioAdapter.generatePreSignedUrl("destination-key/raoResult.json")).thenReturn("raoResultUrl");
         InputStream raoResultInputStream = getClass().getResourceAsStream("/rao_inputs/raoResult.json");
-        Crac crac = CracImporters.importCrac("crac.json", Objects.requireNonNull(getClass().getResourceAsStream("/rao_inputs/crac.json")));
+        Crac crac = CracImporters.importCrac("crac.json", Objects.requireNonNull(getClass().getResourceAsStream("/rao_inputs/crac.json")), network);
         RaoResult raoResult = new RaoResultImporter().importRaoResult(raoResultInputStream, crac);
         String resultsDestination = fileExporter.saveRaoResult(raoResult, crac, raoRequestWithResultDestination, Unit.AMPERE);
         assertEquals("raoResultUrl", resultsDestination);
@@ -74,7 +75,7 @@ class FileExporterTest {
     void checkRaoResultSavingWithNoResultDestination() {
         Mockito.when(minioAdapter.generatePreSignedUrl("base/path/id/raoResult.json")).thenReturn("raoResultUrl");
         InputStream raoResultInputStream = getClass().getResourceAsStream("/rao_inputs/raoResult.json");
-        Crac crac = CracImporters.importCrac("crac.json", Objects.requireNonNull(getClass().getResourceAsStream("/rao_inputs/crac.json")));
+        Crac crac = CracImporters.importCrac("crac.json", Objects.requireNonNull(getClass().getResourceAsStream("/rao_inputs/crac.json")), network);
         RaoResult raoResult = new RaoResultImporter().importRaoResult(raoResultInputStream, crac);
         String resultsDestination = fileExporter.saveRaoResult(raoResult, crac, simpleRaoRequest, Unit.AMPERE);
         assertEquals("raoResultUrl", resultsDestination);
@@ -84,7 +85,6 @@ class FileExporterTest {
     void checkNetworkSavingWithResultDestination() {
         Mockito.when(minioAdapter.generatePreSignedUrl("destination-key/networkWithPRA.xiidm")).thenReturn("networkWithPraUrl");
 
-        Network network = Network.read("network.xiidm", getClass().getResourceAsStream("/rao_inputs/network.xiidm"));
         String networkPraUrl = fileExporter.saveNetwork(network, raoRequestWithResultDestination);
         assertEquals("networkWithPraUrl", networkPraUrl);
     }
@@ -93,7 +93,6 @@ class FileExporterTest {
     void checkNetworkSavingWithNoResultDestination() {
         Mockito.when(minioAdapter.generatePreSignedUrl("base/path/id/networkWithPRA.xiidm")).thenReturn("networkWithPraUrl");
 
-        Network network = Network.read("network.xiidm", getClass().getResourceAsStream("/rao_inputs/network.xiidm"));
         String networkPraUrl = fileExporter.saveNetwork(network, simpleRaoRequest);
         assertEquals("networkWithPraUrl", networkPraUrl);
     }

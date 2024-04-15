@@ -87,9 +87,9 @@ public class FileImporter {
         }
     }
 
-    Crac importCrac(String cracFileUrl) {
+    Crac importCrac(String cracFileUrl, Network network) {
         try {
-            return CracImporters.importCrac(getFileNameFromUrl(cracFileUrl), openUrlStream(cracFileUrl));
+            return CracImporters.importCrac(getFileNameFromUrl(cracFileUrl), openUrlStream(cracFileUrl), network);
         } catch (OpenRaoException | RaoRunnerException e) {
             String message = String.format("Exception occurred while importing CRAC file %s", getFileNameFromUrl(cracFileUrl));
             throw new RaoRunnerException(message, e);
