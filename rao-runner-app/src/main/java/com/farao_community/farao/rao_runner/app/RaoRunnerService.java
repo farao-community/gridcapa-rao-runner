@@ -54,7 +54,7 @@ public class RaoRunnerService {
     @Threadable
     public RaoResponse runRao(RaoRequest raoRequest) {
         Network network = fileImporter.importNetwork(raoRequest.getNetworkFileUrl());
-        Crac crac = fileImporter.importCrac(raoRequest.getCracFileUrl());
+        Crac crac = fileImporter.importCrac(raoRequest.getCracFileUrl(), network);
         RaoParameters raoParameters = fileImporter.importRaoParameters(raoRequest.getRaoParametersFileUrl());
         logParameters(raoParameters);
         try {

@@ -6,6 +6,13 @@
  */
 package com.farao_community.farao.rao_runner.app;
 
+import com.farao_community.farao.rao_runner.api.exceptions.RaoRunnerException;
+import com.farao_community.farao.rao_runner.api.resource.RaoRequest;
+import com.farao_community.farao.rao_runner.api.resource.RaoResponse;
+import com.powsybl.glsk.api.GlskDocument;
+import com.powsybl.glsk.api.io.GlskDocumentImporters;
+import com.powsybl.glsk.commons.ZonalData;
+import com.powsybl.iidm.network.Network;
 import com.powsybl.openrao.commons.OpenRaoException;
 import com.powsybl.openrao.data.cracapi.Crac;
 import com.powsybl.openrao.data.cracioapi.CracImporters;
@@ -15,15 +22,8 @@ import com.powsybl.openrao.data.refprog.referenceprogram.ReferenceProgram;
 import com.powsybl.openrao.data.refprog.refprogxmlimporter.RefProgImporter;
 import com.powsybl.openrao.raoapi.Rao;
 import com.powsybl.openrao.raoapi.parameters.RaoParameters;
-import com.farao_community.farao.rao_runner.api.exceptions.RaoRunnerException;
-import com.farao_community.farao.rao_runner.api.resource.RaoRequest;
-import com.farao_community.farao.rao_runner.api.resource.RaoResponse;
 import com.powsybl.openrao.virtualhubs.VirtualHubsConfiguration;
 import com.powsybl.openrao.virtualhubs.xml.XmlVirtualHubsConfiguration;
-import com.powsybl.glsk.api.GlskDocument;
-import com.powsybl.glsk.api.io.GlskDocumentImporters;
-import com.powsybl.glsk.commons.ZonalData;
-import com.powsybl.iidm.network.Network;
 import com.powsybl.sensitivity.SensitivityVariableSet;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -56,7 +56,7 @@ class RaoRunnerServiceTest {
     @MockBean
     FileExporter fileExporter;
 
-    Network network;
+    Network network = Network.read("network.xiidm", getClass().getResourceAsStream("/rao_inputs/network.xiidm"));
     Crac crac;
     RaoResult raoResult;
     ZonalData<SensitivityVariableSet> glsks;
@@ -66,8 +66,7 @@ class RaoRunnerServiceTest {
     @BeforeEach
     public void setUp() {
         InputStream raoResultInputStream = getClass().getResourceAsStream("/rao_inputs/raoResult.json");
-        network = Network.read("network.xiidm", getClass().getResourceAsStream("/rao_inputs/network.xiidm"));
-        crac = CracImporters.importCrac("crac.json", Objects.requireNonNull(getClass().getResourceAsStream("/rao_inputs/crac.json")));
+        crac = CracImporters.importCrac("crac.json", Objects.requireNonNull(getClass().getResourceAsStream("/rao_inputs/crac.json")), network);
         raoResult = new RaoResultImporter().importRaoResult(raoResultInputStream, crac);
         Mockito.when(raoRunnerProv.run(Mockito.any(), Mockito.any())).thenReturn(raoResult);
 
@@ -81,7 +80,7 @@ class RaoRunnerServiceTest {
         virtualHubsConfiguration = XmlVirtualHubsConfiguration.importConfiguration(virtualhubsFileInputStream);
 
         Mockito.when(fileImporter.importNetwork(Mockito.any())).thenReturn(network);
-        Mockito.when(fileImporter.importCrac(Mockito.any())).thenReturn(crac);
+        Mockito.when(fileImporter.importCrac(Mockito.any(), Mockito.any())).thenReturn(crac);
     }
 
     @Test
@@ -141,18 +140,18 @@ class RaoRunnerServiceTest {
     @Test
     void runRaoThrowsOpenRaoException() {
         RaoRequest simpleRaoRequest = new RaoRequest.RaoRequestBuilder()
-            .withId("id")
-            .withNetworkFileUrl("http://host:9000/network.xiidm")
-            .withCracFileUrl("http://host:9000/crac.json")
-            .withRaoParametersFileUrl("http://host:9000/raoParameters.json")
-            .build();
+                .withId("id")
+                .withNetworkFileUrl("http://host:9000/network.xiidm")
+                .withCracFileUrl("http://host:9000/crac.json")
+                .withRaoParametersFileUrl("http://host:9000/raoParameters.json")
+                .build();
 
         Mockito.when(fileImporter.importRaoParameters(simpleRaoRequest.getRaoParametersFileUrl())).thenReturn(new RaoParameters());
         Mockito.when(raoRunnerProv.run(Mockito.any(), Mockito.any())).thenThrow(new OpenRaoException("This is a test"));
 
         Assertions.assertThatThrownBy(() -> raoRunnerService.runRao(simpleRaoRequest))
-            .isInstanceOf(RaoRunnerException.class)
-            .hasCauseInstanceOf(OpenRaoException.class)
-            .hasMessageContaining("This is a test");
+                .isInstanceOf(RaoRunnerException.class)
+                .hasCauseInstanceOf(OpenRaoException.class)
+                .hasMessageContaining("This is a test");
     }
 }
