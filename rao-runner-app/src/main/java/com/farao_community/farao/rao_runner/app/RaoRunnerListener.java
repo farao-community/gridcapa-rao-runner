@@ -24,7 +24,7 @@ import java.util.Optional;
  * @author Mohamed BenRejeb {@literal <mohamed.ben-rejeb at rte-france.com>}
  */
 @Component
-public class RaoRunnerListener  implements MessageListener {
+public class RaoRunnerListener implements MessageListener {
     private static final Logger LOGGER = LoggerFactory.getLogger(RaoRunnerListener.class);
     private static final String APPLICATION_ID = "rao-runner-server";
     private static final String CONTENT_ENCODING = "UTF-8";
@@ -32,15 +32,15 @@ public class RaoRunnerListener  implements MessageListener {
     private static final int PRIORITY = 1;
 
     private final JsonApiConverter jsonApiConverter;
-    private final RaoRunnerService raoRunnerServer;
+    private final RaoRunnerService raoRunnerService;
     private final AmqpTemplate amqpTemplate;
     private final AmqpConfiguration amqpConfiguration;
     private final Logger businessLogger;
 
-    public RaoRunnerListener(RaoRunnerService raoRunnerServer, AmqpTemplate amqpTemplate, AmqpConfiguration amqpConfiguration, Logger businessLogger) {
+    public RaoRunnerListener(RaoRunnerService raoRunnerService, AmqpTemplate amqpTemplate, AmqpConfiguration amqpConfiguration, Logger businessLogger) {
         this.businessLogger = businessLogger;
         this.jsonApiConverter = new JsonApiConverter();
-        this.raoRunnerServer = raoRunnerServer;
+        this.raoRunnerService = raoRunnerService;
         this.amqpTemplate = amqpTemplate;
         this.amqpConfiguration = amqpConfiguration;
     }
@@ -49,33 +49,38 @@ public class RaoRunnerListener  implements MessageListener {
     public void onMessage(Message message) {
         String replyTo = message.getMessageProperties().getReplyTo();
         String brokerCorrelationId = message.getMessageProperties().getCorrelationId();
+
         try {
             RaoRequest raoRequest = jsonApiConverter.fromJsonMessage(message.getBody(), RaoRequest.class);
             LOGGER.info("RAO request received: {}", raoRequest);
             addMetaDataToLogsModelContext(raoRequest.getId(), brokerCorrelationId, message.getMessageProperties().getAppId(), raoRequest.getEventPrefix());
             GenericThreadLauncher<RaoRunnerService, RaoResponse> launcher = new GenericThreadLauncher<>(
-                    raoRunnerServer,
-                    raoRequest.getId(),
-                    MDC.getCopyOfContextMap(),
-                    raoRequest
+                raoRunnerService,
+                raoRequest.getId(),
+                MDC.getCopyOfContextMap(),
+                raoRequest
             );
+
             businessLogger.info("Starting the RAO computation");
             launcher.start();
-            ThreadLauncherResult<RaoResponse> raoResponse = launcher.getResult();
-            if (raoResponse.hasError() && raoResponse.getException() != null) {
-                throw raoResponse.getException();
+
+            ThreadLauncherResult<RaoResponse> raoThreadResult = launcher.getResult();
+            if (raoThreadResult.hasError() && raoThreadResult.getException() != null) {
+                throw raoThreadResult.getException();
             }
-            Optional<RaoResponse> resp = raoResponse.getResult();
-            if (resp.isPresent() && !raoResponse.hasError()) {
+
+            Optional<RaoResponse> raoResponseOpt = raoThreadResult.getResult();
+            if (raoResponseOpt.isPresent() && !raoThreadResult.hasError()) {
                 businessLogger.info("RAO computation is finished");
-                LOGGER.info("RAO response sent: {}", resp);
-                sendRaoResponse(resp.get(), replyTo, brokerCorrelationId);
+                RaoResponse raoResponse = raoResponseOpt.get();
+                LOGGER.info("RAO response sent: {}", raoResponse);
+                sendRaoResponse(raoResponse, replyTo, brokerCorrelationId);
             } else {
-                businessLogger.info("RAO computation has been interrupted");
+                businessLogger.warn("RAO computation has been interrupted");
                 LOGGER.info("RAO run has been interrupted");
-                sendRaoResponse(new RaoResponse.RaoResponseBuilder().withId(raoRequest.getId()).build(),
-                        replyTo,
-                        brokerCorrelationId);
+                sendRaoResponse(new RaoResponse.RaoResponseBuilder().withId(raoRequest.getId()).withInterrupted(true).build(),
+                    replyTo,
+                    brokerCorrelationId);
             }
             System.gc();
         } catch (RaoRunnerException e) {
@@ -86,7 +91,7 @@ public class RaoRunnerListener  implements MessageListener {
         }
     }
 
-    public void addMetaDataToLogsModelContext(String gridcapaTaskId, String computationId, String clientAppId, Optional<String> optPrefix) {
+    void addMetaDataToLogsModelContext(String gridcapaTaskId, String computationId, String clientAppId, Optional<String> optPrefix) {
         MDC.put("gridcapaTaskId", gridcapaTaskId);
         MDC.put("computationId", computationId);
         MDC.put("clientAppId", clientAppId);
@@ -121,14 +126,14 @@ public class RaoRunnerListener  implements MessageListener {
 
     private Message createMessageResponse(RaoResponse raoResponse, String correlationId) {
         return MessageBuilder.withBody(jsonApiConverter.toJsonMessage(raoResponse))
-                .andProperties(buildMessageResponseProperties(correlationId))
-                .build();
+            .andProperties(buildMessageResponseProperties(correlationId))
+            .build();
     }
 
     private Message createErrorResponse(RaoRunnerException exception, String correlationId) {
         return MessageBuilder.withBody(exceptionToJsonMessage(exception))
-                .andProperties(buildMessageResponseProperties(correlationId))
-                .build();
+            .andProperties(buildMessageResponseProperties(correlationId))
+            .build();
     }
 
     private byte[] exceptionToJsonMessage(RaoRunnerException e) {
@@ -137,13 +142,13 @@ public class RaoRunnerListener  implements MessageListener {
 
     private MessageProperties buildMessageResponseProperties(String correlationId) {
         return MessagePropertiesBuilder.newInstance()
-                .setAppId(APPLICATION_ID)
-                .setContentEncoding(CONTENT_ENCODING)
-                .setContentType(CONTENT_TYPE)
-                .setCorrelationId(correlationId)
-                .setDeliveryMode(MessageDeliveryMode.NON_PERSISTENT)
-                .setExpiration(amqpConfiguration.raoResponseExpiration())
-                .setPriority(PRIORITY)
-                .build();
+            .setAppId(APPLICATION_ID)
+            .setContentEncoding(CONTENT_ENCODING)
+            .setContentType(CONTENT_TYPE)
+            .setCorrelationId(correlationId)
+            .setDeliveryMode(MessageDeliveryMode.NON_PERSISTENT)
+            .setExpiration(amqpConfiguration.raoResponseExpiration())
+            .setPriority(PRIORITY)
+            .build();
     }
 }

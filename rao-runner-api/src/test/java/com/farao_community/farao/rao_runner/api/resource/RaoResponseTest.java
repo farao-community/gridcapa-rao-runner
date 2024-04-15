@@ -10,8 +10,7 @@ import org.junit.jupiter.api.Test;
 
 import java.time.Instant;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * @author Mohamed BenRejeb {@literal <mohamed.ben-rejeb at rte-france.com>}
@@ -28,10 +27,15 @@ class RaoResponseTest {
                 .withRaoResultFileUrl("raoResultFileUrl")
                 .withComputationStartInstant(Instant.ofEpochSecond(3600))
                 .withComputationEndInstant(Instant.ofEpochSecond(7200))
+                .withInterrupted(true)
                 .build();
         assertNotNull(raoResponse);
         assertEquals("instant", raoResponse.getInstant().get());
+        assertEquals("networkWithPraFileUrl", raoResponse.getNetworkWithPraFileUrl());
+        assertEquals("jsonCracFileUrl", raoResponse.getCracFileUrl());
+        assertEquals("raoResultFileUrl", raoResponse.getRaoResultFileUrl());
         assertEquals(Instant.ofEpochSecond(3600), raoResponse.getComputationStartInstant());
         assertEquals(Instant.ofEpochSecond(7200), raoResponse.getComputationEndInstant());
+        assertTrue(raoResponse.isInterrupted());
     }
 }
