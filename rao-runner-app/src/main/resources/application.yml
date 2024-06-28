@@ -5,28 +5,9 @@ spring:
     multipart:
       max-file-size: 100MB
       max-request-size: 100MB
-  rabbitmq:
-    host: ${RABBITMQ_HOST:localhost}
-    port: ${RABBITMQ_PORT:5672}
-    username: ${RABBITMQ_USERNAME:guest}
-    password: ${RABBITMQ_PASSWORD:guest}
-    template:
-      reply-timeout: 12000000
   cloud:
     function:
       definition: stop
-    stream:
-      bindings:
-        stop-in-0:
-          binder: rabbit
-          destination: rao-stop-task
-
-minio-adapter:
-  bucket: ${MINIO_BUCKET:rao-integration-data}
-  base-path: ${RAO_ADAPTER_SERVER_MINIO_BASE_PATH:default-base-path/}
-  access-key: ${MINIO_USERNAME:minioadmin}
-  secret-key: ${MINIO_PASSWORD:minioadmin}
-  url: http://${MINIO_HOST:localhost}:${MINIO_PORT:9000}
 
 rao-runner:
   messages:
@@ -35,13 +16,3 @@ rao-runner:
     rao-response:
       exchange: raoi-response
       expiration: 600000 # (10x60s), time for applications to read the response
-  url:
-    whitelist:
-      - http://${MINIO_HOST:localhost}:${MINIO_PORT:9000}
-server:
-  port: ${RAO_ADAPTER_SERVER_PORT:3030}
-
-logback:
-  amqp:
-    exchange: rao-runners-logs-exchange
-    routing-key: "#"
