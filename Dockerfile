@@ -1,4 +1,4 @@
-FROM farao/farao-computation-base:1.7.0
+FROM farao/farao-computation-base:1.8.0
 
 ARG JAR_FILE=rao-runner-app/target/*.jar
 COPY ${JAR_FILE} app.jar
