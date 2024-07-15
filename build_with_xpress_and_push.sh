@@ -29,8 +29,6 @@ IMAGE_NAME="farao/gridcapa-rao-runner-with-xpress:$IMAGE_VERSION"
 docker build -f Dockerfile_with_xpress -t $IMAGE_NAME .
 if [ $? -ne 0 ]; then
     echo "Error building the Docker image"
-    # Rollback the Dockerfile
-    sed -i "s|$MODIFIED_LINE|$ORIGINAL_LINE|" $DOCKERFILE
     git config advice.detachedHead true  # Re-enable the advice
     git checkout $ORIGINAL_BRANCH
     exit 1
@@ -40,8 +38,6 @@ fi
 docker push $IMAGE_NAME
 if [ $? -ne 0 ]; then
     echo "Error pushing the Docker image"
-    # Rollback the Dockerfile
-    sed -i "s|$MODIFIED_LINE|$ORIGINAL_LINE|" $DOCKERFILE
     git config advice.detachedHead true  # Re-enable the advice
     git checkout $ORIGINAL_BRANCH
     exit 1
