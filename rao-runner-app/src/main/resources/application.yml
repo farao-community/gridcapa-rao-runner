@@ -1,13 +1,6 @@
 spring:
   application:
     name: rao-runner-app
-  rabbitmq:
-    host: localhost
-    port: 5672
-    username: gridcapa
-    password: gridcapa
-    template:
-      reply-timeout: 7200000
   servlet:
     multipart:
       max-file-size: 100MB
@@ -15,35 +8,12 @@ spring:
   cloud:
     function:
       definition: stop
-    stream:
-      default:
-        group: rao-runner
-      bindings:
-        stop-in-0:
-          binder: rabbit
-          destination: stop-rao-runner
-
 
 rao-runner:
   messages:
     rao-request:
       queue-name: ${RAO_ADAPTER_SERVER_QUEUE_NAME:rao-request-queue}
+      delivery-limit: 2
     rao-response:
       exchange: rao-response
       expiration: 600000 # (10x60s), time for applications to read the response
-  url:
-    whitelist:
-      - http://minio:9000/
-
-logback:
-  amqp:
-    exchange: rao-runners-logs-exchange  # common exchange for logs to all rao client applications
-    routing-key: "#"
-
-minio-adapter:
-  bucket: gridcapa
-  base-path:
-  access-key: gridcapa
-  secret-key: gridcapa
-  url: http://minio:9000/
-

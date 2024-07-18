@@ -30,6 +30,9 @@ public class AmqpConfiguration {
     @Value("${rao-runner.messages.rao-request.queue-name}")
     private String raoRequestQueueName;
 
+    @Value("${rao-runner.messages.rao-request.delivery-limit}")
+    private int deliveryLimit;
+
     @Bean
     DirectExchange deadLetterExchange() {
         return new DirectExchange("rao-request.DLX");
@@ -49,7 +52,7 @@ public class AmqpConfiguration {
     public Queue raoRequestQueue() {
         QueueBuilder queueBuilder = QueueBuilder.durable(raoRequestQueueName);
         queueBuilder.deadLetterExchange("rao-request.DLX").deadLetterRoutingKey("rao-request.DLK");
-        queueBuilder.deliveryLimit(2);
+        queueBuilder.deliveryLimit(deliveryLimit);
         return queueBuilder.quorum().build();
     }
 
