@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, RTE (http://www.rte-france.com)
+ * Copyright (c) 2024, RTE (http://www.rte-france.com)
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -15,15 +15,20 @@ import org.springframework.boot.test.context.SpringBootTest;
  * @author Mohamed BenRejeb {@literal <mohamed.ben-rejeb at rte-france.com>}
  */
 @SpringBootTest
-class UrlWhiteListConfigurationTest {
+class UrlConfigurationTest {
 
     @Autowired
-    public UrlWhitelistConfiguration urlWhitelistConfiguration;
+    public UrlConfiguration urlConfiguration;
 
     @Test
     void checkUrlWhiteListIsRetrievedCorrectly() {
-        Assertions.assertEquals(2, urlWhitelistConfiguration.getWhitelist().size());
-        Assertions.assertEquals("http://localhost:9000", urlWhitelistConfiguration.getWhitelist().get(0));
-        Assertions.assertEquals("file:/", urlWhitelistConfiguration.getWhitelist().get(1));
+        Assertions.assertEquals(2, urlConfiguration.getWhitelist().size());
+        Assertions.assertEquals("http://localhost:9000", urlConfiguration.getWhitelist().get(0));
+        Assertions.assertEquals("file:/", urlConfiguration.getWhitelist().get(1));
+    }
+
+    @Test
+    void checkInterruptUrlRetrievedCorrectly() {
+        Assertions.assertEquals("http://testUrl/interrupted/", urlConfiguration.getInterruptServerUrl());
     }
 }
