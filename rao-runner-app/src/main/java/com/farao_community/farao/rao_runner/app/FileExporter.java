@@ -9,7 +9,6 @@ package com.farao_community.farao.rao_runner.app;
 import com.powsybl.openrao.commons.Unit;
 import com.powsybl.openrao.data.cracapi.Crac;
 import com.powsybl.openrao.data.raoresultapi.RaoResult;
-import com.powsybl.openrao.data.raoresultjson.RaoResultExporter;
 import com.farao_community.farao.minio_adapter.starter.MinioAdapter;
 import com.farao_community.farao.rao_runner.api.resource.RaoRequest;
 import com.powsybl.commons.datasource.MemDataSource;
@@ -47,7 +46,7 @@ public class FileExporter {
 
     String saveRaoResult(RaoResult raoResult, Crac crac, RaoRequest raoRequest, Unit unit) {
         ByteArrayOutputStream outputStreamRaoResult = new ByteArrayOutputStream();
-        new RaoResultExporter().export(raoResult, crac, Set.of(unit), outputStreamRaoResult);
+        raoResult.write("JSON", crac, Set.of(unit), outputStreamRaoResult);
         String raoResultDestinationPath = makeTargetDirectoryPath(raoRequest) + File.separator + RAO_RESULT;
         minioAdapter.uploadArtifact(raoResultDestinationPath, new ByteArrayInputStream(outputStreamRaoResult.toByteArray()));
         return minioAdapter.generatePreSignedUrl(raoResultDestinationPath);
