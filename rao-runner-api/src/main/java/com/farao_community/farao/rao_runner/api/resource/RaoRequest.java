@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, RTE (http://www.rte-france.com)
+ * Copyright (c) 2024, RTE (http://www.rte-france.com)
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -25,6 +25,7 @@ public final class RaoRequest {
 
     @Id
     private final String id;
+    private final String runId;
     private final String instant;
     private final String networkFileUrl;
     private final String cracFileUrl;
@@ -38,6 +39,7 @@ public final class RaoRequest {
 
     private RaoRequest(RaoRequestBuilder builder) {
         this.id = builder.id;
+        this.runId = builder.runId;
         this.instant = builder.instant;
         this.networkFileUrl = builder.networkFileUrl;
         this.cracFileUrl = builder.cracFileUrl;
@@ -52,6 +54,7 @@ public final class RaoRequest {
 
     public static class RaoRequestBuilder {
         private String id;
+        private String runId;
         private String instant;
         private String networkFileUrl;
         private String cracFileUrl;
@@ -66,6 +69,12 @@ public final class RaoRequest {
         @JsonProperty("id")
         public RaoRequestBuilder withId(String id) {
             this.id = id;
+            return this;
+        }
+
+        @JsonProperty("runId")
+        public RaoRequestBuilder withRunId(String runId) {
+            this.runId = runId;
             return this;
         }
 
@@ -137,6 +146,10 @@ public final class RaoRequest {
 
     public String getId() {
         return id;
+    }
+
+    public String getRunId() {
+        return runId;
     }
 
     public Optional<String> getInstant() {
