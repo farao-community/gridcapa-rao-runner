@@ -16,6 +16,7 @@ rao-runner:
   messages:
     rao-request:
       queue-name: raoi-request-queue
+      delivery-limit: 2
     rao-response:
       exchange: raoi-response
       expiration: 60000
