@@ -13,7 +13,6 @@ import com.farao_community.farao.minio_adapter.starter.MinioAdapter;
 import com.farao_community.farao.minio_adapter.starter.MinioAdapterProperties;
 import com.farao_community.farao.rao_runner.api.resource.RaoRequest;
 import com.powsybl.iidm.network.Network;
-import com.powsybl.openrao.data.raoresultjson.RaoResultJsonImporter;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -66,7 +65,7 @@ class FileExporterTest {
         Mockito.when(minioAdapter.generatePreSignedUrl("destination-key/raoResult.json")).thenReturn("raoResultUrl");
         InputStream raoResultInputStream = getClass().getResourceAsStream("/rao_inputs/raoResult.json");
         Crac crac = Crac.read("crac.json", Objects.requireNonNull(getClass().getResourceAsStream("/rao_inputs/crac.json")), network);
-        RaoResult raoResult = new RaoResultJsonImporter().importData(raoResultInputStream, crac);
+        RaoResult raoResult = RaoResult.read(raoResultInputStream, crac);
         String resultsDestination = fileExporter.saveRaoResult(raoResult, crac, raoRequestWithResultDestination, Unit.AMPERE);
         assertEquals("raoResultUrl", resultsDestination);
     }
@@ -76,7 +75,7 @@ class FileExporterTest {
         Mockito.when(minioAdapter.generatePreSignedUrl("base/path/id/raoResult.json")).thenReturn("raoResultUrl");
         InputStream raoResultInputStream = getClass().getResourceAsStream("/rao_inputs/raoResult.json");
         Crac crac = Crac.read("crac.json", Objects.requireNonNull(getClass().getResourceAsStream("/rao_inputs/crac.json")), network);
-        RaoResult raoResult = new RaoResultJsonImporter().importData(raoResultInputStream, crac);
+        RaoResult raoResult = RaoResult.read(raoResultInputStream, crac);
         String resultsDestination = fileExporter.saveRaoResult(raoResult, crac, simpleRaoRequest, Unit.AMPERE);
         assertEquals("raoResultUrl", resultsDestination);
     }

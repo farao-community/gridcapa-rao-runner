@@ -16,7 +16,6 @@ import com.powsybl.iidm.network.Network;
 import com.powsybl.openrao.commons.OpenRaoException;
 import com.powsybl.openrao.data.cracapi.Crac;
 import com.powsybl.openrao.data.raoresultapi.RaoResult;
-import com.powsybl.openrao.data.raoresultjson.RaoResultJsonImporter;
 import com.powsybl.openrao.data.refprog.referenceprogram.ReferenceProgram;
 import com.powsybl.openrao.data.refprog.refprogxmlimporter.RefProgImporter;
 import com.powsybl.openrao.raoapi.Rao;
@@ -67,7 +66,7 @@ class RaoRunnerServiceTest {
     public void setUp() throws IOException {
         InputStream raoResultInputStream = getClass().getResourceAsStream("/rao_inputs/raoResult.json");
         crac = Crac.read("crac.json", Objects.requireNonNull(getClass().getResourceAsStream("/rao_inputs/crac.json")), network);
-        raoResult = new RaoResultJsonImporter().importData(raoResultInputStream, crac);
+        raoResult = RaoResult.read(raoResultInputStream, crac);
         Mockito.when(raoRunnerProv.run(Mockito.any(), Mockito.any())).thenReturn(raoResult);
 
         InputStream glskFileInputStream = getClass().getResourceAsStream("/rao_inputs/glsk.xml");
