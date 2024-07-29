@@ -8,7 +8,6 @@ package com.farao_community.farao.rao_runner.app;
 
 import com.powsybl.openrao.commons.OpenRaoException;
 import com.powsybl.openrao.data.cracapi.Crac;
-import com.powsybl.openrao.data.cracioapi.CracImporters;
 import com.powsybl.openrao.data.refprog.referenceprogram.ReferenceProgram;
 import com.powsybl.openrao.data.refprog.refprogxmlimporter.RefProgImporter;
 import com.powsybl.openrao.raoapi.json.JsonRaoParameters;
@@ -89,8 +88,8 @@ public class FileImporter {
 
     Crac importCrac(String cracFileUrl, Network network) {
         try {
-            return CracImporters.importCrac(getFileNameFromUrl(cracFileUrl), openUrlStream(cracFileUrl), network);
-        } catch (OpenRaoException | RaoRunnerException e) {
+            return Crac.read(getFileNameFromUrl(cracFileUrl), openUrlStream(cracFileUrl), network);
+        } catch (OpenRaoException | RaoRunnerException | IOException e) {
             String message = String.format("Exception occurred while importing CRAC file %s", getFileNameFromUrl(cracFileUrl));
             throw new RaoRunnerException(message, e);
         }
