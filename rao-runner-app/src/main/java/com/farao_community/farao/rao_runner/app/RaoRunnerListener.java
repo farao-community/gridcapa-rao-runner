@@ -18,6 +18,7 @@ import org.slf4j.MDC;
 import org.springframework.amqp.core.*;
 import org.springframework.stereotype.Component;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.Optional;
 
 /**
@@ -66,7 +67,13 @@ public class RaoRunnerListener implements MessageListener {
 
             ThreadLauncherResult<RaoResponse> raoThreadResult = launcher.getResult();
             if (raoThreadResult.hasError() && raoThreadResult.getException() != null) {
-                throw raoThreadResult.getException();
+                Exception exception = raoThreadResult.getException();
+                if (exception instanceof InvocationTargetException ite
+                        && ite.getCause() instanceof RaoRunnerException rre) {
+                    throw rre;
+                } else {
+                    throw exception;
+                }
             }
 
             Optional<RaoResponse> raoResponseOpt = raoThreadResult.getResult();
