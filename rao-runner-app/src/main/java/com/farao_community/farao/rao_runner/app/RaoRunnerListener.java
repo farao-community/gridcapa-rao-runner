@@ -69,7 +69,6 @@ public class RaoRunnerListener implements MessageListener {
             if (raoThreadResult.hasError() && raoThreadResult.getException() != null) {
                 Exception exception = raoThreadResult.getException();
                 if (exception instanceof InvocationTargetException ite
-                        && ite.getCause() != null
                         && ite.getCause() instanceof RaoRunnerException rre) {
                     throw rre;
                 } else {
