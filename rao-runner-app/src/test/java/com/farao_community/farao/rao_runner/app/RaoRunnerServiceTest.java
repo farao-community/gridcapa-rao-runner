@@ -15,9 +15,7 @@ import com.powsybl.glsk.commons.ZonalData;
 import com.powsybl.iidm.network.Network;
 import com.powsybl.openrao.commons.OpenRaoException;
 import com.powsybl.openrao.data.cracapi.Crac;
-import com.powsybl.openrao.data.cracioapi.CracImporters;
 import com.powsybl.openrao.data.raoresultapi.RaoResult;
-import com.powsybl.openrao.data.raoresultjson.RaoResultImporter;
 import com.powsybl.openrao.data.refprog.referenceprogram.ReferenceProgram;
 import com.powsybl.openrao.data.refprog.refprogxmlimporter.RefProgImporter;
 import com.powsybl.openrao.raoapi.Rao;
@@ -33,6 +31,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.time.Instant;
 import java.time.OffsetDateTime;
@@ -64,10 +63,10 @@ class RaoRunnerServiceTest {
     VirtualHubsConfiguration virtualHubsConfiguration;
 
     @BeforeEach
-    public void setUp() {
+    public void setUp() throws IOException {
         InputStream raoResultInputStream = getClass().getResourceAsStream("/rao_inputs/raoResult.json");
-        crac = CracImporters.importCrac("crac.json", Objects.requireNonNull(getClass().getResourceAsStream("/rao_inputs/crac.json")), network);
-        raoResult = new RaoResultImporter().importRaoResult(raoResultInputStream, crac);
+        crac = Crac.read("crac.json", Objects.requireNonNull(getClass().getResourceAsStream("/rao_inputs/crac.json")), network);
+        raoResult = RaoResult.read(raoResultInputStream, crac);
         Mockito.when(raoRunnerProv.run(Mockito.any(), Mockito.any())).thenReturn(raoResult);
 
         InputStream glskFileInputStream = getClass().getResourceAsStream("/rao_inputs/glsk.xml");
