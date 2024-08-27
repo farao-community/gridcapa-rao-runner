@@ -9,7 +9,6 @@ package com.farao_community.farao.rao_runner.app;
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.read.ListAppender;
-import com.farao_community.farao.rao_runner.api.JsonApiConverter;
 import com.farao_community.farao.rao_runner.api.resource.RaoRequest;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -25,6 +24,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
 
+import java.io.IOException;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -41,19 +41,16 @@ import static org.mockito.Mockito.when;
 class RaoRunnerListenerTest {
 
     @Autowired
-    private RaoRunnerListener raoRunnerListener;
+    RaoRunnerListener raoRunnerListener;
 
     @MockBean
-    private JsonApiConverter jsonApiConverter;
+    RestTemplateBuilder restTemplateBuilder;
 
     @MockBean
-    private RestTemplateBuilder restTemplateBuilder;
+    RabbitTemplate amqpTemplate;
 
     @MockBean
-    private RabbitTemplate amqpTemplate;
-
-    @MockBean
-    private RaoRunnerService raoRunnerService;
+    RaoRunnerService raoRunnerService;
 
     @Test
     void checkThatMdcMetadataIsPropagatedCorrectly() {
@@ -86,15 +83,17 @@ class RaoRunnerListenerTest {
     }
 
     @Test
-    void checkThatPendingInterruptWorks() {
+    void checkThatPendingInterruptWorks() throws IOException {
         Message message = Mockito.mock(Message.class);
+        byte[] requestBytes = getClass().getResourceAsStream("/raoRequestMessage.json").readAllBytes();
+        when(message.getBody()).thenReturn(requestBytes);
         MessageProperties messageProperties = Mockito.mock(MessageProperties.class);
         RaoRequest raoRequest = Mockito.mock(RaoRequest.class);
 
         Mockito.when(message.getMessageProperties()).thenReturn(messageProperties);
         Mockito.when(messageProperties.getReplyTo()).thenReturn("ReplyTo");
         Mockito.when(messageProperties.getCorrelationId()).thenReturn("CorrelationId");
-        Mockito.when(jsonApiConverter.fromJsonMessage(message.getBody(), RaoRequest.class)).thenReturn(raoRequest);
+
         Mockito.when(raoRequest.getRunId()).thenReturn("MyRunId");
 
         RestTemplate restTemplate = mock(RestTemplate.class);
