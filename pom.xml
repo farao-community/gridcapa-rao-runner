@@ -11,7 +11,7 @@
     </parent>
 
     <artifactId>gridcapa-rao-runner</artifactId>
-    <version>1.25.1-SNAPSHOT</version>
+    <version>1.26.0</version>
     <packaging>pom</packaging>
 
     <name>GridCapa RAO runner</name>
