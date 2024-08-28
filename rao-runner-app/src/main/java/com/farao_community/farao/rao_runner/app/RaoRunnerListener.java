@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, RTE (http://www.rte-france.com)
+ * Copyright (c) 2024, RTE (http://www.rte-france.com)
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -12,10 +12,14 @@ import com.farao_community.farao.rao_runner.api.resource.RaoRequest;
 import com.farao_community.farao.rao_runner.api.resource.RaoResponse;
 import com.farao_community.farao.rao_runner.api.resource.ThreadLauncherResult;
 import com.farao_community.farao.rao_runner.app.configuration.AmqpConfiguration;
+import com.farao_community.farao.rao_runner.app.configuration.UrlConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 import org.springframework.amqp.core.*;
+import org.springframework.boot.web.client.RestTemplateBuilder;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 
 import java.lang.reflect.InvocationTargetException;
@@ -37,13 +41,17 @@ public class RaoRunnerListener implements MessageListener {
     private final AmqpTemplate amqpTemplate;
     private final AmqpConfiguration amqpConfiguration;
     private final Logger businessLogger;
+    private final RestTemplateBuilder restTemplateBuilder;
+    private final UrlConfiguration urlConfiguration;
 
-    public RaoRunnerListener(RaoRunnerService raoRunnerService, AmqpTemplate amqpTemplate, AmqpConfiguration amqpConfiguration, Logger businessLogger) {
+    public RaoRunnerListener(RaoRunnerService raoRunnerService, AmqpTemplate amqpTemplate, AmqpConfiguration amqpConfiguration, Logger businessLogger, RestTemplateBuilder restTemplateBuilder, UrlConfiguration urlConfiguration) {
         this.businessLogger = businessLogger;
         this.jsonApiConverter = new JsonApiConverter();
         this.raoRunnerService = raoRunnerService;
         this.amqpTemplate = amqpTemplate;
         this.amqpConfiguration = amqpConfiguration;
+        this.restTemplateBuilder = restTemplateBuilder;
+        this.urlConfiguration = urlConfiguration;
     }
 
     @Override
@@ -54,6 +62,10 @@ public class RaoRunnerListener implements MessageListener {
         try {
             RaoRequest raoRequest = jsonApiConverter.fromJsonMessage(message.getBody(), RaoRequest.class);
             LOGGER.info("RAO request received: {}", raoRequest);
+            if (checkIsInterrupted(raoRequest)) {
+                sendRaoResponseInterrupted(raoRequest, replyTo, brokerCorrelationId);
+                return;
+            }
             addMetaDataToLogsModelContext(raoRequest.getId(), brokerCorrelationId, message.getMessageProperties().getAppId(), raoRequest.getEventPrefix());
             GenericThreadLauncher<RaoRunnerService, RaoResponse> launcher = new GenericThreadLauncher<>(
                 raoRunnerService,
@@ -83,11 +95,7 @@ public class RaoRunnerListener implements MessageListener {
                 LOGGER.info("RAO response sent: {}", raoResponse);
                 sendRaoResponse(raoResponse, replyTo, brokerCorrelationId);
             } else {
-                businessLogger.warn("RAO computation has been interrupted");
-                LOGGER.info("RAO run has been interrupted");
-                sendRaoResponse(new RaoResponse.RaoResponseBuilder().withId(raoRequest.getId()).withInterrupted(true).build(),
-                    replyTo,
-                    brokerCorrelationId);
+                sendRaoResponseInterrupted(raoRequest, replyTo, brokerCorrelationId);
             }
             System.gc();
         } catch (RaoRunnerException e) {
@@ -96,6 +104,14 @@ public class RaoRunnerListener implements MessageListener {
             RaoRunnerException wrappingException = new RaoRunnerException("Unhandled exception: " + e.getMessage(), e);
             sendErrorResponse(wrappingException, replyTo, brokerCorrelationId);
         }
+    }
+
+    private void sendRaoResponseInterrupted(RaoRequest raoRequest, String replyTo, String brokerCorrelationId) {
+        businessLogger.warn("RAO computation has been interrupted");
+        LOGGER.info("RAO run has been interrupted");
+        sendRaoResponse(new RaoResponse.RaoResponseBuilder().withId(raoRequest.getId()).withInterrupted(true).build(),
+                replyTo,
+                brokerCorrelationId);
     }
 
     void addMetaDataToLogsModelContext(String gridcapaTaskId, String computationId, String clientAppId, Optional<String> optPrefix) {
@@ -157,5 +173,14 @@ public class RaoRunnerListener implements MessageListener {
             .setExpiration(amqpConfiguration.raoResponseExpiration())
             .setPriority(PRIORITY)
             .build();
+    }
+
+    private boolean checkIsInterrupted(RaoRequest raoRequest) {
+        ResponseEntity<Boolean> responseEntity = restTemplateBuilder.build().getForEntity(getInterruptedUrl(raoRequest.getRunId()), Boolean.class);
+        return responseEntity.getBody() != null && responseEntity.getStatusCode() == HttpStatus.OK && responseEntity.getBody();
+    }
+
+    private String getInterruptedUrl(String runId) {
+        return urlConfiguration.getInterruptServerUrl() + runId;
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, RTE (http://www.rte-france.com)
+ * Copyright (c) 2024, RTE (http://www.rte-france.com)
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -13,7 +13,7 @@ import com.powsybl.openrao.data.refprog.refprogxmlimporter.RefProgImporter;
 import com.powsybl.openrao.raoapi.json.JsonRaoParameters;
 import com.powsybl.openrao.raoapi.parameters.RaoParameters;
 import com.farao_community.farao.rao_runner.api.exceptions.RaoRunnerException;
-import com.farao_community.farao.rao_runner.app.configuration.UrlWhitelistConfiguration;
+import com.farao_community.farao.rao_runner.app.configuration.UrlConfiguration;
 import com.powsybl.openrao.virtualhubs.VirtualHubsConfiguration;
 import com.powsybl.openrao.virtualhubs.xml.XmlVirtualHubsConfiguration;
 import com.powsybl.glsk.api.GlskDocument;
@@ -35,10 +35,10 @@ import java.time.OffsetDateTime;
 @Service
 public class FileImporter {
 
-    private final UrlWhitelistConfiguration urlWhitelistConfiguration;
+    private final UrlConfiguration urlConfiguration;
 
-    public FileImporter(UrlWhitelistConfiguration urlWhitelistConfiguration) {
-        this.urlWhitelistConfiguration = urlWhitelistConfiguration;
+    public FileImporter(UrlConfiguration urlConfiguration) {
+        this.urlConfiguration = urlConfiguration;
     }
 
     RaoParameters importRaoParameters(String raoParametersFileUrl) {
@@ -106,7 +106,7 @@ public class FileImporter {
 
     private InputStream openUrlStream(String urlString) {
         try {
-            if (urlWhitelistConfiguration.getWhitelist().stream().noneMatch(urlString::startsWith)) {
+            if (urlConfiguration.getWhitelist().stream().noneMatch(urlString::startsWith)) {
                 throw new RaoRunnerException(String.format("URL '%s' is not part of application's whitelisted url's.", urlString));
             }
             URL url = new URL(urlString);
