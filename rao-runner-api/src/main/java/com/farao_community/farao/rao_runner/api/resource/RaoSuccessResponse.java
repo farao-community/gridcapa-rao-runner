@@ -20,8 +20,8 @@ import java.util.Optional;
  * @author Mohamed BenRejeb {@literal <mohamed.ben-rejeb at rte-france.com>}
  */
 @Type("rao-response")
-@JsonDeserialize(builder = RaoResponse.RaoResponseBuilder.class)
-public final class RaoResponse {
+@JsonDeserialize(builder = RaoSuccessResponse.Builder.class)
+public final class RaoSuccessResponse extends AbstractRaoResponse {
 
     @Id
     private final String id;
@@ -33,7 +33,7 @@ public final class RaoResponse {
     private final Instant computationEndInstant;
     private final boolean interrupted;
 
-    private RaoResponse(RaoResponseBuilder builder) {
+    private RaoSuccessResponse(Builder builder) {
         this.id = builder.id;
         this.instant = builder.instant;
         this.networkWithPraFileUrl = builder.networkWithPraFileUrl;
@@ -42,9 +42,10 @@ public final class RaoResponse {
         this.computationStartInstant = builder.computationStartInstant;
         this.computationEndInstant = builder.computationEndInstant;
         this.interrupted = builder.interrupted;
+        this.raoFailed = false;
     }
 
-    public static class RaoResponseBuilder {
+    public static class Builder {
         private String id;
         private String instant;
         private String networkWithPraFileUrl;
@@ -55,56 +56,56 @@ public final class RaoResponse {
         private  boolean interrupted;
 
         @JsonProperty("id")
-        public RaoResponseBuilder withId(String id) {
+        public Builder withId(String id) {
             this.id = id;
             return this;
         }
 
         @JsonProperty("instant")
-        public RaoResponseBuilder withInstant(String instant) {
+        public Builder withInstant(String instant) {
             this.instant = instant;
             return this;
         }
 
         @JsonProperty("networkWithPraFileUrl")
-        public RaoResponseBuilder withNetworkWithPraFileUrl(String networkWithPraFileUrl) {
+        public Builder withNetworkWithPraFileUrl(String networkWithPraFileUrl) {
             this.networkWithPraFileUrl = networkWithPraFileUrl;
             return this;
         }
 
         @JsonProperty("cracFileUrl")
-        public RaoResponseBuilder withCracFileUrl(String cracFileUrl) {
+        public Builder withCracFileUrl(String cracFileUrl) {
             this.cracFileUrl = cracFileUrl;
             return this;
         }
 
         @JsonProperty("raoResultFileUrl")
-        public RaoResponseBuilder withRaoResultFileUrl(String raoResultFileUrl) {
+        public Builder withRaoResultFileUrl(String raoResultFileUrl) {
             this.raoResultFileUrl = raoResultFileUrl;
             return this;
         }
 
         @JsonProperty("computationStartInstant")
-        public RaoResponseBuilder withComputationStartInstant(Instant computationStartInstant) {
+        public Builder withComputationStartInstant(Instant computationStartInstant) {
             this.computationStartInstant = computationStartInstant;
             return this;
         }
 
         @JsonProperty("computationEndInstant")
-        public RaoResponseBuilder withComputationEndInstant(Instant computationEndInstant) {
+        public Builder withComputationEndInstant(Instant computationEndInstant) {
             this.computationEndInstant = computationEndInstant;
             return this;
         }
 
         @JsonProperty("interrupted")
-        public RaoResponseBuilder withInterrupted(boolean interrupted) {
+        public Builder withInterrupted(boolean interrupted) {
             this.interrupted = interrupted;
             return this;
         }
 
         @JsonCreator
-        public RaoResponse build() {
-            return new RaoResponse(this);
+        public RaoSuccessResponse build() {
+            return new RaoSuccessResponse(this);
         }
     }
 

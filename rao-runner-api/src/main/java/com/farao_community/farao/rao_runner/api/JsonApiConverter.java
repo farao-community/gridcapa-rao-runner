@@ -6,10 +6,10 @@
  */
 package com.farao_community.farao.rao_runner.api;
 
-import com.farao_community.farao.rao_runner.api.exceptions.AbstractRaoRunnerException;
 import com.farao_community.farao.rao_runner.api.exceptions.RaoRunnerException;
+import com.farao_community.farao.rao_runner.api.resource.RaoFailureResponse;
 import com.farao_community.farao.rao_runner.api.resource.RaoRequest;
-import com.farao_community.farao.rao_runner.api.resource.RaoResponse;
+import com.farao_community.farao.rao_runner.api.resource.RaoSuccessResponse;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
@@ -21,7 +21,7 @@ import com.github.jasminb.jsonapi.models.errors.Error;
 
 /**
  * JSON API conversion component
- * Allows automatic conversion from resources or exceptions towards JSON API formatted bytes.
+ * Allows automatic conversion from resources towards JSON API formatted bytes.
  *
  * @author Mohamed BenRejeb {@literal <mohamed.ben-rejeb at rte-france.com>}
  */
@@ -53,22 +53,9 @@ public class JsonApiConverter {
         }
     }
 
-    public byte[] toJsonMessage(AbstractRaoRunnerException exception) {
-        return toJsonMessage(convertExceptionToJsonError(exception));
-    }
-
     private ResourceConverter createConverter() {
-        ResourceConverter converter = new ResourceConverter(objectMapper, RaoRequest.class, RaoResponse.class);
+        ResourceConverter converter = new ResourceConverter(objectMapper, RaoRequest.class, RaoSuccessResponse.class, RaoFailureResponse.class);
         converter.disableSerializationOption(SerializationFeature.INCLUDE_META);
         return converter;
-    }
-
-    private Error convertExceptionToJsonError(AbstractRaoRunnerException exception) {
-        Error error = new Error();
-        error.setStatus(Integer.toString(exception.getStatus()));
-        error.setCode(exception.getCode());
-        error.setTitle(exception.getTitle());
-        error.setDetail(exception.getDetails());
-        return error;
     }
 }

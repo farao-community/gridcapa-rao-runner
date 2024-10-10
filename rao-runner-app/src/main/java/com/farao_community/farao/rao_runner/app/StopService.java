@@ -13,7 +13,7 @@ import java.util.Optional;
 @Service
 public class StopService {
 
-    public void stop(String taskId) {
+    public void stop(final String taskId) {
         Optional<Thread> thread = isRunning(taskId);
         while (thread.isPresent()) {
             thread.get().interrupt();
@@ -21,7 +21,7 @@ public class StopService {
         }
     }
 
-    Optional<Thread> isRunning(String id) {
+    Optional<Thread> isRunning(final String id) {
         return Thread.getAllStackTraces()
                 .keySet()
                 .stream()

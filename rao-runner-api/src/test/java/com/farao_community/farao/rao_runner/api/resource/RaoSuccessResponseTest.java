@@ -15,11 +15,11 @@ import static org.junit.jupiter.api.Assertions.*;
 /**
  * @author Mohamed BenRejeb {@literal <mohamed.ben-rejeb at rte-france.com>}
  */
-class RaoResponseTest {
+class RaoSuccessResponseTest {
 
     @Test
     void checkRaoRequestNormalUsage() {
-        RaoResponse raoResponse = new RaoResponse.RaoResponseBuilder()
+        RaoSuccessResponse raoResponse = new RaoSuccessResponse.Builder()
                 .withId("id")
                 .withInstant("instant")
                 .withNetworkWithPraFileUrl("networkWithPraFileUrl")
