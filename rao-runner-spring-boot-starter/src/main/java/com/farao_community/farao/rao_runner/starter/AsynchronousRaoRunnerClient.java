@@ -8,8 +8,13 @@ package com.farao_community.farao.rao_runner.starter;
 
 import com.farao_community.farao.rao_runner.api.JsonApiConverter;
 import com.farao_community.farao.rao_runner.api.resource.RaoRequest;
-import com.farao_community.farao.rao_runner.api.resource.RaoResponse;
-import org.springframework.amqp.core.*;
+import com.farao_community.farao.rao_runner.api.resource.AbstractRaoResponse;
+import org.springframework.amqp.core.AsyncAmqpTemplate;
+import org.springframework.amqp.core.Message;
+import org.springframework.amqp.core.MessageBuilder;
+import org.springframework.amqp.core.MessageDeliveryMode;
+import org.springframework.amqp.core.MessageProperties;
+import org.springframework.amqp.core.MessagePropertiesBuilder;
 
 import java.util.concurrent.CompletableFuture;
 
@@ -31,13 +36,13 @@ public class AsynchronousRaoRunnerClient {
         this.jsonConverter = new JsonApiConverter();
     }
 
-    public CompletableFuture<RaoResponse> runRaoAsynchronously(RaoRequest raoRequest) {
+    public CompletableFuture<AbstractRaoResponse> runRaoAsynchronously(final RaoRequest raoRequest) {
         return asyncAmqpTemplate.sendAndReceive(raoRunnerClientProperties.getAmqp().getQueueName(), buildMessage(raoRequest))
             .thenApplyAsync(message -> RaoResponseConversionHelper.convertRaoResponse(message, jsonConverter),
                 new MDCAwareForkJoinPool());
     }
 
-    private Message buildMessage(RaoRequest raoRequest) {
+    private Message buildMessage(final RaoRequest raoRequest) {
         return MessageBuilder.withBody(jsonConverter.toJsonMessage(raoRequest))
             .andProperties(buildMessageProperties())
             .build();

@@ -7,8 +7,6 @@
 package com.farao_community.farao.rao_runner.app.configuration;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.context.annotation.Configuration;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -16,8 +14,6 @@ import java.util.List;
 /**
  * @author Mohamed BenRejeb {@literal <mohamed.ben-rejeb at rte-france.com>}
  */
-@Configuration
-@EnableConfigurationProperties
 @ConfigurationProperties(prefix = "rao-runner.url")
 public class UrlConfiguration {
     private final List<String> whitelist = new ArrayList<>();

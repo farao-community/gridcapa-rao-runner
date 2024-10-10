@@ -8,14 +8,18 @@ package com.farao_community.farao.rao_runner.starter;
 
 import com.farao_community.farao.rao_runner.api.JsonApiConverter;
 import com.farao_community.farao.rao_runner.api.resource.RaoRequest;
-import com.farao_community.farao.rao_runner.api.resource.RaoResponse;
+import com.farao_community.farao.rao_runner.api.resource.AbstractRaoResponse;
+import com.farao_community.farao.rao_runner.api.resource.RaoSuccessResponse;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.amqp.core.AmqpTemplate;
 import org.springframework.amqp.core.Message;
+import org.springframework.amqp.core.MessageProperties;
+
 import java.io.IOException;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 
 /**
  * @author Mohamed BenRejeb {@literal <mohamed.ben-rejeb at rte-france.com>}
@@ -32,11 +36,15 @@ class RaoRunnerClientTest {
 
         Message responseMessage = Mockito.mock(Message.class);
         Mockito.when(responseMessage.getBody()).thenReturn(getClass().getResourceAsStream("/raoResponseMessage.json").readAllBytes());
+        MessageProperties messageProperties = new MessageProperties();
+        Mockito.when(responseMessage.getMessageProperties()).thenReturn(messageProperties);
         Mockito.when(amqpTemplate.sendAndReceive(Mockito.same("my-queue"), Mockito.any())).thenReturn(responseMessage);
 
-        RaoResponse raoResponse = client.runRao(raoRequest);
+        AbstractRaoResponse raoResponse = client.runRao(raoRequest);
 
-        assertEquals("instant", raoResponse.getInstant().get()); }
+        assertInstanceOf(RaoSuccessResponse.class, raoResponse);
+        assertEquals("instant", ((RaoSuccessResponse) raoResponse).getInstant().get());
+    }
 
     private RaoRunnerClientProperties buildProperties() {
         RaoRunnerClientProperties properties = new RaoRunnerClientProperties();

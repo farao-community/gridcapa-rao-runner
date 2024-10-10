@@ -8,8 +8,9 @@ package com.farao_community.farao.rao_runner.starter;
 
 import com.farao_community.farao.rao_runner.api.JsonApiConverter;
 import com.farao_community.farao.rao_runner.api.exceptions.RaoRunnerException;
-import com.farao_community.farao.rao_runner.api.resource.RaoResponse;
-import com.github.jasminb.jsonapi.exceptions.ResourceParseException;
+import com.farao_community.farao.rao_runner.api.resource.AbstractRaoResponse;
+import com.farao_community.farao.rao_runner.api.resource.RaoFailureResponse;
+import com.farao_community.farao.rao_runner.api.resource.RaoSuccessResponse;
 import org.springframework.amqp.core.Message;
 
 /**
@@ -21,15 +22,21 @@ public final class RaoResponseConversionHelper {
         throw new AssertionError("Utility class should not be constructed");
     }
 
-    public static RaoResponse convertRaoResponse(Message message, JsonApiConverter jsonConverter) {
+    public static AbstractRaoResponse convertRaoResponse(final Message message, final JsonApiConverter jsonConverter) {
         try {
-            return jsonConverter.fromJsonMessage(message.getBody(), RaoResponse.class);
-        } catch (ResourceParseException resourceParseException) {
-            // exception details from rao-runner app is wrapped into a ResourceParseException on json Api Error format.
-            String originCause = resourceParseException.getErrors().getErrors().get(0).getDetail();
-            throw new RaoRunnerException(originCause);
+            if (isFailureMessage(message)) {
+                return jsonConverter.fromJsonMessage(message.getBody(), RaoFailureResponse.class);
+            } else {
+                return jsonConverter.fromJsonMessage(message.getBody(), RaoSuccessResponse.class);
+            }
         } catch (Exception unknownException) {
             throw new RaoRunnerException("Unsupported exception thrown by rao-runner app", unknownException);
         }
+    }
+
+    private static boolean isFailureMessage(final Message message) {
+        return message.getMessageProperties() != null
+                && message.getMessageProperties().getHeaders().containsKey("rao-failure")
+                && (boolean) message.getMessageProperties().getHeader("rao-failure");
     }
 }

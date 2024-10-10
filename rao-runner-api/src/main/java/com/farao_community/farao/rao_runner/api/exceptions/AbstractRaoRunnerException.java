@@ -11,11 +11,11 @@ package com.farao_community.farao.rao_runner.api.exceptions;
  */
 public abstract class AbstractRaoRunnerException extends RuntimeException {
 
-    public AbstractRaoRunnerException(String message) {
+    protected AbstractRaoRunnerException(String message) {
         super(message);
     }
 
-    public AbstractRaoRunnerException(String message, Throwable throwable) {
+    protected AbstractRaoRunnerException(String message, Throwable throwable) {
         super(message, throwable);
     }
 

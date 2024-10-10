@@ -8,9 +8,10 @@ package com.farao_community.farao.rao_runner.app;
 
 import com.farao_community.farao.rao_runner.api.JsonApiConverter;
 import com.farao_community.farao.rao_runner.api.exceptions.RaoRunnerException;
+import com.farao_community.farao.rao_runner.api.resource.AbstractRaoResponse;
+import com.farao_community.farao.rao_runner.api.resource.RaoFailureResponse;
 import com.farao_community.farao.rao_runner.api.resource.RaoRequest;
-import com.farao_community.farao.rao_runner.api.resource.RaoResponse;
-import com.farao_community.farao.rao_runner.api.resource.ThreadLauncherResult;
+import com.farao_community.farao.rao_runner.api.resource.RaoSuccessResponse;
 import com.farao_community.farao.rao_runner.app.configuration.AmqpConfiguration;
 import com.farao_community.farao.rao_runner.app.configuration.UrlConfiguration;
 import org.slf4j.Logger;
@@ -60,18 +61,18 @@ public class RaoRunnerListener implements MessageListener {
 
     @Override
     public void onMessage(Message message) {
-        String replyTo = message.getMessageProperties().getReplyTo();
-        String brokerCorrelationId = message.getMessageProperties().getCorrelationId();
+        final String replyTo = message.getMessageProperties().getReplyTo();
+        final String brokerCorrelationId = message.getMessageProperties().getCorrelationId();
 
         try {
-            RaoRequest raoRequest = jsonApiConverter.fromJsonMessage(message.getBody(), RaoRequest.class);
+            final RaoRequest raoRequest = jsonApiConverter.fromJsonMessage(message.getBody(), RaoRequest.class);
             LOGGER.info("RAO request received: {}", raoRequest);
             if (interruptionServerIsActivated && checkIsInterrupted(raoRequest)) {
-                sendRaoResponseInterrupted(raoRequest, replyTo, brokerCorrelationId);
+                sendRaoInterruptedResponse(raoRequest, replyTo, brokerCorrelationId);
                 return;
             }
             addMetaDataToLogsModelContext(raoRequest.getId(), brokerCorrelationId, message.getMessageProperties().getAppId(), raoRequest.getEventPrefix());
-            GenericThreadLauncher<RaoRunnerService, RaoResponse> launcher = new GenericThreadLauncher<>(
+            final GenericThreadLauncher<RaoRunnerService, AbstractRaoResponse> launcher = new GenericThreadLauncher<>(
                 raoRunnerService,
                 raoRequest.getId(),
                 MDC.getCopyOfContextMap(),
@@ -81,44 +82,40 @@ public class RaoRunnerListener implements MessageListener {
             businessLogger.info("Starting the RAO computation");
             launcher.start();
 
-            ThreadLauncherResult<RaoResponse> raoThreadResult = launcher.getResult();
-            if (raoThreadResult.hasError() && raoThreadResult.getException() != null) {
-                Exception exception = raoThreadResult.getException();
-                if (exception instanceof InvocationTargetException ite
-                        && ite.getCause() instanceof RaoRunnerException rre) {
-                    throw rre;
+            final ThreadLauncherResult<AbstractRaoResponse> raoThreadResult = launcher.getResult();
+            if (raoThreadResult.hasError()) {
+                final Exception exception = raoThreadResult.exception();
+                if (exception instanceof InvocationTargetException ite) {
+                    throw (Exception) ite.getCause();
                 } else {
                     throw exception;
                 }
-            }
-
-            Optional<RaoResponse> raoResponseOpt = raoThreadResult.getResult();
-            if (raoResponseOpt.isPresent() && !raoThreadResult.hasError()) {
+            } else if (raoThreadResult.isInterrupted()) {
+                sendRaoInterruptedResponse(raoRequest, replyTo, brokerCorrelationId);
+            } else {
+                final AbstractRaoResponse raoResponse = raoThreadResult.result();
                 businessLogger.info("RAO computation is finished");
-                RaoResponse raoResponse = raoResponseOpt.get();
                 LOGGER.info("RAO response sent: {}", raoResponse);
                 sendRaoResponse(raoResponse, replyTo, brokerCorrelationId);
-            } else {
-                sendRaoResponseInterrupted(raoRequest, replyTo, brokerCorrelationId);
             }
             System.gc();
         } catch (RaoRunnerException e) {
-            sendErrorResponse(e, replyTo, brokerCorrelationId);
+            sendRaoFailedResponse(e, replyTo, brokerCorrelationId);
         } catch (Exception e) {
-            RaoRunnerException wrappingException = new RaoRunnerException("Unhandled exception: " + e.getMessage(), e);
-            sendErrorResponse(wrappingException, replyTo, brokerCorrelationId);
+            final RaoRunnerException wrappingException = new RaoRunnerException("Unhandled exception: " + e.getMessage(), e);
+            sendRaoFailedResponse(wrappingException, replyTo, brokerCorrelationId);
         }
     }
 
-    private void sendRaoResponseInterrupted(RaoRequest raoRequest, String replyTo, String brokerCorrelationId) {
-        businessLogger.warn("RAO computation has been interrupted");
-        LOGGER.info("RAO run has been interrupted");
-        sendRaoResponse(new RaoResponse.RaoResponseBuilder().withId(raoRequest.getId()).withInterrupted(true).build(),
-                replyTo,
-                brokerCorrelationId);
+    private boolean checkIsInterrupted(final RaoRequest raoRequest) {
+        final String requestUrl = urlConfiguration.getInterruptServerUrl() + raoRequest.getRunId();
+        final ResponseEntity<Boolean> responseEntity = restTemplateBuilder.build().getForEntity(requestUrl, Boolean.class);
+        return responseEntity.getBody() != null
+                && responseEntity.getStatusCode() == HttpStatus.OK
+                && responseEntity.getBody();
     }
 
-    void addMetaDataToLogsModelContext(String gridcapaTaskId, String computationId, String clientAppId, Optional<String> optPrefix) {
+    void addMetaDataToLogsModelContext(final String gridcapaTaskId, final String computationId, final String clientAppId, final Optional<String> optPrefix) {
         MDC.put("gridcapaTaskId", gridcapaTaskId);
         MDC.put("computationId", computationId);
         MDC.put("clientAppId", clientAppId);
@@ -129,45 +126,61 @@ public class RaoRunnerListener implements MessageListener {
         }
     }
 
-    private void sendRaoResponse(RaoResponse raoResponse, String replyTo, String correlationId) {
-        Message responseMessage = createMessageResponse(raoResponse, correlationId);
+    private void sendRaoInterruptedResponse(final RaoRequest raoRequest, final String replyTo, final String brokerCorrelationId) {
+        businessLogger.warn("RAO computation has been interrupted");
+        final RaoSuccessResponse raoResponse = new RaoSuccessResponse.Builder()
+                .withId(raoRequest.getId())
+                .withInterrupted(true)
+                .build();
+        sendRaoResponse(raoResponse, replyTo, brokerCorrelationId);
+    }
+
+    private void sendRaoFailedResponse(final Exception exception, final String replyTo, final String correlationId) {
+        LOGGER.error("Exception occurred while running RAO", exception);
+        final RaoRunnerException raoRunnerException;
+        if (exception instanceof RaoRunnerException rre) {
+            raoRunnerException = rre;
+        } else {
+            raoRunnerException = new RaoRunnerException("Unhandled exception: " + exception.getMessage(), exception);
+        }
+        final Message errorMessage = createFailedResponse(raoRunnerException, correlationId);
+        sendMessage(replyTo, errorMessage);
+    }
+
+    private void sendRaoResponse(final AbstractRaoResponse raoResponse, final String replyTo, final String correlationId) {
+        final Message responseMessage = createMessageFromRaoResponse(raoResponse, correlationId);
+        sendMessage(replyTo, responseMessage);
+    }
+
+    private Message createFailedResponse(final RaoRunnerException exception, final String correlationId) {
+        final RaoFailureResponse response = new RaoFailureResponse.Builder()
+                .withId("defaultId")
+                .withErrorMessage(exception.getMessage())
+                .build();
+        return MessageBuilder.withBody(jsonApiConverter.toJsonMessage(response))
+            .andProperties(buildMessageResponseProperties(correlationId, response.isRaoFailed()))
+            .build();
+    }
+
+    private Message createMessageFromRaoResponse(final AbstractRaoResponse raoResponse, final String correlationId) {
+        return MessageBuilder.withBody(jsonApiConverter.toJsonMessage(raoResponse))
+                .andProperties(buildMessageResponseProperties(correlationId, raoResponse.isRaoFailed()))
+                .build();
+    }
+
+    private void sendMessage(final String replyTo, final Message responseMessage) {
         if (replyTo != null) {
             amqpTemplate.send(replyTo, responseMessage);
         } else {
             amqpTemplate.send(amqpConfiguration.raoResponseExchange().getName(), "", responseMessage);
         }
+
         if (LOGGER.isInfoEnabled()) {
             LOGGER.info("Response message: {}", new String(responseMessage.getBody()));
         }
     }
 
-    private void sendErrorResponse(RaoRunnerException exception, String replyTo, String correlationId) {
-        LOGGER.error("Exception occurred while running RAO", exception);
-        Message errorMessage = createErrorResponse(exception, correlationId);
-        if (replyTo != null) {
-            amqpTemplate.send(replyTo, errorMessage);
-        } else {
-            amqpTemplate.send(amqpConfiguration.raoResponseExchange().getName(), "", errorMessage);
-        }
-    }
-
-    private Message createMessageResponse(RaoResponse raoResponse, String correlationId) {
-        return MessageBuilder.withBody(jsonApiConverter.toJsonMessage(raoResponse))
-            .andProperties(buildMessageResponseProperties(correlationId))
-            .build();
-    }
-
-    private Message createErrorResponse(RaoRunnerException exception, String correlationId) {
-        return MessageBuilder.withBody(exceptionToJsonMessage(exception))
-            .andProperties(buildMessageResponseProperties(correlationId))
-            .build();
-    }
-
-    private byte[] exceptionToJsonMessage(RaoRunnerException e) {
-        return jsonApiConverter.toJsonMessage(e);
-    }
-
-    private MessageProperties buildMessageResponseProperties(String correlationId) {
+    private MessageProperties buildMessageResponseProperties(final String correlationId, final boolean failed) {
         return MessagePropertiesBuilder.newInstance()
             .setAppId(APPLICATION_ID)
             .setContentEncoding(CONTENT_ENCODING)
@@ -176,15 +189,7 @@ public class RaoRunnerListener implements MessageListener {
             .setDeliveryMode(MessageDeliveryMode.NON_PERSISTENT)
             .setExpiration(amqpConfiguration.raoResponseExpiration())
             .setPriority(PRIORITY)
+            .setHeaderIfAbsent("rao-failure", failed)
             .build();
-    }
-
-    private boolean checkIsInterrupted(RaoRequest raoRequest) {
-        ResponseEntity<Boolean> responseEntity = restTemplateBuilder.build().getForEntity(getInterruptedUrl(raoRequest.getRunId()), Boolean.class);
-        return responseEntity.getBody() != null && responseEntity.getStatusCode() == HttpStatus.OK && responseEntity.getBody();
-    }
-
-    private String getInterruptedUrl(String runId) {
-        return urlConfiguration.getInterruptServerUrl() + runId;
     }
 }
