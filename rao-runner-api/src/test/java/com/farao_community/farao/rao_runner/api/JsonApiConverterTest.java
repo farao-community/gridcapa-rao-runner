@@ -6,10 +6,8 @@
  */
 package com.farao_community.farao.rao_runner.api;
 
-import com.farao_community.farao.rao_runner.api.exceptions.AbstractRaoRunnerException;
-import com.farao_community.farao.rao_runner.api.exceptions.RaoRunnerException;
 import com.farao_community.farao.rao_runner.api.resource.RaoRequest;
-import com.farao_community.farao.rao_runner.api.resource.RaoResponse;
+import com.farao_community.farao.rao_runner.api.resource.RaoSuccessResponse;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
@@ -104,19 +102,10 @@ class JsonApiConverterTest {
     }
 
     @Test
-    void checkInternalExceptionJsonConversion() throws IOException {
-        JsonApiConverter jsonConverter = new JsonApiConverter();
-        byte[] errorBytes = getClass().getResourceAsStream("/ErrorMessage.json").readAllBytes();
-        AbstractRaoRunnerException exception = new RaoRunnerException("Something bad happened");
-        String expectedMessage = new String(errorBytes);
-        assertEquals(expectedMessage, new String(jsonConverter.toJsonMessage(exception)));
-    }
-
-    @Test
     void checkRaoResponseJsonConversion() throws IOException {
         JsonApiConverter jsonConverter = new JsonApiConverter();
         byte[] requestBytes = getClass().getResourceAsStream("/raoResponseMessage.json").readAllBytes();
-        RaoResponse raoResponse = jsonConverter.fromJsonMessage(requestBytes, RaoResponse.class);
+        RaoSuccessResponse raoResponse = jsonConverter.fromJsonMessage(requestBytes, RaoSuccessResponse.class);
         assertEquals("id", raoResponse.getId());
         assertEquals("instant", raoResponse.getInstant().get());
         assertEquals("networkWithPraFileUrl", raoResponse.getNetworkWithPraFileUrl());
@@ -130,7 +119,7 @@ class JsonApiConverterTest {
     void checkRaoResponseJsonConversionWhithNullInstant() throws IOException {
         JsonApiConverter jsonConverter = new JsonApiConverter();
         byte[] requestBytes = getClass().getResourceAsStream("/raoResponseMessageNullInstant.json").readAllBytes();
-        RaoResponse raoResponse = jsonConverter.fromJsonMessage(requestBytes, RaoResponse.class);
+        RaoSuccessResponse raoResponse = jsonConverter.fromJsonMessage(requestBytes, RaoSuccessResponse.class);
         assertEquals("id", raoResponse.getId());
         assertEquals(Optional.empty(), raoResponse.getInstant());
         assertEquals("networkWithPraFileUrl", raoResponse.getNetworkWithPraFileUrl());

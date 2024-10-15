@@ -7,35 +7,31 @@
 package com.farao_community.farao.rao_runner.app;
 
 import com.farao_community.farao.rao_runner.api.exceptions.RaoRunnerException;
-import com.farao_community.farao.rao_runner.api.resource.ThreadLauncherResult;
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import java.util.Collections;
+import java.util.Map;
 import java.util.Optional;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @SpringBootTest
 class GenericThreadLauncherTest {
 
-    private class LaunchWithoutThreadableAnnotation {
-
+    private static class LaunchWithoutThreadableAnnotation {
         public Integer run(int steps) {
-            Integer result = 1;
+            int result = 1;
             for (int i = 1; i < steps; i++) {
                 result *= i * i;
             }
             return result;
         }
-
     }
 
-    private class LaunchWithMultipleThreadableAnnotation {
-
+    private static class LaunchWithMultipleThreadableAnnotation {
         @Threadable
         public Integer run(int steps) {
-            Integer result = 1;
+            int result = 1;
             for (int i = 1; i < steps; i++) {
                 result *= i * i;
             }
@@ -44,26 +40,23 @@ class GenericThreadLauncherTest {
 
         @Threadable
         public Integer run2(int steps) {
-            Integer result = 1;
+            int result = 1;
             for (int i = 1; i < steps; i++) {
                 result += i * i;
             }
             return result;
         }
-
     }
 
-    private class LaunchWithThreadableAnnotation {
-
+    private static class LaunchWithThreadableAnnotation {
         @Threadable
         public Integer run(int steps) {
-            Integer result = 1;
+            int result = 1;
             for (int i = 1; i < steps; i++) {
                 result *= i;
             }
             return result;
         }
-
     }
 
     @Test
@@ -75,51 +68,34 @@ class GenericThreadLauncherTest {
                 10);
 
         gtl.start();
+
         Optional<Thread> th = Thread.getAllStackTraces()
                 .keySet()
                 .stream()
                 .filter(t -> t.getName().equals("withThreadable"))
                 .findFirst();
-        assertEquals(true, th.isPresent());
-        ThreadLauncherResult<Integer> result = gtl.getResult();
+        Assertions.assertThat(th).isPresent();
 
-        assertEquals(true, result.getResult().isPresent());
-        assertEquals(362880, result.getResult().get());
+        ThreadLauncherResult<Integer> result = gtl.getResult();
+        Assertions.assertThat(result.result()).isEqualTo(362880);
     }
 
     @Test
     void testNotAnnotatedClass() {
-        int exception = 0;
-        try {
-            GenericThreadLauncher<LaunchWithoutThreadableAnnotation, Integer> gtl = new GenericThreadLauncher<>(
-                    new LaunchWithoutThreadableAnnotation(),
-                    "withThreadable",
-                    Collections.emptyMap(),
-                    10);
-        } catch (Exception e) {
-            exception++;
-            assertEquals(e.getClass(), RaoRunnerException.class);
-            assertEquals("the class com.farao_community.farao.rao_runner.app.GenericThreadLauncherTest.LaunchWithoutThreadableAnnotation does not have his running method annotated with @Threadable", e.getMessage());
-        }
-        assertEquals(1, exception);
-
+        final Map<String, String> contextMap = Collections.emptyMap();
+        final LaunchWithoutThreadableAnnotation annotation = new LaunchWithoutThreadableAnnotation();
+        Assertions.assertThatExceptionOfType(RaoRunnerException.class)
+                .isThrownBy(() -> new GenericThreadLauncher<>(annotation, "withThreadable", contextMap, 10))
+                .withMessage("The class com.farao_community.farao.rao_runner.app.GenericThreadLauncherTest.LaunchWithoutThreadableAnnotation has no method annotated with @Threadable");
     }
 
     @Test
     void testMultipleAnnotatedClass() {
-        int exception = 0;
-        try {
-            GenericThreadLauncher<LaunchWithMultipleThreadableAnnotation, Integer> gtl = new GenericThreadLauncher<>(
-                    new LaunchWithMultipleThreadableAnnotation(),
-                    "withThreadable",
-                    Collections.emptyMap(),
-                    10);
-        } catch (Exception e) {
-            exception++;
-            assertEquals(e.getClass(), RaoRunnerException.class);
-            assertEquals("the class com.farao_community.farao.rao_runner.app.GenericThreadLauncherTest.LaunchWithMultipleThreadableAnnotation must have only one method annotated with @Threadable", e.getMessage());
-        }
-        assertEquals(1, exception);
+        final LaunchWithMultipleThreadableAnnotation annotation = new LaunchWithMultipleThreadableAnnotation();
+        final Map<String, String> contextMap = Collections.emptyMap();
+        Assertions.assertThatExceptionOfType(RaoRunnerException.class)
+                .isThrownBy(() -> new GenericThreadLauncher<>(annotation, "withThreadable", contextMap, 10))
+                .withMessage("The class com.farao_community.farao.rao_runner.app.GenericThreadLauncherTest.LaunchWithMultipleThreadableAnnotation must have only one method annotated with @Threadable");
     }
 }
 

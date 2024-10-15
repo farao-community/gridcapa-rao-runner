@@ -14,7 +14,6 @@ import java.util.List;
 import java.util.Map;
 
 import com.farao_community.farao.rao_runner.api.exceptions.RaoRunnerException;
-import com.farao_community.farao.rao_runner.api.resource.ThreadLauncherResult;
 import org.slf4j.MDC;
 
 public class GenericThreadLauncher<T, U> extends Thread {
@@ -62,11 +61,11 @@ public class GenericThreadLauncher<T, U> extends Thread {
     }
 
     private static Method getMethodAnnotatedWith(final Class<?> type) {
-        List<Method> methods = getMethodsAnnotatedWith(type);
+        final List<Method> methods = getMethodsAnnotatedWith(type);
         if (methods.isEmpty()) {
-            throw new RaoRunnerException("the class " + type.getCanonicalName() + " does not have his running method annotated with @Threadable");
+            throw new RaoRunnerException("The class " + type.getCanonicalName() + " has no method annotated with @Threadable");
         } else if (methods.size() > 1) {
-            throw new RaoRunnerException("the class " + type.getCanonicalName() + " must have only one method annotated with @Threadable");
+            throw new RaoRunnerException("The class " + type.getCanonicalName() + " must have only one method annotated with @Threadable");
         } else {
             return methods.get(0);
         }
@@ -87,5 +86,4 @@ public class GenericThreadLauncher<T, U> extends Thread {
         }
         return methods;
     }
-
 }

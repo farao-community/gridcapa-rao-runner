@@ -6,20 +6,19 @@
  */
 package com.farao_community.farao.rao_runner.app;
 
-import com.powsybl.openrao.commons.OpenRaoException;
+import com.farao_community.farao.rao_runner.api.exceptions.RaoRunnerException;
+import com.farao_community.farao.rao_runner.app.configuration.UrlConfiguration;
+import com.powsybl.glsk.api.GlskDocument;
+import com.powsybl.glsk.api.io.GlskDocumentImporters;
+import com.powsybl.glsk.commons.ZonalData;
+import com.powsybl.iidm.network.Network;
 import com.powsybl.openrao.data.cracapi.Crac;
 import com.powsybl.openrao.data.refprog.referenceprogram.ReferenceProgram;
 import com.powsybl.openrao.data.refprog.refprogxmlimporter.RefProgImporter;
 import com.powsybl.openrao.raoapi.json.JsonRaoParameters;
 import com.powsybl.openrao.raoapi.parameters.RaoParameters;
-import com.farao_community.farao.rao_runner.api.exceptions.RaoRunnerException;
-import com.farao_community.farao.rao_runner.app.configuration.UrlConfiguration;
 import com.powsybl.openrao.virtualhubs.VirtualHubsConfiguration;
 import com.powsybl.openrao.virtualhubs.xml.XmlVirtualHubsConfiguration;
-import com.powsybl.glsk.api.GlskDocument;
-import com.powsybl.glsk.api.io.GlskDocumentImporters;
-import com.powsybl.glsk.commons.ZonalData;
-import com.powsybl.iidm.network.Network;
 import com.powsybl.sensitivity.SensitivityVariableSet;
 import org.apache.commons.io.FilenameUtils;
 import org.springframework.stereotype.Service;
@@ -41,87 +40,92 @@ public class FileImporter {
         this.urlConfiguration = urlConfiguration;
     }
 
-    RaoParameters importRaoParameters(String raoParametersFileUrl) {
-        //keep using update method instead of read directly to avoid serialisation issues
-        RaoParameters defaultRaoParameters = new RaoParameters();
-        InputStream customRaoParameters = openUrlStream(raoParametersFileUrl);
-        return JsonRaoParameters.update(defaultRaoParameters, customRaoParameters);
-    }
-
-    ZonalData<SensitivityVariableSet> importGlsk(String instant, String glskUrl, Network network) {
+    RaoParameters importRaoParameters(String raoParametersFileUrl) throws FileImporterException {
         try {
-            InputStream glskFileInputStream = openUrlStream(glskUrl);
-            GlskDocument ucteGlskProvider = GlskDocumentImporters.importGlsk(glskFileInputStream);
-            OffsetDateTime offsetDateTime = OffsetDateTime.parse(instant);
-            return ucteGlskProvider.getZonalGlsks(network, offsetDateTime.toInstant());
+            //keep using update method instead of read directly to avoid serialisation issues
+            final RaoParameters defaultRaoParameters = new RaoParameters();
+            final InputStream customRaoParameters = openUrlStream(raoParametersFileUrl);
+            return JsonRaoParameters.update(defaultRaoParameters, customRaoParameters);
         } catch (Exception e) {
-            String message = String.format("Error occurred during GLSK Provider creation for timestamp %s, using GLSK file %s, and CGM network file %s",
-                instant,
-                getFileNameFromUrl(glskUrl),
-                network.getNameOrId());
-            throw new RaoRunnerException(message, e);
+            final String message = String.format("Exception occurred while importing rao parameters %s", FilenameUtils.getName(raoParametersFileUrl));
+            throw new FileImporterException(message, e);
         }
     }
 
-    ReferenceProgram importRefProg(String instant, String refProgUrl) {
-        try {
-            InputStream refProgFileInputStream = openUrlStream(refProgUrl);
-            OffsetDateTime offsetDateTime = OffsetDateTime.parse(instant);
-            return RefProgImporter.importRefProg(refProgFileInputStream, offsetDateTime);
-        } catch (Exception e) {
-            String message = String.format("Error occurred during Reference Program creation for timestamp %s, using refProg file %s",
-                instant,
-                getFileNameFromUrl(refProgUrl));
-            throw new RaoRunnerException(message, e);
-        }
-    }
-
-    public VirtualHubsConfiguration importVirtualHubs(String virtualHubsUrl) {
-        try (InputStream virtualHubsInputStream = openUrlStream(virtualHubsUrl)) {
-            return XmlVirtualHubsConfiguration.importConfiguration(virtualHubsInputStream);
-        } catch (Exception e) {
-            String message = String.format("Error occurred during virtualhubs Configuration creation using virtualhubs file %s",
-                    getFileNameFromUrl(virtualHubsUrl));
-            throw new RaoRunnerException(message, e);
-        }
-    }
-
-    Crac importCrac(String cracFileUrl, Network network) {
-        try {
-            return Crac.read(getFileNameFromUrl(cracFileUrl), openUrlStream(cracFileUrl), network);
-        } catch (OpenRaoException | RaoRunnerException | IOException e) {
-            String message = String.format("Exception occurred while importing CRAC file %s", getFileNameFromUrl(cracFileUrl));
-            throw new RaoRunnerException(message, e);
-        }
-    }
-
-    Network importNetwork(String networkFileUrl) {
+    public Network importNetwork(final String networkFileUrl) throws FileImporterException {
         try {
             return Network.read(getFileNameFromUrl(networkFileUrl), openUrlStream(networkFileUrl));
         } catch (Exception e) {
-            String message = String.format("Exception occurred while importing network %s", getFileNameFromUrl(networkFileUrl));
-            throw new RaoRunnerException(message, e);
+            final String message = String.format("Exception occurred while importing network %s", FilenameUtils.getName(networkFileUrl));
+            throw new FileImporterException(message, e);
         }
     }
 
-    private InputStream openUrlStream(String urlString) {
+    public Crac importCrac(final String cracFileUrl, final Network network) throws FileImporterException {
+        try {
+            return Crac.read(getFileNameFromUrl(cracFileUrl), openUrlStream(cracFileUrl), network);
+        } catch (Exception e) {
+            final String message = String.format("Exception occurred while importing CRAC file %s", FilenameUtils.getName(cracFileUrl));
+            throw new FileImporterException(message, e);
+        }
+    }
+
+    ZonalData<SensitivityVariableSet> importGlsk(final String instant, final String glskUrl, final Network network) throws FileImporterException {
+        try {
+            final InputStream glskFileInputStream = openUrlStream(glskUrl);
+            final GlskDocument ucteGlskProvider = GlskDocumentImporters.importGlsk(glskFileInputStream);
+            final OffsetDateTime offsetDateTime = OffsetDateTime.parse(instant);
+            return ucteGlskProvider.getZonalGlsks(network, offsetDateTime.toInstant());
+        } catch (Exception e) {
+            final String message = String.format("Error occurred during GLSK Provider creation for timestamp %s, using GLSK file %s, and CGM network file %s",
+                    instant,
+                    FilenameUtils.getName(glskUrl),
+                    network.getNameOrId());
+            throw new FileImporterException(message, e);
+        }
+    }
+
+    ReferenceProgram importRefProg(final String instant, final String refProgUrl) throws FileImporterException {
+        try {
+            final InputStream refProgFileInputStream = openUrlStream(refProgUrl);
+            final OffsetDateTime offsetDateTime = OffsetDateTime.parse(instant);
+            return RefProgImporter.importRefProg(refProgFileInputStream, offsetDateTime);
+        } catch (Exception e) {
+            final String message = String.format("Error occurred during Reference Program creation for timestamp %s, using refProg file %s",
+                    instant,
+                    FilenameUtils.getName(refProgUrl));
+            throw new FileImporterException(message, e);
+        }
+    }
+
+    public VirtualHubsConfiguration importVirtualHubs(final String virtualHubsUrl) throws FileImporterException {
+        try (InputStream virtualHubsInputStream = openUrlStream(virtualHubsUrl)) {
+            return XmlVirtualHubsConfiguration.importConfiguration(virtualHubsInputStream);
+        } catch (Exception e) {
+            final String message = String.format("Error occurred during virtualhubs Configuration creation using virtualhubs file %s",
+                    FilenameUtils.getName(virtualHubsUrl));
+            throw new FileImporterException(message, e);
+        }
+    }
+
+    private InputStream openUrlStream(final String urlString) {
         try {
             if (urlConfiguration.getWhitelist().stream().noneMatch(urlString::startsWith)) {
-                throw new RaoRunnerException(String.format("URL '%s' is not part of application's whitelisted url's.", urlString));
+                throw new RaoRunnerException(String.format("URL '%s' is not part of application's whitelisted url's", urlString));
             }
-            URL url = new URL(urlString);
+            final URL url = new URL(urlString);
             return url.openStream(); // NOSONAR Usage of whitelist not triggered by Sonar quality assessment, even if listed as a solution to the vulnerability
         } catch (IOException e) {
-            throw new RaoRunnerException(String.format("Exception occurred while retrieving file content from : %s", urlString), e);
+            throw new RaoRunnerException(String.format("Exception occurred while retrieving file content from %s", urlString), e);
         }
     }
 
-    private String getFileNameFromUrl(String stringUrl) {
+    private String getFileNameFromUrl(final String stringUrl) {
         try {
-            URL url = new URL(stringUrl);
+            final URL url = new URL(stringUrl);
             return FilenameUtils.getName(url.getPath());
         } catch (IOException e) {
-            throw new RaoRunnerException(String.format("Exception occurred while retrieving file name from : %s", stringUrl), e);
+            throw new RaoRunnerException(String.format("Exception occurred while retrieving file name from %s", stringUrl), e);
         }
     }
 }

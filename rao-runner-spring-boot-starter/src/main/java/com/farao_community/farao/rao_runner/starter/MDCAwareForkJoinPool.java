@@ -38,9 +38,9 @@ public class MDCAwareForkJoinPool extends ForkJoinPool {
         super.execute(wrapWithMdcContext(task));
     }
 
-    public static <T> Callable<T> wrapWithMdcContext(Callable<T> task) {
+    public static <T> Callable<T> wrapWithMdcContext(final Callable<T> task) {
         //save the current MDC context
-        Map<String, String> contextMap = MDC.getCopyOfContextMap();
+        final Map<String, String> contextMap = MDC.getCopyOfContextMap();
         return () -> {
             setMDCContext(contextMap);
             try {
@@ -52,9 +52,9 @@ public class MDCAwareForkJoinPool extends ForkJoinPool {
         };
     }
 
-    public static Runnable wrapWithMdcContext(Runnable task) {
+    public static Runnable wrapWithMdcContext(final Runnable task) {
         //save the current MDC context
-        Map<String, String> contextMap = MDC.getCopyOfContextMap();
+        final Map<String, String> contextMap = MDC.getCopyOfContextMap();
         return () -> {
             setMDCContext(contextMap);
             try {
@@ -66,7 +66,7 @@ public class MDCAwareForkJoinPool extends ForkJoinPool {
         };
     }
 
-    public static void setMDCContext(Map<String, String> contextMap) {
+    public static void setMDCContext(final Map<String, String> contextMap) {
         MDC.clear();
         if (contextMap != null) {
             MDC.setContextMap(contextMap);

@@ -12,7 +12,8 @@ import org.springframework.boot.test.context.SpringBootTest;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.awaitility.Awaitility.await;
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @SpringBootTest
 class StopServiceTest {
@@ -20,7 +21,7 @@ class StopServiceTest {
     @Autowired
     StopService stopService;
 
-    private class MyThread extends Thread {
+    private static class MyThread extends Thread {
 
         public MyThread(String id) {
             super(id);
@@ -28,9 +29,7 @@ class StopServiceTest {
 
         @Override
         public void run() {
-            int count = 0;
             for (int i = 0; i < 10; i++) {
-                count += i;
                 await().atMost(i, SECONDS);
             }
         }
@@ -39,16 +38,14 @@ class StopServiceTest {
     @Test
     void threadInterruption() {
         MyThread th = new MyThread("myThread");
-        assertEquals(false, stopService.isRunning("myThread").isPresent());
+        assertFalse(stopService.isRunning("myThread").isPresent());
 
         th.start();
-        assertEquals(true, stopService.isRunning("myThread").isPresent());
+        assertTrue(stopService.isRunning("myThread").isPresent());
 
         stopService.stop("myThread");
-        assertEquals(false, stopService.isRunning("myThread").isPresent());
-
+        assertFalse(stopService.isRunning("myThread").isPresent());
     }
-
 }
 
 
