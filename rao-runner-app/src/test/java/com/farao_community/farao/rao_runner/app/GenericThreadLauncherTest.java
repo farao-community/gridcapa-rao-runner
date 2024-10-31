@@ -13,62 +13,49 @@ import org.springframework.boot.test.context.SpringBootTest;
 
 import java.util.Collections;
 import java.util.Optional;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @SpringBootTest
 class GenericThreadLauncherTest {
 
-    private class LaunchWithoutThreadableAnnotation {
-
-        public Integer run(int steps) {
-            Integer result = 1;
-            for (int i = 1; i < steps; i++) {
-                result *= i * i;
-            }
-            return result;
-        }
-
+    private static long factorial(final int n) {
+        return n > 0 ? n * factorial(n - 1) : 1;
     }
 
-    private class LaunchWithMultipleThreadableAnnotation {
-
-        @Threadable
-        public Integer run(int steps) {
-            Integer result = 1;
-            for (int i = 1; i < steps; i++) {
-                result *= i * i;
-            }
-            return result;
+    private static class LaunchWithoutThreadableAnnotation {
+        public long run(int steps) {
+            return factorial(steps);
         }
-
-        @Threadable
-        public Integer run2(int steps) {
-            Integer result = 1;
-            for (int i = 1; i < steps; i++) {
-                result += i * i;
-            }
-            return result;
-        }
-
     }
 
-    private class LaunchWithThreadableAnnotation {
-
+    private static class LaunchWithMultipleThreadableAnnotation {
         @Threadable
-        public Integer run(int steps) {
-            Integer result = 1;
-            for (int i = 1; i < steps; i++) {
-                result *= i;
-            }
-            return result;
+        public long run(int steps) {
+            return factorial(steps);
         }
 
+        @Threadable
+        public long run2(int steps) {
+            return factorial(steps);
+        }
+    }
+
+    private static class LaunchWithThreadableAnnotation {
+        @Threadable
+        public long run(int steps) throws InterruptedException {
+            final CountDownLatch countDownLatch = new CountDownLatch(1);
+            countDownLatch.await(5, TimeUnit.SECONDS);
+            return factorial(steps);
+        }
     }
 
     @Test
     void launchGenericThread() {
-        GenericThreadLauncher<LaunchWithThreadableAnnotation, Integer> gtl = new GenericThreadLauncher<>(
+        GenericThreadLauncher<LaunchWithThreadableAnnotation, Long> gtl = new GenericThreadLauncher<>(
                 new LaunchWithThreadableAnnotation(),
                 "withThreadable",
                 Collections.emptyMap(),
@@ -80,11 +67,11 @@ class GenericThreadLauncherTest {
                 .stream()
                 .filter(t -> t.getName().equals("withThreadable"))
                 .findFirst();
-        assertEquals(true, th.isPresent());
-        ThreadLauncherResult<Integer> result = gtl.getResult();
+        assertTrue(th.isPresent());
+        ThreadLauncherResult<Long> result = gtl.getResult();
 
-        assertEquals(true, result.getResult().isPresent());
-        assertEquals(362880, result.getResult().get());
+        assertTrue(result.getResult().isPresent());
+        assertEquals(3628800L, result.getResult().get());
     }
 
     @Test
