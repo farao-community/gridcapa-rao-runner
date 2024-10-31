@@ -10,6 +10,7 @@ spring:
       definition: stop
 
 rao-runner:
+  with-interruption-server: false
   messages:
     rao-request:
       queue-name: ${RAO_ADAPTER_SERVER_QUEUE_NAME:rao-request-queue}

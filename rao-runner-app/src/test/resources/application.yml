@@ -13,6 +13,7 @@ minio-adapter:
   base-path: base/path
 
 rao-runner:
+  with-interruption-server: true
   messages:
     rao-request:
       queue-name: raoi-request-queue

@@ -17,6 +17,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 import org.springframework.amqp.core.*;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -44,6 +45,9 @@ public class RaoRunnerListener implements MessageListener {
     private final RestTemplateBuilder restTemplateBuilder;
     private final UrlConfiguration urlConfiguration;
 
+    @Value("${rao-runner.with-interruption-server}")
+    private boolean interruptionServerIsActivated;
+
     public RaoRunnerListener(RaoRunnerService raoRunnerService, AmqpTemplate amqpTemplate, AmqpConfiguration amqpConfiguration, Logger businessLogger, RestTemplateBuilder restTemplateBuilder, UrlConfiguration urlConfiguration) {
         this.businessLogger = businessLogger;
         this.jsonApiConverter = new JsonApiConverter();
@@ -62,7 +66,7 @@ public class RaoRunnerListener implements MessageListener {
         try {
             RaoRequest raoRequest = jsonApiConverter.fromJsonMessage(message.getBody(), RaoRequest.class);
             LOGGER.info("RAO request received: {}", raoRequest);
-            if (checkIsInterrupted(raoRequest)) {
+            if (interruptionServerIsActivated && checkIsInterrupted(raoRequest)) {
                 sendRaoResponseInterrupted(raoRequest, replyTo, brokerCorrelationId);
                 return;
             }
