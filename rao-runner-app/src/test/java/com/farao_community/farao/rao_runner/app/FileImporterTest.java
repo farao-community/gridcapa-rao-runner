@@ -17,7 +17,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
-import java.net.MalformedURLException;
+import java.io.IOException;
 import java.util.Objects;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -32,7 +32,7 @@ class FileImporterTest {
     FileImporter fileImporter;
 
     @Test
-    void checkIidmNetworkIsImportedCorrectly() {
+    void checkIidmNetworkIsImportedCorrectly() throws FileImporterException {
         Network network = fileImporter.importNetwork(Objects.requireNonNull(getClass().getResource("/rao_inputs/network.xiidm")).toString());
         assertEquals("UCTE", network.getSourceFormat());
         assertEquals(4, network.getCountryCount());
@@ -40,17 +40,16 @@ class FileImporterTest {
 
     @Test
     void importNetworkThrowsException() {
-
-        Assertions.assertThatThrownBy(() -> fileImporter.importNetwork("networkUrl"))
-                .isInstanceOf(RaoRunnerException.class)
-                .hasCauseInstanceOf(MalformedURLException.class)
-                .hasMessageContaining("Exception occurred while retrieving file name from : networkUrl")
-                .getCause()
-                .hasMessageContaining("no protocol: networkUrl");
+        Assertions.assertThatThrownBy(() -> fileImporter.importNetwork("http://networkUrl"))
+                .isInstanceOf(FileImporterException.class)
+                .hasMessageContaining("Exception occurred while importing network networkUrl")
+                .hasCauseInstanceOf(RaoRunnerException.class)
+                .cause()
+                .hasMessageContaining("URL 'http://networkUrl' is not part of application's whitelisted url's");
     }
 
     @Test
-    void checkJsonCracIsImportedCorrectly() {
+    void checkJsonCracIsImportedCorrectly() throws FileImporterException {
         Network network = Network.read("network.xiidm", getClass().getResourceAsStream("/rao_inputs/network.xiidm"));
         Crac crac = fileImporter.importCrac(Objects.requireNonNull(getClass().getResource("/rao_inputs/crac.json")).toString(), network);
         assertEquals("rao test crac", crac.getId());
@@ -59,18 +58,39 @@ class FileImporterTest {
     }
 
     @Test
-    void importCracThrowsException() {
-
+    void importCracThrowsExceptionUrlFormat() {
         Assertions.assertThatThrownBy(() -> fileImporter.importCrac("cracUrl", null))
-                .isInstanceOf(RaoRunnerException.class)
-                .hasCauseInstanceOf(MalformedURLException.class)
-                .hasMessageContaining("Exception occurred while retrieving file name from : cracUrl")
-                .getCause()
-                .hasMessageContaining("no protocol: cracUrl");
+                .isInstanceOf(FileImporterException.class)
+                .hasMessageContaining("Exception occurred while importing CRAC file cracUrl")
+                .hasCauseInstanceOf(RaoRunnerException.class)
+                .cause()
+                .hasMessageContaining("Exception occurred while retrieving file name from cracUrl")
+                .hasCauseInstanceOf(IOException.class);
     }
 
     @Test
-    void checkGlskIsImportedCorrectly() {
+    void importCracThrowsExceptionWhitelist() {
+        Assertions.assertThatThrownBy(() -> fileImporter.importCrac("http://cracUrl", null))
+                .isInstanceOf(FileImporterException.class)
+                .hasMessageContaining("Exception occurred while importing CRAC file cracUrl")
+                .hasCauseInstanceOf(RaoRunnerException.class)
+                .cause()
+                .hasMessageContaining("URL 'http://cracUrl' is not part of application's whitelisted url's");
+    }
+
+    @Test
+    void importCracThrowsExceptionContent() {
+        Assertions.assertThatThrownBy(() -> fileImporter.importCrac("http://localhost:9000/cracUrl", null))
+                .isInstanceOf(FileImporterException.class)
+                .hasMessageContaining("Exception occurred while importing CRAC file cracUrl")
+                .hasCauseInstanceOf(RaoRunnerException.class)
+                .cause()
+                .hasMessageContaining("Exception occurred while retrieving file content from http://localhost:9000/cracUrl")
+                .hasCauseInstanceOf(IOException.class);
+    }
+
+    @Test
+    void checkGlskIsImportedCorrectly() throws FileImporterException {
         Network network = Network.read("network.xiidm", getClass().getResourceAsStream("/rao_inputs/network.xiidm"));
         ZonalData<SensitivityVariableSet> glsks = fileImporter.importGlsk("2019-01-08T21:30:00Z",
                 Objects.requireNonNull(getClass().getResource("/rao_inputs/glsk.xml")).toString(),
@@ -84,15 +104,15 @@ class FileImporterTest {
     void importGlskThrowsException() {
         Network network = Network.read("network.xiidm", getClass().getResourceAsStream("/rao_inputs/network.xiidm"));
         Assertions.assertThatThrownBy(() -> fileImporter.importGlsk(null, "glskUrl", network))
-                .isInstanceOf(RaoRunnerException.class)
-                .hasCauseInstanceOf(MalformedURLException.class)
-                .hasMessageContaining("Exception occurred while retrieving file name from : glskUrl")
-                .getCause()
-                .hasMessageContaining("no protocol: glskUrl");
+                .isInstanceOf(FileImporterException.class)
+                .hasMessageContaining("Error occurred during GLSK Provider creation")
+                .hasCauseInstanceOf(RaoRunnerException.class)
+                .cause()
+                .hasMessageContaining("URL 'glskUrl' is not part of application's whitelisted url's");
     }
 
     @Test
-    void checkRefProgIsImportedCorrectly() {
+    void checkRefProgIsImportedCorrectly() throws FileImporterException {
         ReferenceProgram referenceProgram = fileImporter.importRefProg("2019-01-08T21:30:00Z",
                 Objects.requireNonNull(getClass().getResource("/rao_inputs/refprog.xml")).toString());
         assertEquals(4, referenceProgram.getReferenceExchangeDataList().size());
@@ -102,21 +122,30 @@ class FileImporterTest {
     @Test
     void importRefProgThrowsException() {
         Assertions.assertThatThrownBy(() -> fileImporter.importRefProg(null, "refprogUrl"))
-                .isInstanceOf(RaoRunnerException.class)
-                .hasCauseInstanceOf(MalformedURLException.class)
-                .hasMessageContaining("Exception occurred while retrieving file name from : refprogUrl")
-                .getCause()
-                .hasMessageContaining("no protocol: refprogUrl");
+                .isInstanceOf(FileImporterException.class)
+                .hasMessageContaining("Error occurred during Reference Program creation")
+                .hasCauseInstanceOf(RaoRunnerException.class)
+                .cause()
+                .hasMessageContaining("URL 'refprogUrl' is not part of application's whitelisted url's");
     }
 
     @Test
     void importVirtualHubsThrowsException() {
-
         Assertions.assertThatThrownBy(() -> fileImporter.importVirtualHubs("virtualhubsUrl"))
-                .isInstanceOf(RaoRunnerException.class)
-                .hasCauseInstanceOf(MalformedURLException.class)
-                .hasMessageContaining("Exception occurred while retrieving file name from : virtualhubsUrl")
-                .getCause()
-                .hasMessageContaining("no protocol: virtualhubsUrl");
+                .isInstanceOf(FileImporterException.class)
+                .hasMessageContaining("Error occurred during virtualhubs Configuration creation")
+                .hasCauseInstanceOf(RaoRunnerException.class)
+                .cause()
+                .hasMessageContaining("URL 'virtualhubsUrl' is not part of application's whitelisted url's");
+    }
+
+    @Test
+    void importRaoParametersThrowsException() {
+        Assertions.assertThatThrownBy(() -> fileImporter.importRaoParameters("raoParametersUrl"))
+                .isInstanceOf(FileImporterException.class)
+                .hasMessageContaining("Exception occurred while importing rao parameters raoParametersUrl")
+                .hasCauseInstanceOf(RaoRunnerException.class)
+                .cause()
+                .hasMessageContaining("URL 'raoParametersUrl' is not part of application's whitelisted url's");
     }
 }

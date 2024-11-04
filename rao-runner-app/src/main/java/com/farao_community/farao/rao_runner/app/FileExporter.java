@@ -36,23 +36,23 @@ public class FileExporter {
         this.minioAdapter = minioAdapter;
     }
 
-    String saveNetwork(Network network, RaoRequest raoRequest) {
-        MemDataSource dataSource = new MemDataSource();
+    String saveNetwork(final Network network, final RaoRequest raoRequest) {
+        final MemDataSource dataSource = new MemDataSource();
         network.write(IIDM_EXPORT_FORMAT, null, dataSource);
-        String networkWithPRADestinationPath = makeTargetDirectoryPath(raoRequest) + File.separator + NETWORK;
+        final String networkWithPRADestinationPath = makeTargetDirectoryPath(raoRequest) + File.separator + NETWORK;
         minioAdapter.uploadArtifact(networkWithPRADestinationPath, new ByteArrayInputStream(dataSource.getData(null, IIDM_EXTENSION)));
         return minioAdapter.generatePreSignedUrl(networkWithPRADestinationPath);
     }
 
-    String saveRaoResult(RaoResult raoResult, Crac crac, RaoRequest raoRequest, Unit unit) {
-        ByteArrayOutputStream outputStreamRaoResult = new ByteArrayOutputStream();
+    String saveRaoResult(final RaoResult raoResult, final Crac crac, final RaoRequest raoRequest, final Unit unit) {
+        final ByteArrayOutputStream outputStreamRaoResult = new ByteArrayOutputStream();
         raoResult.write("JSON", crac, Set.of(unit), outputStreamRaoResult);
-        String raoResultDestinationPath = makeTargetDirectoryPath(raoRequest) + File.separator + RAO_RESULT;
+        final String raoResultDestinationPath = makeTargetDirectoryPath(raoRequest) + File.separator + RAO_RESULT;
         minioAdapter.uploadArtifact(raoResultDestinationPath, new ByteArrayInputStream(outputStreamRaoResult.toByteArray()));
         return minioAdapter.generatePreSignedUrl(raoResultDestinationPath);
     }
 
-    private String makeTargetDirectoryPath(RaoRequest raoRequest) {
+    private String makeTargetDirectoryPath(final RaoRequest raoRequest) {
         return raoRequest.getResultsDestination()
                 .orElse(minioAdapter.getProperties().getBasePath() + "/" + raoRequest.getId());
     }

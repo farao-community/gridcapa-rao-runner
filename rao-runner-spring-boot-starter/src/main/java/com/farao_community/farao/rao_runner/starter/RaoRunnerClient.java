@@ -7,10 +7,15 @@
 package com.farao_community.farao.rao_runner.starter;
 
 import com.farao_community.farao.rao_runner.api.JsonApiConverter;
-import com.farao_community.farao.rao_runner.api.exceptions.RaoRunnerException;
+import com.farao_community.farao.rao_runner.api.resource.RaoFailureResponse;
 import com.farao_community.farao.rao_runner.api.resource.RaoRequest;
-import com.farao_community.farao.rao_runner.api.resource.RaoResponse;
-import org.springframework.amqp.core.*;
+import com.farao_community.farao.rao_runner.api.resource.AbstractRaoResponse;
+import org.springframework.amqp.core.AmqpTemplate;
+import org.springframework.amqp.core.Message;
+import org.springframework.amqp.core.MessageBuilder;
+import org.springframework.amqp.core.MessageDeliveryMode;
+import org.springframework.amqp.core.MessageProperties;
+import org.springframework.amqp.core.MessagePropertiesBuilder;
 
 /**
  * @author Mohamed BenRejeb {@literal <mohamed.ben-rejeb at rte-france.com>}
@@ -31,26 +36,29 @@ public class RaoRunnerClient {
         this.jsonConverter = new JsonApiConverter();
     }
 
-    public RaoResponse runRao(RaoRequest raoRequest, int priority) {
-        Message responseMessage = amqpTemplate.sendAndReceive(raoRunnerClientProperties.getAmqp().getQueueName(), buildMessage(raoRequest, priority));
+    public AbstractRaoResponse runRao(final RaoRequest raoRequest, final int priority) {
+        final Message responseMessage = amqpTemplate.sendAndReceive(raoRunnerClientProperties.getAmqp().getQueueName(), buildMessage(raoRequest, priority));
         if (responseMessage != null) {
             return RaoResponseConversionHelper.convertRaoResponse(responseMessage, jsonConverter);
         } else {
-            throw new RaoRunnerException("Rao Runner server did not respond");
+            return new RaoFailureResponse.Builder()
+                    .withId(raoRequest.getId())
+                    .withErrorMessage("Rao Runner server did not respond")
+                    .build();
         }
     }
 
-    public RaoResponse runRao(RaoRequest raoRequest) {
+    public AbstractRaoResponse runRao(final RaoRequest raoRequest) {
         return runRao(raoRequest, DEFAULT_PRIORITY);
     }
 
-    private Message buildMessage(RaoRequest raoRequest, int priority) {
+    private Message buildMessage(final RaoRequest raoRequest, final int priority) {
         return MessageBuilder.withBody(jsonConverter.toJsonMessage(raoRequest))
                 .andProperties(buildMessageProperties(priority))
                 .build();
     }
 
-    private MessageProperties buildMessageProperties(int priority) {
+    private MessageProperties buildMessageProperties(final int priority) {
         return MessagePropertiesBuilder.newInstance()
                 .setAppId(raoRunnerClientProperties.getAmqp().getClientAppId())
                 .setContentEncoding(CONTENT_ENCODING)
