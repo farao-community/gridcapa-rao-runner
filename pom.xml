@@ -22,6 +22,7 @@
         <developerConnection>scm:git:https://github.com/farao-community/gridcapa-rao-runner.git</developerConnection>
         <url>https://github.com/farao-community/gridcapa-rao-runner.git</url>
     </scm>
+
     <developers>
         <developer>
             <name>Pengbo WANG</name>
