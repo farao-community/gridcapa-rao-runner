@@ -9,7 +9,7 @@ package com.farao_community.farao.rao_runner.app;
 import com.farao_community.farao.rao_runner.api.exceptions.RaoRunnerException;
 import com.powsybl.glsk.commons.ZonalData;
 import com.powsybl.iidm.network.Network;
-import com.powsybl.openrao.data.cracapi.Crac;
+import com.powsybl.openrao.data.crac.api.Crac;
 import com.powsybl.openrao.data.refprog.referenceprogram.ReferenceProgram;
 import com.powsybl.sensitivity.SensitivityVariableSet;
 import org.assertj.core.api.Assertions;
