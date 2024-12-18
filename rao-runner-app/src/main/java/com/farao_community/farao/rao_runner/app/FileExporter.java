@@ -18,7 +18,7 @@ import org.springframework.stereotype.Service;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.util.Properties;
+import static com.farao_community.farao.rao_runner.app.RaoResultWriterPropertiesMapper.generateJsonProperties;
 
 /**
  * @author Joris Mancini {@literal <joris.mancini at rte-france.com>}
@@ -46,14 +46,7 @@ public class FileExporter {
 
     String saveRaoResult(final RaoResult raoResult, final Crac crac, final RaoRequest raoRequest, final Unit unit) {
         final ByteArrayOutputStream outputStreamRaoResult = new ByteArrayOutputStream();
-        final String propertiesPrefix = "rao-result.export.json.flows-in-";
-        final Properties properties = new Properties();
-        if (Unit.AMPERE == unit) {
-            properties.setProperty(propertiesPrefix + "amperes", "true");
-        } else {
-            properties.setProperty(propertiesPrefix + "megawatts", "true");
-        }
-        raoResult.write("JSON", crac, properties, outputStreamRaoResult);
+        raoResult.write("JSON", crac, generateJsonProperties(unit), outputStreamRaoResult);
         final String raoResultDestinationPath = makeTargetDirectoryPath(raoRequest) + File.separator + RAO_RESULT;
         minioAdapter.uploadArtifact(raoResultDestinationPath, new ByteArrayInputStream(outputStreamRaoResult.toByteArray()));
         return minioAdapter.generatePreSignedUrl(raoResultDestinationPath);
