@@ -7,8 +7,8 @@
 package com.farao_community.farao.rao_runner.app;
 
 import com.powsybl.openrao.commons.Unit;
-import com.powsybl.openrao.data.cracapi.Crac;
-import com.powsybl.openrao.data.raoresultapi.RaoResult;
+import com.powsybl.openrao.data.crac.api.Crac;
+import com.powsybl.openrao.data.raoresult.api.RaoResult;
 import com.farao_community.farao.minio_adapter.starter.MinioAdapter;
 import com.farao_community.farao.rao_runner.api.resource.RaoRequest;
 import com.powsybl.commons.datasource.MemDataSource;
@@ -18,7 +18,7 @@ import org.springframework.stereotype.Service;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.util.Set;
+import static com.farao_community.farao.rao_runner.app.RaoResultWriterPropertiesMapper.generateJsonProperties;
 
 /**
  * @author Joris Mancini {@literal <joris.mancini at rte-france.com>}
@@ -46,7 +46,7 @@ public class FileExporter {
 
     String saveRaoResult(final RaoResult raoResult, final Crac crac, final RaoRequest raoRequest, final Unit unit) {
         final ByteArrayOutputStream outputStreamRaoResult = new ByteArrayOutputStream();
-        raoResult.write("JSON", crac, Set.of(unit), outputStreamRaoResult);
+        raoResult.write("JSON", crac, generateJsonProperties(unit), outputStreamRaoResult);
         final String raoResultDestinationPath = makeTargetDirectoryPath(raoRequest) + File.separator + RAO_RESULT;
         minioAdapter.uploadArtifact(raoResultDestinationPath, new ByteArrayInputStream(outputStreamRaoResult.toByteArray()));
         return minioAdapter.generatePreSignedUrl(raoResultDestinationPath);
