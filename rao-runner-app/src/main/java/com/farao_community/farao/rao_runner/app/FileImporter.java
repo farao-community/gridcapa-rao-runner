@@ -25,6 +25,8 @@ import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.time.OffsetDateTime;
 
@@ -113,18 +115,18 @@ public class FileImporter {
             if (urlConfiguration.getWhitelist().stream().noneMatch(urlString::startsWith)) {
                 throw new RaoRunnerException(String.format("URL '%s' is not part of application's whitelisted url's", urlString));
             }
-            final URL url = new URL(urlString);
+            final URL url = new URI(urlString).toURL();
             return url.openStream(); // NOSONAR Usage of whitelist not triggered by Sonar quality assessment, even if listed as a solution to the vulnerability
-        } catch (IOException e) {
+        } catch (IOException | URISyntaxException | IllegalArgumentException e) {
             throw new RaoRunnerException(String.format("Exception occurred while retrieving file content from %s", urlString), e);
         }
     }
 
     private String getFileNameFromUrl(final String stringUrl) {
         try {
-            final URL url = new URL(stringUrl);
+            final URL url = new URI(stringUrl).toURL();
             return FilenameUtils.getName(url.getPath());
-        } catch (IOException e) {
+        } catch (IOException | URISyntaxException | IllegalArgumentException e) {
             throw new RaoRunnerException(String.format("Exception occurred while retrieving file name from %s", stringUrl), e);
         }
     }
