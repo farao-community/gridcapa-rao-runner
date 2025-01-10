@@ -42,6 +42,7 @@ public class RaoRunnerListener implements MessageListener {
     private final RaoRunnerService raoRunnerService;
     private final AmqpTemplate amqpTemplate;
     private final AmqpConfiguration amqpConfiguration;
+    private final FanoutExchange raoResponseExchange;
     private final Logger businessLogger;
     private final RestTemplateBuilder restTemplateBuilder;
     private final UrlConfiguration urlConfiguration;
@@ -49,7 +50,8 @@ public class RaoRunnerListener implements MessageListener {
     @Value("${rao-runner.with-interruption-server}")
     private boolean interruptionServerIsActivated;
 
-    public RaoRunnerListener(RaoRunnerService raoRunnerService, AmqpTemplate amqpTemplate, AmqpConfiguration amqpConfiguration, Logger businessLogger, RestTemplateBuilder restTemplateBuilder, UrlConfiguration urlConfiguration) {
+    public RaoRunnerListener(RaoRunnerService raoRunnerService, AmqpTemplate amqpTemplate, AmqpConfiguration amqpConfiguration, FanoutExchange raoResponseExchange, Logger businessLogger, RestTemplateBuilder restTemplateBuilder, UrlConfiguration urlConfiguration) {
+        this.raoResponseExchange = raoResponseExchange;
         this.businessLogger = businessLogger;
         this.jsonApiConverter = new JsonApiConverter();
         this.raoRunnerService = raoRunnerService;
@@ -98,7 +100,7 @@ public class RaoRunnerListener implements MessageListener {
                 LOGGER.info("RAO response sent: {}", raoResponse);
                 sendRaoResponse(raoResponse, replyTo, brokerCorrelationId);
             }
-            System.gc();
+            System.gc(); // NOSONAR because memory management is crucial for rao-runner, therefore suggesting to the JVM to collect garbage here should not be considered as a problem by Sonar
         } catch (RaoRunnerException e) {
             sendRaoFailedResponse(e, replyTo, brokerCorrelationId);
         } catch (Exception e) {
@@ -172,7 +174,7 @@ public class RaoRunnerListener implements MessageListener {
         if (replyTo != null) {
             amqpTemplate.send(replyTo, responseMessage);
         } else {
-            amqpTemplate.send(amqpConfiguration.raoResponseExchange().getName(), "", responseMessage);
+            amqpTemplate.send(raoResponseExchange.getName(), "", responseMessage);
         }
 
         if (LOGGER.isInfoEnabled()) {

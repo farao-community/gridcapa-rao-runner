@@ -65,7 +65,7 @@ class FileImporterTest {
                 .hasCauseInstanceOf(RaoRunnerException.class)
                 .cause()
                 .hasMessageContaining("Exception occurred while retrieving file name from cracUrl")
-                .hasCauseInstanceOf(IOException.class);
+                .hasCauseInstanceOf(IllegalArgumentException.class);
     }
 
     @Test
