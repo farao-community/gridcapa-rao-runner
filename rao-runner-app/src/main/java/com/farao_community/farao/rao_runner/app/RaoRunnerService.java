@@ -121,7 +121,7 @@ public class RaoRunnerService {
     }
 
     private RaoSuccessResponse saveResultsAndCreateRaoResponse(final RaoRequest raoRequest, final Crac crac, final RaoResult raoResult, final Network network, final Instant computationStartInstant, final RaoParameters raoParameters) {
-        final String raoResultFileUrl = fileExporter.saveRaoResult(raoResult, crac, raoRequest, raoParameters.getObjectiveFunctionParameters().getType().getUnit());
+        final String raoResultFileUrl = fileExporter.saveRaoResult(raoResult, crac, raoRequest, raoParameters.getObjectiveFunctionParameters().getUnit());
         final String networkWithPraFileUrl = fileExporter.saveNetwork(network, raoRequest);
         final String raoInstant = raoRequest.getInstant().orElse(null);
         final Instant computationEndInstant = Instant.now();
