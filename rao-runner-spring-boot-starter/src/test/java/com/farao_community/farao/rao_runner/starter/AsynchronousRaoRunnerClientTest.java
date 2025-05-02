@@ -8,7 +8,6 @@ package com.farao_community.farao.rao_runner.starter;
 
 import com.farao_community.farao.rao_runner.api.resource.AbstractRaoResponse;
 import com.farao_community.farao.rao_runner.api.resource.RaoRequest;
-import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.amqp.core.AsyncAmqpTemplate;
