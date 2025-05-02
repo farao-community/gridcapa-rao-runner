@@ -50,7 +50,7 @@ class AsynchronousRaoRunnerClientTest {
         final CompletableFuture<AbstractRaoResponse> resultFuture = client.runRaoAsynchronously(raoRequest);
 
         //Then
-        assertNotNull(resultFuture, "La future réponse ne doit pas être nulle");
+        assertNotNull(resultFuture);
         assertDoesNotThrow(resultFuture::join);
 
         verify(amqpTemplate).sendAndReceive(eq("queue-test"), any(Message.class));
