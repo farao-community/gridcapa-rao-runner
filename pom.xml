@@ -46,6 +46,7 @@
 
     <properties>
         <jackson.datatype.version>2.12.2</jackson.datatype.version>
+        <jaxb-runtime.version>4.0.5</jaxb-runtime.version>
         <jsonapi.converter.version>0.11</jsonapi.converter.version>
         <junit.launcher.version>1.6.3</junit.launcher.version>
         <farao.dependencies.version>1.41.0</farao.dependencies.version>
@@ -82,6 +83,7 @@
             <dependency>
                 <groupId>org.glassfish.jaxb</groupId>
                 <artifactId>jaxb-runtime</artifactId>
+                <version>${jaxb-runtime.version}</version>
                 <scope>runtime</scope>
             </dependency>
             <!-- Test dependencies -->
