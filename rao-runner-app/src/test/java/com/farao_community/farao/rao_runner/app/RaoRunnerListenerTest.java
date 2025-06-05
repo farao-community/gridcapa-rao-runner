@@ -25,7 +25,7 @@ import org.springframework.amqp.core.MessageProperties;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -53,13 +53,13 @@ class RaoRunnerListenerTest {
     @Autowired
     RaoRunnerListener raoRunnerListener;
 
-    @MockBean
+    @MockitoBean
     RestTemplateBuilder restTemplateBuilder;
 
-    @MockBean
+    @MockitoBean
     RabbitTemplate amqpTemplate;
 
-    @MockBean
+    @MockitoBean
     RaoRunnerService raoRunnerService;
 
     private final JsonApiConverter jsonApiConverter = new JsonApiConverter();
