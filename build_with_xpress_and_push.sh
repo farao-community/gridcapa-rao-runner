@@ -7,6 +7,9 @@ read -p "Tag the image as latest (y/n): " TAG_LATEST
 # Save the original branch to return to it later
 ORIGINAL_BRANCH=$(git branch --show-current)
 
+# Fetch git branches and tags before checkout
+git fetch
+
 # Disable detached head advice
 git config advice.detachedHead false
 
