@@ -7,23 +7,23 @@ unstash() {
     fi
 }
 
-# Step 1: Ask the user to enter tag name
+# Step 1: Ask the user to enter tag name and to indicate if the version should be tagged as latest
 read -p "Enter the tag name to checkout: " TAG_NAME
-read -p "Tag the image as latest (y/n): " TAG_LATEST
+read -p "Tag the image as latest? (y/n): " TAG_LATEST
 
 # Save the original branch to return to it later
 ORIGINAL_BRANCH=$(git branch --show-current)
 
-# Fetch git branches and tags before checkout
-git fetch
+# Fetch git tags before checkout
+git fetch --tags
 
 # Disable detached head advice
 git config advice.detachedHead false
 
 # If changes exist in local branch, stash them
 if [ $(git status -s | wc -l) -gt 0 ]; then
-    STASHED_CHANGES=true
     git stash
+    STASHED_CHANGES=true
 fi
 
 # Step 2: Checkout the tag entered by the user
