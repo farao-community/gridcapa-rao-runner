@@ -1,5 +1,12 @@
 #!/bin/bash
 
+# Define function to unstash changes if needed
+unstash() {
+    if [ $STASHED_CHANGES ]; then
+        git stash pop
+    fi
+}
+
 # Step 1: Ask the user to enter tag name
 read -p "Enter the tag name to checkout: " TAG_NAME
 read -p "Tag the image as latest (y/n): " TAG_LATEST
@@ -13,11 +20,18 @@ git fetch
 # Disable detached head advice
 git config advice.detachedHead false
 
+# If changes exist in local branch, stash them
+if [ $(git status -s | wc -l) -gt 0 ]; then
+    STASHED_CHANGES=true
+    git stash
+fi
+
 # Step 2: Checkout the tag entered by the user
 git checkout $TAG_NAME
 if [ $? -ne 0 ]; then
     echo "Error checking out tag $TAG_NAME"
     git config advice.detachedHead true  # Re-enable the advice
+    unstash # Unstash changes if needed
     exit 1
 fi
 
@@ -31,6 +45,7 @@ if [ $? -ne 0 ]; then
     echo "Error building the Docker image"
     git config advice.detachedHead true  # Re-enable the advice
     git checkout $ORIGINAL_BRANCH
+    unstash # Unstash changes if needed
     exit 1
 fi
 
@@ -43,6 +58,7 @@ if [ $? -eq 0 ]; then
         echo "Aborting the push."
         git config advice.detachedHead true  # Re-enable the advice
         git checkout $ORIGINAL_BRANCH
+        unstash # Unstash changes if needed
         exit 1
     fi
 else
@@ -55,6 +71,7 @@ if [ $? -ne 0 ]; then
     echo "Error pushing the Docker image"
     git config advice.detachedHead true  # Re-enable the advice
     git checkout $ORIGINAL_BRANCH
+    unstash # Unstash changes if needed
     exit 1
 fi
 
@@ -66,6 +83,7 @@ if [ "$TAG_LATEST" == "y" ]; then
         echo "Error tagging the Docker image as latest"
         git config advice.detachedHead true  # Re-enable the advice
         git checkout $ORIGINAL_BRANCH
+        unstash # Unstash changes if needed
         exit 1
     fi
 
@@ -74,6 +92,7 @@ if [ "$TAG_LATEST" == "y" ]; then
         echo "Error pushing the latest Docker image"
         git config advice.detachedHead true  # Re-enable the advice
         git checkout $ORIGINAL_BRANCH
+        unstash # Unstash changes if needed
         exit 1
     fi
 fi
@@ -84,10 +103,14 @@ git checkout $ORIGINAL_BRANCH
 if [ $? -ne 0 ]; then
     echo "Error checking out the original branch $ORIGINAL_BRANCH"
     git config advice.detachedHead true  # Re-enable the advice
+    # No unstash here as the original branch could not be checked-out: the changes remain available in stash
     exit 1
 fi
 
 # Re-enable detached head advice
 git config advice.detachedHead true
+
+# Unstash changes if needed
+unstash
 
 echo "Script executed successfully"
