@@ -2,6 +2,7 @@
 
 # Step 1: Ask the user to enter tag name
 read -p "Enter the tag name to checkout: " TAG_NAME
+read -p "Tag the image as latest (y/n): " TAG_LATEST
 
 # Save the original branch to return to it later
 ORIGINAL_BRANCH=$(git branch --show-current)
@@ -54,7 +55,28 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
-# Step 7: Checkout the original branch
+# Step 7: Tag and push the Docker image as latest
+if [ "$TAG_LATEST" == "y" ]; then
+    IMAGE_NAME_LATEST="farao/gridcapa-rao-runner-with-xpress:latest"
+    docker tag $IMAGE_NAME $IMAGE_NAME_LATEST
+    if [ $? -ne 0 ]; then
+        echo "Error tagging the Docker image as latest"
+        git config advice.detachedHead true  # Re-enable the advice
+        git checkout $ORIGINAL_BRANCH
+        exit 1
+    fi
+
+    docker push $IMAGE_NAME_LATEST
+    if [ $? -ne 0 ]; then
+        echo "Error pushing the latest Docker image"
+        git config advice.detachedHead true  # Re-enable the advice
+        git checkout $ORIGINAL_BRANCH
+        exit 1
+    fi
+fi
+
+
+# Step 8: Checkout the original branch
 git checkout $ORIGINAL_BRANCH
 if [ $? -ne 0 ]; then
     echo "Error checking out the original branch $ORIGINAL_BRANCH"
