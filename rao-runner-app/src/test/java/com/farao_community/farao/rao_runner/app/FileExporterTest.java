@@ -55,7 +55,7 @@ class FileExporterTest {
     Network network = Network.read("network.xiidm", getClass().getResourceAsStream("/rao_inputs/network.xiidm"));
 
     @BeforeEach
-    public void setUp() {
+    void setUp() {
         Mockito.when(minioAdapter.getProperties()).thenReturn(new MinioAdapterProperties("bucket", "base/path", "http://test", "gridcapa", "gridcapa"));
         Mockito.doNothing().when(minioAdapter).uploadArtifact(Mockito.any(), Mockito.any());
     }
