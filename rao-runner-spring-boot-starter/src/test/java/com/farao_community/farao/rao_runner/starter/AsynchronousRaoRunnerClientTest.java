@@ -72,7 +72,8 @@ class AsynchronousRaoRunnerClientTest {
         final AsynchronousRaoRunnerClient client = new AsynchronousRaoRunnerClient(amqpTemplate, properties);
 
         //When & Then
-        assertThrows(RuntimeException.class, () -> client.runRaoAsynchronously(raoRequest).join());
+        final CompletableFuture<AbstractRaoResponse> resultFuture = client.runRaoAsynchronously(raoRequest);
+        assertThrows(RuntimeException.class, resultFuture::join);
 
         verify(amqpTemplate).sendAndReceive(eq("queue-test"), any(Message.class));
         verify(properties.getAmqp()).getQueueName();

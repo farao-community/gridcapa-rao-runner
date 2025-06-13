@@ -68,7 +68,7 @@ class RaoRunnerServiceTest {
     private Crac crac;
 
     @BeforeEach
-    public void setUp() throws IOException, FileImporterException {
+    void setUp() throws IOException, FileImporterException {
         raoParameters = new RaoParameters();
         network = Network.read("network.xiidm", getClass().getResourceAsStream("/rao_inputs/network.xiidm"));
         crac = Crac.read("crac.json", Objects.requireNonNull(getClass().getResourceAsStream("/rao_inputs/crac.json")), network);

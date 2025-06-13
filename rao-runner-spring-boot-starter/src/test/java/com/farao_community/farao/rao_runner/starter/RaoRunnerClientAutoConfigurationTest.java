@@ -24,12 +24,12 @@ class RaoRunnerClientAutoConfigurationTest {
     private AnnotationConfigApplicationContext context;
 
     @BeforeEach
-    public void createContext() {
+    void createContext() {
         context = new AnnotationConfigApplicationContext();
     }
 
     @AfterEach
-    public void closeContext() {
+    void closeContext() {
         if (context != null) {
             context.close();
         }
