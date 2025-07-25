@@ -42,7 +42,7 @@
                     <classpathDependencyExcludes>
                         <classpathDependencyExclude>com.powsybl:powsybl-config-classic</classpathDependencyExclude>
                     </classpathDependencyExcludes>
-                    <argLine>-javaagent:${org.mockito:mockito-core:jar}</argLine>
+                    <argLine>@{argLine} -javaagent:${org.mockito:mockito-core:jar}</argLine>
                 </configuration>
             </plugin>
             <plugin>

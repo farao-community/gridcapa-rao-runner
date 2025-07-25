@@ -45,6 +45,7 @@
     </modules>
 
     <properties>
+        <argLine /> <!-- required for java agent declaration, do not remove -->
         <jackson.datatype.version>2.12.2</jackson.datatype.version>
         <jaxb-runtime.version>4.0.5</jaxb-runtime.version>
         <jsonapi.converter.version>0.11</jsonapi.converter.version>
