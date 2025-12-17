@@ -13,4 +13,4 @@ COPY --from=BUILDER /tmp/app/dependencies/ ./
 COPY --from=BUILDER /tmp/app/spring-boot-loader/ ./
 COPY --from=BUILDER /tmp/app/application/ ./
 COPY --from=BUILDER /tmp/app/snapshot-dependencies/ ./
-ENTRYPOINT ["java", "-cp", "BOOT-INF/lib/*:BOOT-INF/classes", "com/farao_community/farao/rao_runner/app/RaoRunnerApplication"]
+ENTRYPOINT ["java", "-cp", "BOOT-INF/lib/*:BOOT-INF/classes", "com.farao_community.farao.rao_runner.app.RaoRunnerApplication"]
