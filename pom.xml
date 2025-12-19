@@ -7,7 +7,7 @@
     <parent>
         <groupId>com.farao-community.farao</groupId>
         <artifactId>farao-parent-ws</artifactId>
-        <version>1.13.0</version>
+        <version>1.14.0</version>
     </parent>
 
     <artifactId>gridcapa-rao-runner</artifactId>
@@ -46,23 +46,15 @@
 
     <properties>
         <argLine /> <!-- required for java agent declaration, do not remove -->
-        <jackson.datatype.version>2.12.2</jackson.datatype.version>
-        <jaxb-runtime.version>4.0.5</jaxb-runtime.version>
         <jsonapi.converter.version>0.11</jsonapi.converter.version>
         <junit.launcher.version>1.6.3</junit.launcher.version>
-        <farao.dependencies.version>1.45.0</farao.dependencies.version>
-        <gridcapa.starter.minio.adapter.version>1.3.0</gridcapa.starter.minio.adapter.version>
+        <farao.dependencies.version>1.46.0</farao.dependencies.version>
+        <gridcapa.starter.minio.adapter.version>1.8.0</gridcapa.starter.minio.adapter.version>
     </properties>
 
     <dependencyManagement>
         <dependencies>
             <!-- Compile dependencies -->
-            <!-- This dependency enables marshalling/unmarshalling Optional fields and/or fields which getters return Optional -->
-            <dependency>
-                <groupId>com.fasterxml.jackson.datatype</groupId>
-                <artifactId>jackson-datatype-jdk8</artifactId>
-                <version>${jackson.datatype.version}</version>
-            </dependency>
             <dependency>
                 <groupId>com.github.jasminb</groupId>
                 <artifactId>jsonapi-converter</artifactId>
@@ -79,13 +71,6 @@
                 <version>${farao.dependencies.version}</version>
                 <scope>import</scope>
                 <type>pom</type>
-            </dependency>
-            <!-- Runtime dependencies -->
-            <dependency>
-                <groupId>org.glassfish.jaxb</groupId>
-                <artifactId>jaxb-runtime</artifactId>
-                <version>${jaxb-runtime.version}</version>
-                <scope>runtime</scope>
             </dependency>
             <!-- Test dependencies -->
             <dependency>
