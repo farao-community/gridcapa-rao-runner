@@ -7,12 +7,18 @@
 package com.farao_community.farao.rao_runner.app;
 
 import com.farao_community.farao.rao_runner.api.exceptions.RaoRunnerException;
+import com.farao_community.farao.rao_runner.api.resource.TimedInput;
 import com.farao_community.farao.rao_runner.app.configuration.UrlConfiguration;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.powsybl.glsk.api.GlskDocument;
 import com.powsybl.glsk.api.io.GlskDocumentImporters;
 import com.powsybl.glsk.commons.ZonalData;
 import com.powsybl.iidm.network.Network;
 import com.powsybl.openrao.data.crac.api.Crac;
+import com.powsybl.openrao.data.intertemporalconstraints.IntertemporalConstraints;
+import com.powsybl.openrao.data.intertemporalconstraints.io.JsonIntertemporalConstraints;
 import com.powsybl.openrao.data.refprog.referenceprogram.ReferenceProgram;
 import com.powsybl.openrao.data.refprog.refprogxmlimporter.RefProgImporter;
 import com.powsybl.openrao.raoapi.json.JsonRaoParameters;
@@ -29,6 +35,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.time.OffsetDateTime;
+import java.util.List;
 
 /**
  * @author Joris Mancini {@literal <joris.mancini at rte-france.com>}
@@ -106,6 +113,28 @@ public class FileImporter {
         } catch (Exception e) {
             final String message = String.format("Error occurred during virtualhubs Configuration creation using virtualhubs file %s",
                     FilenameUtils.getName(virtualHubsUrl));
+            throw new FileImporterException(message, e);
+        }
+    }
+
+    List<TimedInput> importTimedInputs(String timedInputsFileUrl) throws FileImporterException {
+        try (final InputStream timedInputsFileInputStream = openUrlStream(timedInputsFileUrl)) {
+            ObjectMapper objectMapper = new ObjectMapper();
+            objectMapper.registerModule(new JavaTimeModule());
+            return objectMapper.readValue(timedInputsFileInputStream.readAllBytes(), new TypeReference<>() { });
+        } catch (Exception e) {
+            final String message = String.format("Error occurred while reading timedInputs input file file %s",
+                FilenameUtils.getName(timedInputsFileUrl));
+            throw new FileImporterException(message, e);
+        }
+    }
+
+    IntertemporalConstraints importIcsFile(String icsFileUrl) throws FileImporterException {
+        try (final InputStream inputStream = openUrlStream(icsFileUrl)) {
+            return JsonIntertemporalConstraints.read(inputStream);
+        } catch (Exception e) {
+            final String message = String.format("Error occurred while reading ICS file %s",
+                FilenameUtils.getName(icsFileUrl));
             throw new FileImporterException(message, e);
         }
     }
