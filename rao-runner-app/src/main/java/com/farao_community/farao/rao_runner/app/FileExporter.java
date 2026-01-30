@@ -38,8 +38,10 @@ import static com.farao_community.farao.rao_runner.app.RaoResultWriterProperties
  */
 @Service
 public class FileExporter {
-    private static final String NETWORK = "networkWithPRA.xiidm";
-    private static final String RAO_RESULT = "raoResult.json";
+    private static final String NETWORK_XIIDM = "networkWithPRA.xiidm";
+    private static final String NETWORKS_ZIP = "networksWithPRA.zip";
+    private static final String RAO_RESULT_JSON = "raoResult.json";
+    private static final String RAO_RESULTS_ZIP = "raoResults.zip";
     private static final String IIDM_EXPORT_FORMAT = "XIIDM";
     private static final String IIDM_EXTENSION = "xiidm";
 
@@ -52,7 +54,7 @@ public class FileExporter {
     String saveNetwork(final Network network, final RaoRequest raoRequest) {
         final MemDataSource dataSource = new MemDataSource();
         network.write(IIDM_EXPORT_FORMAT, null, dataSource);
-        final String networkWithPRADestinationPath = makeTargetDirectoryPath(raoRequest) + File.separator + NETWORK;
+        final String networkWithPRADestinationPath = makeTargetDirectoryPath(raoRequest) + File.separator + NETWORK_XIIDM;
         minioAdapter.uploadArtifact(networkWithPRADestinationPath, new ByteArrayInputStream(dataSource.getData(null, IIDM_EXTENSION)));
         return minioAdapter.generatePreSignedUrl(networkWithPRADestinationPath);
     }
@@ -77,7 +79,7 @@ public class FileExporter {
                 zipOutputStream.write(dataSource.getData(null, IIDM_EXTENSION));
             }
         }
-        final String networkWithPRADestinationPath = makeTargetDirectoryPath(raoRequest) + File.separator + NETWORK;
+        final String networkWithPRADestinationPath = makeTargetDirectoryPath(raoRequest) + File.separator + NETWORKS_ZIP;
         minioAdapter.uploadArtifact(networkWithPRADestinationPath, new ByteArrayInputStream(outputStreamRaoResult.toByteArray()));
         return minioAdapter.generatePreSignedUrl(networkWithPRADestinationPath);
     }
@@ -85,7 +87,7 @@ public class FileExporter {
     String saveRaoResult(final RaoResult raoResult, final Crac crac, final RaoRequest raoRequest, final Unit unit) {
         final ByteArrayOutputStream outputStreamRaoResult = new ByteArrayOutputStream();
         raoResult.write("JSON", crac, generateJsonProperties(unit), outputStreamRaoResult);
-        final String raoResultDestinationPath = makeTargetDirectoryPath(raoRequest) + File.separator + RAO_RESULT;
+        final String raoResultDestinationPath = makeTargetDirectoryPath(raoRequest) + File.separator + RAO_RESULT_JSON;
         minioAdapter.uploadArtifact(raoResultDestinationPath, new ByteArrayInputStream(outputStreamRaoResult.toByteArray()));
         return minioAdapter.generatePreSignedUrl(raoResultDestinationPath);
     }
@@ -103,7 +105,7 @@ public class FileExporter {
             raoResult.write(zipOutputStream, raoInput.getRaoInputs().map(RaoInputWithNetworkPaths::getCrac), properties);
         }
 
-        final String resultsDestination = makeTargetDirectoryPath(raoRequest) + File.separator + RAO_RESULT;
+        final String resultsDestination = makeTargetDirectoryPath(raoRequest) + File.separator + RAO_RESULTS_ZIP;
         minioAdapter.uploadArtifact(resultsDestination, new ByteArrayInputStream(outputStreamRaoResult.toByteArray()));
         return minioAdapter.generatePreSignedUrl(resultsDestination);
     }

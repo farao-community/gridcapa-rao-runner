@@ -1,0 +1,22 @@
+[
+  {
+    "timestamp": "2019-01-08T00:30:00+01:00",
+    "networkFile": "/home/bochetvin/Projects/gridcapa-rao-runner/rao-runner-app/src/test/resources/intertemporal_rao_inputs/simple_case/initialNetwork_0030.xiidm",
+    "cracFile": "/home/bochetvin/Projects/gridcapa-rao-runner/rao-runner-app/src/test/resources/intertemporal_rao_inputs/simple_case/crac_0030.json"
+  },
+  {
+    "timestamp": "2019-01-08T01:30:00+01:00",
+    "networkFile": "/home/bochetvin/Projects/gridcapa-rao-runner/rao-runner-app/src/test/resources/intertemporal_rao_inputs/simple_case/initialNetwork_0130.xiidm",
+    "cracFile": "/home/bochetvin/Projects/gridcapa-rao-runner/rao-runner-app/src/test/resources/intertemporal_rao_inputs/simple_case/crac_0130.json"
+  },
+  {
+    "timestamp": "2019-01-08T02:30:00+01:00",
+    "networkFile": "/home/bochetvin/Projects/gridcapa-rao-runner/rao-runner-app/src/test/resources/intertemporal_rao_inputs/simple_case/initialNetwork_0230.xiidm",
+    "cracFile": "/home/bochetvin/Projects/gridcapa-rao-runner/rao-runner-app/src/test/resources/intertemporal_rao_inputs/simple_case/crac_0230.json"
+  },
+  {
+    "timestamp": "2019-01-08T03:30:00+01:00",
+    "networkFile": "/home/bochetvin/Projects/gridcapa-rao-runner/rao-runner-app/src/test/resources/intertemporal_rao_inputs/simple_case/initialNetwork_0330.xiidm",
+    "cracFile": "/home/bochetvin/Projects/gridcapa-rao-runner/rao-runner-app/src/test/resources/intertemporal_rao_inputs/simple_case/crac_0330.json"
+  }
+]

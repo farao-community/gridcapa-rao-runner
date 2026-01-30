@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025, RTE (http://www.rte-france.com)
+ * Copyright (c) 2026, RTE (http://www.rte-france.com)
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -8,49 +8,52 @@ package com.farao_community.farao.rao_runner.app;
 
 import com.farao_community.farao.rao_runner.api.JsonApiConverter;
 import com.farao_community.farao.rao_runner.api.exceptions.RaoRunnerException;
+import com.farao_community.farao.rao_runner.api.resource.AbstractRaoRequest;
 import com.farao_community.farao.rao_runner.api.resource.AbstractRaoResponse;
 import com.farao_community.farao.rao_runner.api.resource.RaoFailureResponse;
-import com.farao_community.farao.rao_runner.api.resource.RaoRequest;
 import com.farao_community.farao.rao_runner.api.resource.RaoSuccessResponse;
 import com.farao_community.farao.rao_runner.app.configuration.AmqpConfiguration;
 import com.farao_community.farao.rao_runner.app.configuration.UrlConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
-import org.springframework.amqp.core.*;
+import org.springframework.amqp.core.AmqpTemplate;
+import org.springframework.amqp.core.FanoutExchange;
+import org.springframework.amqp.core.Message;
+import org.springframework.amqp.core.MessageBuilder;
+import org.springframework.amqp.core.MessageDeliveryMode;
+import org.springframework.amqp.core.MessageProperties;
+import org.springframework.amqp.core.MessagePropertiesBuilder;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Component;
 
-import java.lang.reflect.InvocationTargetException;
 import java.util.Optional;
 
 /**
- * @author Mohamed BenRejeb {@literal <mohamed.ben-rejeb at rte-france.com>}
+ * @author Vincent Bochet {@literal <vincent.bochet at rte-france.com>}
  */
-@Component
-public class RaoRunnerListener implements MessageListener {
-    private static final Logger LOGGER = LoggerFactory.getLogger(RaoRunnerListener.class);
-    private static final String APPLICATION_ID = "rao-runner-server";
-    private static final String CONTENT_ENCODING = "UTF-8";
-    private static final String CONTENT_TYPE = "application/vnd.api+json";
-    private static final int PRIORITY = 1;
+public abstract class AbstractRaoRunnerMessageHandler<RAO_RUNNER_SERVICE_TYPE> {
+    protected static final Logger LOGGER = LoggerFactory.getLogger(AbstractRaoRunnerMessageHandler.class);
+    protected static final String APPLICATION_ID = "rao-runner-server";
+    protected static final String CONTENT_ENCODING = "UTF-8";
+    protected static final String CONTENT_TYPE = "application/vnd.api+json";
+    protected static final int PRIORITY = 1;
 
-    private final JsonApiConverter jsonApiConverter;
-    private final RaoRunnerService raoRunnerService;
-    private final AmqpTemplate amqpTemplate;
-    private final AmqpConfiguration amqpConfiguration;
-    private final FanoutExchange raoResponseExchange;
-    private final Logger businessLogger;
-    private final RestTemplateBuilder restTemplateBuilder;
-    private final UrlConfiguration urlConfiguration;
+    protected final JsonApiConverter jsonApiConverter;
+    protected final RAO_RUNNER_SERVICE_TYPE raoRunnerService;
+    protected final AmqpTemplate amqpTemplate;
+    protected final AmqpConfiguration amqpConfiguration;
+    protected final FanoutExchange raoResponseExchange;
+    protected final Logger businessLogger;
+    protected final RestTemplateBuilder restTemplateBuilder;
+    protected final UrlConfiguration urlConfiguration;
 
     @Value("${rao-runner.with-interruption-server}")
-    private boolean interruptionServerIsActivated;
+    protected boolean interruptionServerIsActivated;
 
-    public RaoRunnerListener(RaoRunnerService raoRunnerService, AmqpTemplate amqpTemplate, AmqpConfiguration amqpConfiguration, FanoutExchange raoResponseExchange, Logger businessLogger, RestTemplateBuilder restTemplateBuilder, UrlConfiguration urlConfiguration) {
+    protected AbstractRaoRunnerMessageHandler(RAO_RUNNER_SERVICE_TYPE raoRunnerService, AmqpTemplate amqpTemplate, AmqpConfiguration amqpConfiguration, FanoutExchange raoResponseExchange, Logger businessLogger, RestTemplateBuilder restTemplateBuilder, UrlConfiguration urlConfiguration) {
         this.raoResponseExchange = raoResponseExchange;
         this.businessLogger = businessLogger;
         this.jsonApiConverter = new JsonApiConverter();
@@ -61,63 +64,17 @@ public class RaoRunnerListener implements MessageListener {
         this.urlConfiguration = urlConfiguration;
     }
 
-    @Override
-    public void onMessage(Message message) {
-        final String replyTo = message.getMessageProperties().getReplyTo();
-        final String brokerCorrelationId = message.getMessageProperties().getCorrelationId();
+    protected abstract void handleMessage(Message message);
 
-        try {
-            final RaoRequest raoRequest = jsonApiConverter.fromJsonMessage(message.getBody(), RaoRequest.class);
-            LOGGER.info("RAO request received: {}", raoRequest);
-            if (interruptionServerIsActivated && checkIsInterrupted(raoRequest)) {
-                sendRaoInterruptedResponse(raoRequest, replyTo, brokerCorrelationId);
-                return;
-            }
-            addMetaDataToLogsModelContext(raoRequest.getId(), brokerCorrelationId, message.getMessageProperties().getAppId(), raoRequest.getEventPrefix());
-            final GenericThreadLauncher<RaoRunnerService, AbstractRaoResponse> launcher = new GenericThreadLauncher<>(
-                raoRunnerService,
-                raoRequest.getRunId(),
-                MDC.getCopyOfContextMap(),
-                raoRequest
-            );
-
-            businessLogger.info("Starting the RAO computation");
-            launcher.start();
-
-            final ThreadLauncherResult<AbstractRaoResponse> raoThreadResult = launcher.getResult();
-            if (raoThreadResult.hasError()) {
-                final Exception exception = raoThreadResult.exception();
-                if (exception instanceof InvocationTargetException ite) {
-                    throw (Exception) ite.getCause();
-                } else {
-                    throw exception;
-                }
-            } else if (raoThreadResult.isInterrupted()) {
-                sendRaoInterruptedResponse(raoRequest, replyTo, brokerCorrelationId);
-            } else {
-                final AbstractRaoResponse raoResponse = raoThreadResult.result();
-                businessLogger.info("RAO computation is finished");
-                LOGGER.info("RAO response sent: {}", raoResponse);
-                sendRaoResponse(raoResponse, replyTo, brokerCorrelationId);
-            }
-            System.gc(); // NOSONAR because memory management is crucial for rao-runner, therefore suggesting to the JVM to collect garbage here should not be considered as a problem by Sonar
-        } catch (RaoRunnerException e) {
-            sendRaoFailedResponse(e, replyTo, brokerCorrelationId);
-        } catch (Exception e) {
-            final RaoRunnerException wrappingException = new RaoRunnerException("Unhandled exception: " + e.getMessage(), e);
-            sendRaoFailedResponse(wrappingException, replyTo, brokerCorrelationId);
-        }
-    }
-
-    private boolean checkIsInterrupted(final RaoRequest raoRequest) {
+    protected boolean checkIsInterrupted(final AbstractRaoRequest raoRequest) {
         final String requestUrl = urlConfiguration.getInterruptServerUrl() + raoRequest.getRunId();
         final ResponseEntity<Boolean> responseEntity = restTemplateBuilder.build().getForEntity(requestUrl, Boolean.class);
         return responseEntity.getBody() != null
-                && responseEntity.getStatusCode() == HttpStatus.OK
-                && responseEntity.getBody();
+            && responseEntity.getStatusCode() == HttpStatus.OK
+            && responseEntity.getBody();
     }
 
-    void addMetaDataToLogsModelContext(final String gridcapaTaskId, final String computationId, final String clientAppId, final Optional<String> optPrefix) {
+    protected void addMetaDataToLogsModelContext(final String gridcapaTaskId, final String computationId, final String clientAppId, final Optional<String> optPrefix) {
         MDC.put("gridcapaTaskId", gridcapaTaskId);
         MDC.put("computationId", computationId);
         MDC.put("clientAppId", clientAppId);
@@ -128,7 +85,7 @@ public class RaoRunnerListener implements MessageListener {
         }
     }
 
-    private void sendRaoInterruptedResponse(final RaoRequest raoRequest, final String replyTo, final String brokerCorrelationId) {
+    protected void sendRaoInterruptedResponse(final AbstractRaoRequest raoRequest, final String replyTo, final String brokerCorrelationId) {
         businessLogger.warn("RAO computation has been interrupted");
         final RaoSuccessResponse raoResponse = new RaoSuccessResponse.Builder()
                 .withId(raoRequest.getId())
@@ -137,7 +94,7 @@ public class RaoRunnerListener implements MessageListener {
         sendRaoResponse(raoResponse, replyTo, brokerCorrelationId);
     }
 
-    private void sendRaoFailedResponse(final Exception exception, final String replyTo, final String correlationId) {
+    protected void sendRaoFailedResponse(final Exception exception, final String replyTo, final String correlationId) {
         LOGGER.error("Exception occurred while running RAO", exception);
         final RaoRunnerException raoRunnerException;
         if (exception instanceof RaoRunnerException rre) {
@@ -149,7 +106,7 @@ public class RaoRunnerListener implements MessageListener {
         sendMessage(replyTo, errorMessage);
     }
 
-    private void sendRaoResponse(final AbstractRaoResponse raoResponse, final String replyTo, final String correlationId) {
+    protected void sendRaoResponse(final AbstractRaoResponse raoResponse, final String replyTo, final String correlationId) {
         final Message responseMessage = createMessageFromRaoResponse(raoResponse, correlationId);
         sendMessage(replyTo, responseMessage);
     }

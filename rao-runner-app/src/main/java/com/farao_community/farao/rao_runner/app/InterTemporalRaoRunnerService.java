@@ -8,8 +8,8 @@ package com.farao_community.farao.rao_runner.app;
 
 import com.farao_community.farao.rao_runner.api.resource.AbstractRaoResponse;
 import com.farao_community.farao.rao_runner.api.resource.InterTemporalRaoRequest;
+import com.farao_community.farao.rao_runner.api.resource.InterTemporalRaoSuccessResponse;
 import com.farao_community.farao.rao_runner.api.resource.RaoFailureResponse;
-import com.farao_community.farao.rao_runner.api.resource.RaoSuccessResponse;
 import com.farao_community.farao.rao_runner.api.resource.TimedInput;
 import com.powsybl.iidm.network.Generator;
 import com.powsybl.iidm.network.Network;
@@ -129,7 +129,7 @@ public class InterTemporalRaoRunnerService {
         return timedInputMap;
     }
 
-    private RaoSuccessResponse saveResultsAndCreateRaoResponse(final InterTemporalRaoRequest raoRequest,
+    private InterTemporalRaoSuccessResponse saveResultsAndCreateRaoResponse(final InterTemporalRaoRequest raoRequest,
                                                                final InterTemporalRaoInputWithNetworkPaths raoInput,
                                                                final InterTemporalRaoResult raoResult,
                                                                final Instant computationStartInstant) throws IOException {
@@ -140,11 +140,11 @@ public class InterTemporalRaoRunnerService {
 
         final String raoInstant = raoRequest.getInstant().orElse(null);
         final Instant computationEndInstant = Instant.now();
-        return new RaoSuccessResponse.Builder()
+        return new InterTemporalRaoSuccessResponse.Builder()
                 .withId(raoRequest.getId())
                 .withInstant(raoInstant)
-                .withNetworkWithPraFileUrl(networksWithPraFileUrl)
-                .withRaoResultFileUrl(raoResultFileUrl)
+                .withNetworksWithPraFileUrl(networksWithPraFileUrl)
+                .withRaoResultsFileUrl(raoResultFileUrl)
                 .withComputationStartInstant(computationStartInstant)
                 .withComputationEndInstant(computationEndInstant)
                 .withInterrupted(false)
