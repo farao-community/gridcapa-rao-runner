@@ -20,6 +20,8 @@ import com.powsybl.openrao.raoapi.parameters.RaoParameters;
 import com.powsybl.openrao.virtualhubs.VirtualHubsConfiguration;
 import com.powsybl.openrao.virtualhubs.xml.XmlVirtualHubsConfiguration;
 import com.powsybl.sensitivity.SensitivityVariableSet;
+import io.opentelemetry.instrumentation.annotations.SpanAttribute;
+import io.opentelemetry.instrumentation.annotations.WithSpan;
 import org.apache.commons.io.FilenameUtils;
 import org.springframework.stereotype.Service;
 
@@ -42,7 +44,8 @@ public class FileImporter {
         this.urlConfiguration = urlConfiguration;
     }
 
-    RaoParameters importRaoParameters(String raoParametersFileUrl) throws FileImporterException {
+    @WithSpan("importRaoParameters")
+    RaoParameters importRaoParameters(@SpanAttribute("raoParametersFileUrl") final String raoParametersFileUrl) throws FileImporterException {
         try {
             //keep using update method instead of read directly to avoid serialisation issues
             final RaoParameters defaultRaoParameters = new RaoParameters();
@@ -54,7 +57,8 @@ public class FileImporter {
         }
     }
 
-    public Network importNetwork(final String networkFileUrl) throws FileImporterException {
+    @WithSpan("importNetwork")
+    public Network importNetwork(@SpanAttribute("networkFileUrl") final String networkFileUrl) throws FileImporterException {
         try {
             return Network.read(getFileNameFromUrl(networkFileUrl), openUrlStream(networkFileUrl));
         } catch (Exception e) {
@@ -63,7 +67,8 @@ public class FileImporter {
         }
     }
 
-    public Crac importCrac(final String cracFileUrl, final Network network) throws FileImporterException {
+    @WithSpan("importCrac")
+    public Crac importCrac(@SpanAttribute("cracFileUrl") final String cracFileUrl, final Network network) throws FileImporterException {
         try {
             return Crac.read(getFileNameFromUrl(cracFileUrl), openUrlStream(cracFileUrl), network);
         } catch (Exception e) {
@@ -72,7 +77,8 @@ public class FileImporter {
         }
     }
 
-    ZonalData<SensitivityVariableSet> importGlsk(final String instant, final String glskUrl, final Network network) throws FileImporterException {
+    @WithSpan("importGlsk")
+    ZonalData<SensitivityVariableSet> importGlsk(@SpanAttribute("instant") final String instant, @SpanAttribute("glskUrl") final String glskUrl, final Network network) throws FileImporterException {
         try {
             final InputStream glskFileInputStream = openUrlStream(glskUrl);
             final GlskDocument ucteGlskProvider = GlskDocumentImporters.importGlsk(glskFileInputStream);
@@ -87,7 +93,8 @@ public class FileImporter {
         }
     }
 
-    ReferenceProgram importRefProg(final String instant, final String refProgUrl) throws FileImporterException {
+    @WithSpan("importRefProg")
+    ReferenceProgram importRefProg(@SpanAttribute("instant") final String instant, @SpanAttribute("refProgUrl") final String refProgUrl) throws FileImporterException {
         try {
             final InputStream refProgFileInputStream = openUrlStream(refProgUrl);
             final OffsetDateTime offsetDateTime = OffsetDateTime.parse(instant);
@@ -100,7 +107,8 @@ public class FileImporter {
         }
     }
 
-    public VirtualHubsConfiguration importVirtualHubs(final String virtualHubsUrl) throws FileImporterException {
+    @WithSpan("importVirtualHubs")
+    public VirtualHubsConfiguration importVirtualHubs(@SpanAttribute("virtualHubsUrl") final String virtualHubsUrl) throws FileImporterException {
         try (InputStream virtualHubsInputStream = openUrlStream(virtualHubsUrl)) {
             return XmlVirtualHubsConfiguration.importConfiguration(virtualHubsInputStream);
         } catch (Exception e) {

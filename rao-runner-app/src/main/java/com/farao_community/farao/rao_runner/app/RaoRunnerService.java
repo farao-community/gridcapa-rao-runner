@@ -25,6 +25,8 @@ import com.powsybl.openrao.raoapi.json.JsonRaoParameters;
 import com.powsybl.openrao.raoapi.parameters.RaoParameters;
 import com.powsybl.openrao.virtualhubs.VirtualHubsConfiguration;
 import com.powsybl.sensitivity.SensitivityVariableSet;
+import io.opentelemetry.instrumentation.annotations.SpanAttribute;
+import io.opentelemetry.instrumentation.annotations.WithSpan;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -55,8 +57,9 @@ public class RaoRunnerService {
         this.eventsLogger = eventsLogger;
     }
 
+    @WithSpan("runRao")
     @Threadable
-    public AbstractRaoResponse runRao(final RaoRequest raoRequest) {
+    public AbstractRaoResponse runRao(@SpanAttribute("raoRequest") final RaoRequest raoRequest) {
         try {
             final Instant computationStartInstant = Instant.now();
             final RaoParameters raoParameters = fileImporter.importRaoParameters(raoRequest.getRaoParametersFileUrl());

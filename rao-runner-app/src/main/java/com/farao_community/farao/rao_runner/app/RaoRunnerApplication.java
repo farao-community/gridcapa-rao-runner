@@ -10,6 +10,7 @@ import com.farao_community.farao.rao_runner.app.configuration.UrlConfiguration;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.context.annotation.EnableAspectJAutoProxy;
 
 /**
  * @author Mohamed BenRejeb {@literal <mohamed.ben-rejeb at rte-france.com>}
@@ -17,6 +18,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 @SuppressWarnings("HideUtilityClassConstructor")
 @SpringBootApplication
 @EnableConfigurationProperties({UrlConfiguration.class})
+@EnableAspectJAutoProxy(exposeProxy = true)
 public class RaoRunnerApplication {
     public static void main(String[] args) {
         SpringApplication.run(RaoRunnerApplication.class, args);
