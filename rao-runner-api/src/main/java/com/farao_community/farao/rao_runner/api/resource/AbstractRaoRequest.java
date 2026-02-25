@@ -40,7 +40,7 @@ public abstract class AbstractRaoRequest {
         this.eventPrefix = builder.eventPrefix;
     }
 
-    public abstract static class AbstractRaoRequestBuilder<T> {
+    public abstract static class AbstractRaoRequestBuilder<T extends AbstractRaoRequestBuilder> {
         private String id;
         private String runId;
         private String instant;

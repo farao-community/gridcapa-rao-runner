@@ -17,19 +17,20 @@ import org.springframework.stereotype.Component;
 @Component
 public class GenericRaoRunnerListener implements MessageListener {
 
-    private final InterTemporalRaoRunnerMessageHandler interTemporalRaoRunnerMessageHandler;
+    private final TimeCoupledRaoRunnerMessageHandler timeCoupledRaoRunnerMessageHandler;
     private final RaoRunnerMessageHandler raoRunnerMessageHandler;
 
-    public GenericRaoRunnerListener(final InterTemporalRaoRunnerMessageHandler interTemporalRaoRunnerMessageHandler, final RaoRunnerMessageHandler raoRunnerMessageHandler) {
-        this.interTemporalRaoRunnerMessageHandler = interTemporalRaoRunnerMessageHandler;
+    public GenericRaoRunnerListener(final TimeCoupledRaoRunnerMessageHandler timeCoupledRaoRunnerMessageHandler, final RaoRunnerMessageHandler raoRunnerMessageHandler) {
+        this.timeCoupledRaoRunnerMessageHandler = timeCoupledRaoRunnerMessageHandler;
         this.raoRunnerMessageHandler = raoRunnerMessageHandler;
     }
 
     @Override
     public void onMessage(Message message) {
-        switch (message.getMessageProperties().getReceivedRoutingKey()) {
-            case "INTERTEMPORAL" -> interTemporalRaoRunnerMessageHandler.handleMessage(message);
-            default -> raoRunnerMessageHandler.handleMessage(message);
+        if (message.getMessageProperties().getReceivedRoutingKey().equals("INTERTEMPORAL")) {
+            timeCoupledRaoRunnerMessageHandler.handleMessage(message);
+        } else {
+            raoRunnerMessageHandler.handleMessage(message);
         }
     }
 }

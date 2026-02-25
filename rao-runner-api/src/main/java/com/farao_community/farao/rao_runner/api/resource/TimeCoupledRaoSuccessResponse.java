@@ -20,8 +20,8 @@ import java.util.Optional;
  * @author Vincent Bochet {@literal <vincent.bochet at rte-france.com>}
  */
 @Type("rao-response")
-@JsonDeserialize(builder = InterTemporalRaoSuccessResponse.Builder.class)
-public final class InterTemporalRaoSuccessResponse extends AbstractRaoResponse {
+@JsonDeserialize(builder = TimeCoupledRaoSuccessResponse.Builder.class)
+public final class TimeCoupledRaoSuccessResponse extends AbstractRaoResponse {
 
     @Id
     private final String id;
@@ -32,7 +32,7 @@ public final class InterTemporalRaoSuccessResponse extends AbstractRaoResponse {
     private final Instant computationEndInstant;
     private final boolean interrupted;
 
-    private InterTemporalRaoSuccessResponse(Builder builder) {
+    private TimeCoupledRaoSuccessResponse(Builder builder) {
         this.id = builder.id;
         this.instant = builder.instant;
         this.networksWithPraFileUrl = builder.networksWithPraFileUrl;
@@ -95,8 +95,8 @@ public final class InterTemporalRaoSuccessResponse extends AbstractRaoResponse {
         }
 
         @JsonCreator
-        public InterTemporalRaoSuccessResponse build() {
-            return new InterTemporalRaoSuccessResponse(this);
+        public TimeCoupledRaoSuccessResponse build() {
+            return new TimeCoupledRaoSuccessResponse(this);
         }
     }
 

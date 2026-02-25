@@ -7,9 +7,8 @@
 package com.farao_community.farao.rao_runner.app;
 
 import com.farao_community.farao.rao_runner.api.resource.AbstractRaoResponse;
-import com.farao_community.farao.rao_runner.api.resource.InterTemporalRaoRequest;
-import com.farao_community.farao.rao_runner.api.resource.InterTemporalRaoSuccessResponse;
-import com.farao_community.farao.rao_runner.api.resource.RaoFailureResponse;
+import com.farao_community.farao.rao_runner.api.resource.TimeCoupledRaoRequest;
+import com.farao_community.farao.rao_runner.api.resource.TimeCoupledRaoSuccessResponse;
 import com.farao_community.farao.rao_runner.api.resource.TimedInput;
 import com.powsybl.iidm.network.Generator;
 import com.powsybl.iidm.network.Network;
@@ -22,12 +21,12 @@ import com.powsybl.openrao.data.crac.api.State;
 import com.powsybl.openrao.data.crac.api.networkaction.NetworkAction;
 import com.powsybl.openrao.data.crac.api.rangeaction.InjectionRangeAction;
 import com.powsybl.openrao.data.crac.api.rangeaction.RangeAction;
-import com.powsybl.openrao.data.intertemporalconstraints.IntertemporalConstraints;
 import com.powsybl.openrao.data.raoresult.api.ComputationStatus;
-import com.powsybl.openrao.data.raoresult.api.InterTemporalRaoResult;
-import com.powsybl.openrao.raoapi.InterTemporalRao;
-import com.powsybl.openrao.raoapi.InterTemporalRaoInputWithNetworkPaths;
+import com.powsybl.openrao.data.raoresult.api.TimeCoupledRaoResult;
+import com.powsybl.openrao.data.timecoupledconstraints.TimeCoupledConstraints;
 import com.powsybl.openrao.raoapi.RaoInputWithNetworkPaths;
+import com.powsybl.openrao.raoapi.TimeCoupledRao;
+import com.powsybl.openrao.raoapi.TimeCoupledRaoInputWithNetworkPaths;
 import com.powsybl.openrao.raoapi.json.JsonRaoParameters;
 import com.powsybl.openrao.raoapi.parameters.RaoParameters;
 import org.slf4j.Logger;
@@ -50,30 +49,28 @@ import java.util.Set;
  * @author Vincent Bochet {@literal <vincent.bochet at rte-france.com>}
  */
 @Service
-public class InterTemporalRaoRunnerService {
-    private static final Logger LOGGER = LoggerFactory.getLogger(InterTemporalRaoRunnerService.class);
+public class TimeCoupledRaoRunnerService implements AbstractRaoRunnerService {
+    private static final Logger LOGGER = LoggerFactory.getLogger(TimeCoupledRaoRunnerService.class);
 
-    private final InterTemporalRao.Runner raoRunnerProvider;
+    private final TimeCoupledRao.Runner raoRunnerProvider;
     private final FileExporter fileExporter;
     private final FileImporter fileImporter;
-    private final Logger eventsLogger;
 
-    public InterTemporalRaoRunnerService(InterTemporalRao.Runner raoRunnerProvider, FileExporter fileExporter, FileImporter fileImporter, Logger eventsLogger) {
+    public TimeCoupledRaoRunnerService(TimeCoupledRao.Runner raoRunnerProvider, FileExporter fileExporter, FileImporter fileImporter) {
         this.raoRunnerProvider = raoRunnerProvider;
         this.fileExporter = fileExporter;
         this.fileImporter = fileImporter;
-        this.eventsLogger = eventsLogger;
     }
 
     @Threadable
-    public AbstractRaoResponse runRao(final InterTemporalRaoRequest raoRequest) {
+    public AbstractRaoResponse runRao(final TimeCoupledRaoRequest raoRequest) {
         try {
             final Instant computationStartInstant = Instant.now();
             final RaoParameters raoParameters = fileImporter.importRaoParameters(raoRequest.getRaoParametersFileUrl());
             logParameters(raoParameters);
-            final InterTemporalRaoInputWithNetworkPaths raoInput = getRaoInput(raoRequest);
+            final TimeCoupledRaoInputWithNetworkPaths raoInput = getRaoInput(raoRequest);
 
-            final InterTemporalRaoResult raoResult = raoRunnerProvider.run(raoInput, raoParameters);
+            final TimeCoupledRaoResult raoResult = raoRunnerProvider.run(raoInput, raoParameters);
 
             if (raoResult.getComputationStatus() == ComputationStatus.FAILURE) {
                 return buildRaoFailureResponse(raoRequest.getId(), "RAO computation failed");
@@ -90,76 +87,62 @@ public class InterTemporalRaoRunnerService {
         try (final ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
             JsonRaoParameters.write(raoParameters, baos);
             if (LOGGER.isInfoEnabled()) {
-                LOGGER.info("Running InterTemporal RAO with following parameters:{}{}", System.lineSeparator(), baos);
+                LOGGER.info("Running time-coupled RAO with following parameters:{}{}", System.lineSeparator(), baos);
             }
         } catch (IOException e) {
             LOGGER.error("Exception occurred while reading RAO parameters for logging", e);
         }
     }
 
-    private InterTemporalRaoInputWithNetworkPaths getRaoInput(final InterTemporalRaoRequest raoRequest) throws IOException, FileImporterException {
-        final List<TimedInput> inputs = fileImporter.importTimedInputs(raoRequest.getTimedInputsFileUrl());
-
-        final Map<OffsetDateTime, RaoInputWithNetworkPaths> timedInputMap = buildInputs(inputs);
-        final IntertemporalConstraints intertemporalConstraints = fileImporter.importIcsFile(raoRequest.getIcsFileUrl());
-        return new InterTemporalRaoInputWithNetworkPaths(new TemporalDataImpl<>(timedInputMap), intertemporalConstraints);
+    private TimeCoupledRaoInputWithNetworkPaths getRaoInput(final TimeCoupledRaoRequest raoRequest) throws FileImporterException {
+        final List<TimedInput> timedInputs = fileImporter.importTimedInputs(raoRequest.getTimedInputsFileUrl());
+        final Map<OffsetDateTime, RaoInputWithNetworkPaths> timedInputMap = buildInputs(timedInputs);
+        final TimeCoupledConstraints timeCoupledConstraints = fileImporter.importIcsFile(raoRequest.getIcsFileUrl());
+        return new TimeCoupledRaoInputWithNetworkPaths(new TemporalDataImpl<>(timedInputMap), timeCoupledConstraints);
     }
 
-    private static Map<OffsetDateTime, RaoInputWithNetworkPaths> buildInputs(List<TimedInput> inputs) {
+    private Map<OffsetDateTime, RaoInputWithNetworkPaths> buildInputs(final List<TimedInput> inputs) throws FileImporterException {
         final Map<OffsetDateTime, RaoInputWithNetworkPaths> timedInputMap = new HashMap<>();
-        inputs.stream().sorted(Comparator.comparing(TimedInput::timestamp))
-            .forEach(timedInput -> {
-                final Network network = Network.read(timedInput.networkFile());
-                Crac crac = null;
-                try {
-                    CracCreationContext ccc = Crac.readWithContext(Path.of(timedInput.cracFile()).getFileName().toString(),
-                        new FileInputStream(timedInput.cracFile()),
-                        network
-                    );
-                    System.out.println(ccc.getCreationReport());
-                    crac = ccc.getCrac();
-                } catch (IOException e) {
-                    System.err.println("Could not read crac: " + e.getMessage());
-                    System.exit(1);
-                }
-                // TODO fix this. should use timedInput.ts instead of crac.ts, but it is in UTC
-                timedInputMap.put(crac.getTimestamp().orElseThrow(),
-                    RaoInputWithNetworkPaths.build(timedInput.networkFile(), timedInput.networkFile(), crac).build());
-            });
+        final List<TimedInput> sortedTimedInputs = inputs.stream()
+            .sorted(Comparator.comparing(TimedInput::timestamp))
+            .toList();
+
+        for (final TimedInput timedInput : sortedTimedInputs) {
+            final Network network = fileImporter.importNetwork(timedInput.networkFile());
+            // TODO Besoin de pré-processing sur le network ici ?
+            final Crac crac = fileImporter.importCracWithContext(timedInput.cracFile(), network);
+
+            // TODO fix this. should use timedInput.ts instead of crac.ts, but it is in UTC
+            timedInputMap.put(crac.getTimestamp().orElseThrow(),
+                RaoInputWithNetworkPaths.build(timedInput.networkFile(), timedInput.networkFile(), crac).build());
+        }
         return timedInputMap;
     }
 
-    private InterTemporalRaoSuccessResponse saveResultsAndCreateRaoResponse(final InterTemporalRaoRequest raoRequest,
-                                                               final InterTemporalRaoInputWithNetworkPaths raoInput,
-                                                               final InterTemporalRaoResult raoResult,
-                                                               final Instant computationStartInstant) throws IOException {
+    private TimeCoupledRaoSuccessResponse saveResultsAndCreateRaoResponse(final TimeCoupledRaoRequest raoRequest,
+                                                                          final TimeCoupledRaoInputWithNetworkPaths raoInput,
+                                                                          final TimeCoupledRaoResult raoResult,
+                                                                          final Instant computationStartInstant) throws IOException {
 
-        final String raoResultFileUrl = fileExporter.saveInterTemporalRaoResult(raoResult, raoInput, raoRequest);
-        final Map<OffsetDateTime, Network> networksMithPrasMap = applyRemedialActions(raoResult, raoInput);
-        final String networksWithPraFileUrl = fileExporter.saveNetwork(networksMithPrasMap, raoInput, raoRequest);
+        final String raoResultFileUrl = fileExporter.saveTimeCoupledRaoResult(raoResult, raoInput, raoRequest);
+        final Map<OffsetDateTime, Network> networksWithPrasMap = applyRemedialActions(raoResult, raoInput);
+        final String networksWithPraFileUrl = fileExporter.saveNetwork(networksWithPrasMap, raoInput, raoRequest);
 
-        final String raoInstant = raoRequest.getInstant().orElse(null);
+        final String raoInstant = raoRequest.getInstant().orElse(null); // TODO Vérifier si on a une valeur mais à mon avis ça n'a pas de sens pour de l'intertemporel donc on devrait pouvoir retirer l'appel à withInstant() ci-dessous
         final Instant computationEndInstant = Instant.now();
-        return new InterTemporalRaoSuccessResponse.Builder()
-                .withId(raoRequest.getId())
-                .withInstant(raoInstant)
-                .withNetworksWithPraFileUrl(networksWithPraFileUrl)
-                .withRaoResultsFileUrl(raoResultFileUrl)
-                .withComputationStartInstant(computationStartInstant)
-                .withComputationEndInstant(computationEndInstant)
-                .withInterrupted(false)
-                .build();
+        return new TimeCoupledRaoSuccessResponse.Builder()
+            .withId(raoRequest.getId())
+            .withInstant(raoInstant)
+            .withNetworksWithPraFileUrl(networksWithPraFileUrl)
+            .withRaoResultsFileUrl(raoResultFileUrl)
+            .withComputationStartInstant(computationStartInstant)
+            .withComputationEndInstant(computationEndInstant)
+            .withInterrupted(false)
+            .build();
     }
 
-    private RaoFailureResponse buildRaoFailureResponse(final String id, final String message) {
-        return new RaoFailureResponse.Builder()
-                .withId(id)
-                .withErrorMessage(message)
-                .build();
-    }
-
-    private static Map<OffsetDateTime, Network> applyRemedialActions(final InterTemporalRaoResult result, final InterTemporalRaoInputWithNetworkPaths raoInput) {
-        final Map<OffsetDateTime, Network> networksMithPrasMap = new HashMap<>();
+    private static Map<OffsetDateTime, Network> applyRemedialActions(final TimeCoupledRaoResult result, final TimeCoupledRaoInputWithNetworkPaths raoInput) {
+        final Map<OffsetDateTime, Network> networksWithPrasMap = new HashMap<>();
 
         for (final OffsetDateTime offsetDateTime : result.getTimestamps()) {
             final State preventiveState = raoInput.getRaoInputs().getData(offsetDateTime).get().getCrac().getPreventiveState();
@@ -178,9 +161,9 @@ public class InterTemporalRaoRunnerService {
                 }
             });
 
-            networksMithPrasMap.put(offsetDateTime, network);
+            networksWithPrasMap.put(offsetDateTime, network);
         }
-        return networksMithPrasMap;
+        return networksWithPrasMap;
     }
 
     private static void applyRedispatchingAction(final InjectionRangeAction injectionRangeAction,

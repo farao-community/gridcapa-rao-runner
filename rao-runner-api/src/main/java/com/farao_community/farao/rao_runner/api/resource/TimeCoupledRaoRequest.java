@@ -16,13 +16,13 @@ import org.apache.commons.lang3.builder.ToStringBuilder;
  * @author Vincent Bochet {@literal <vincent.bochet at rte-france.com>}
  */
 @Type("rao-request")
-@JsonDeserialize(builder = InterTemporalRaoRequest.RaoRequestBuilder.class)
-public final class InterTemporalRaoRequest extends AbstractRaoRequest {
+@JsonDeserialize(builder = TimeCoupledRaoRequest.RaoRequestBuilder.class)
+public final class TimeCoupledRaoRequest extends AbstractRaoRequest {
 
     private final String icsFileUrl;
     private final String timedInputsFileUrl;
 
-    private InterTemporalRaoRequest(RaoRequestBuilder builder) {
+    private TimeCoupledRaoRequest(RaoRequestBuilder builder) {
         super(builder);
         this.icsFileUrl = builder.icsFileUrl;
         this.timedInputsFileUrl = builder.timedInputsFileUrl;
@@ -45,8 +45,8 @@ public final class InterTemporalRaoRequest extends AbstractRaoRequest {
         }
 
         @JsonCreator
-        public InterTemporalRaoRequest build() {
-            return new InterTemporalRaoRequest(this);
+        public TimeCoupledRaoRequest build() {
+            return new TimeCoupledRaoRequest(this);
         }
     }
 

@@ -17,8 +17,9 @@ import com.powsybl.glsk.api.io.GlskDocumentImporters;
 import com.powsybl.glsk.commons.ZonalData;
 import com.powsybl.iidm.network.Network;
 import com.powsybl.openrao.data.crac.api.Crac;
-import com.powsybl.openrao.data.intertemporalconstraints.IntertemporalConstraints;
-import com.powsybl.openrao.data.intertemporalconstraints.io.JsonIntertemporalConstraints;
+import com.powsybl.openrao.data.crac.api.CracCreationContext;
+import com.powsybl.openrao.data.timecoupledconstraints.TimeCoupledConstraints;
+import com.powsybl.openrao.data.timecoupledconstraints.io.JsonTimeCoupledConstraints;
 import com.powsybl.openrao.data.refprog.referenceprogram.ReferenceProgram;
 import com.powsybl.openrao.data.refprog.refprogxmlimporter.RefProgImporter;
 import com.powsybl.openrao.raoapi.json.JsonRaoParameters;
@@ -34,6 +35,7 @@ import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.nio.file.Path;
 import java.time.OffsetDateTime;
 import java.util.List;
 
@@ -73,6 +75,17 @@ public class FileImporter {
     public Crac importCrac(final String cracFileUrl, final Network network) throws FileImporterException {
         try {
             return Crac.read(getFileNameFromUrl(cracFileUrl), openUrlStream(cracFileUrl), network);
+        } catch (Exception e) {
+            final String message = String.format("Exception occurred while importing CRAC file %s", FilenameUtils.getName(cracFileUrl));
+            throw new FileImporterException(message, e);
+        }
+    }
+
+    public Crac importCracWithContext(final String cracFileUrl, final Network network) throws FileImporterException {
+        try {
+            final CracCreationContext context = Crac.readWithContext(getFileNameFromUrl(cracFileUrl), openUrlStream(cracFileUrl), network);
+            context.getCreationReport().printCreationReport();
+            return context.getCrac();
         } catch (Exception e) {
             final String message = String.format("Exception occurred while importing CRAC file %s", FilenameUtils.getName(cracFileUrl));
             throw new FileImporterException(message, e);
@@ -129,9 +142,9 @@ public class FileImporter {
         }
     }
 
-    IntertemporalConstraints importIcsFile(String icsFileUrl) throws FileImporterException {
+    TimeCoupledConstraints importIcsFile(String icsFileUrl) throws FileImporterException {
         try (final InputStream inputStream = openUrlStream(icsFileUrl)) {
-            return JsonIntertemporalConstraints.read(inputStream);
+            return JsonTimeCoupledConstraints.read(inputStream);
         } catch (Exception e) {
             final String message = String.format("Error occurred while reading ICS file %s",
                 FilenameUtils.getName(icsFileUrl));
@@ -151,12 +164,7 @@ public class FileImporter {
         }
     }
 
-    private String getFileNameFromUrl(final String stringUrl) {
-        try {
-            final URL url = new URI(stringUrl).toURL();
-            return FilenameUtils.getName(url.getPath());
-        } catch (IOException | URISyntaxException | IllegalArgumentException e) {
-            throw new RaoRunnerException(String.format("Exception occurred while retrieving file name from %s", stringUrl), e);
-        }
+    private static String getFileNameFromUrl(final String stringUrl) {
+        return Path.of(stringUrl).getFileName().toString();
     }
 }

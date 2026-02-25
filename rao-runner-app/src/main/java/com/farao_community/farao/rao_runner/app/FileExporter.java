@@ -7,15 +7,15 @@
 package com.farao_community.farao.rao_runner.app;
 
 import com.farao_community.farao.minio_adapter.starter.MinioAdapter;
-import com.farao_community.farao.rao_runner.api.resource.InterTemporalRaoRequest;
+import com.farao_community.farao.rao_runner.api.resource.TimeCoupledRaoRequest;
 import com.farao_community.farao.rao_runner.api.resource.RaoRequest;
 import com.powsybl.commons.datasource.MemDataSource;
 import com.powsybl.iidm.network.Network;
 import com.powsybl.openrao.commons.Unit;
 import com.powsybl.openrao.data.crac.api.Crac;
-import com.powsybl.openrao.data.raoresult.api.InterTemporalRaoResult;
+import com.powsybl.openrao.data.raoresult.api.TimeCoupledRaoResult;
 import com.powsybl.openrao.data.raoresult.api.RaoResult;
-import com.powsybl.openrao.raoapi.InterTemporalRaoInputWithNetworkPaths;
+import com.powsybl.openrao.raoapi.TimeCoupledRaoInputWithNetworkPaths;
 import com.powsybl.openrao.raoapi.RaoInputWithNetworkPaths;
 import org.apache.commons.io.FilenameUtils;
 import org.springframework.stereotype.Service;
@@ -38,6 +38,14 @@ import static com.farao_community.farao.rao_runner.app.RaoResultWriterProperties
  */
 @Service
 public class FileExporter {
+    private static final Properties RAO_RESULT_EXPORT_PROPERTIES = new Properties();
+
+    static {
+        RAO_RESULT_EXPORT_PROPERTIES.put("rao-result.export.json.flows-in-megawatts", "true");
+        RAO_RESULT_EXPORT_PROPERTIES.put("time-coupled-rao-result.export.filename-template", "'RAO_RESULT_'yyyy-MM-dd'T'HH:mm:ss'.json'");
+        RAO_RESULT_EXPORT_PROPERTIES.put("time-coupled-rao-result.export.summary-filename", "summary.json");
+    }
+
     private static final String NETWORK_XIIDM = "networkWithPRA.xiidm";
     private static final String NETWORKS_ZIP = "networksWithPRA.zip";
     private static final String RAO_RESULT_JSON = "raoResult.json";
@@ -60,8 +68,8 @@ public class FileExporter {
     }
 
     String saveNetwork(final Map<OffsetDateTime, Network> networksMithPrasMap,
-                       final InterTemporalRaoInputWithNetworkPaths raoInput,
-                       final InterTemporalRaoRequest raoRequest) throws IOException {
+                       final TimeCoupledRaoInputWithNetworkPaths raoInput,
+                       final TimeCoupledRaoRequest raoRequest) throws IOException {
         final ByteArrayOutputStream outputStreamRaoResult = new ByteArrayOutputStream();
         try (ZipOutputStream zipOutputStream = new ZipOutputStream(outputStreamRaoResult)) {
             for (final Map.Entry<OffsetDateTime, Network> entry : networksMithPrasMap.entrySet()) {
@@ -73,15 +81,16 @@ public class FileExporter {
 
                 // Add network to zip
                 final String filePath = raoInput.getRaoInputs().getData(offsetDateTime).orElseThrow().getPostIcsImportNetworkPath();
-                String name = FilenameUtils.getName(filePath).split(".xiidm")[0].concat("_afterPRA.xiidm");
-                ZipEntry zipEntry = new ZipEntry(name);
+                // TODO Voir si on peut utiliser le même format {X|J}IIDM que le fichier d'entrée
+                final String name = FilenameUtils.getName(filePath).split(".xiidm")[0].concat("_afterPRA.xiidm");
+                final ZipEntry zipEntry = new ZipEntry(name);
                 zipOutputStream.putNextEntry(zipEntry);
                 zipOutputStream.write(dataSource.getData(null, IIDM_EXTENSION));
             }
         }
-        final String networkWithPRADestinationPath = makeTargetDirectoryPath(raoRequest) + File.separator + NETWORKS_ZIP;
-        minioAdapter.uploadArtifact(networkWithPRADestinationPath, new ByteArrayInputStream(outputStreamRaoResult.toByteArray()));
-        return minioAdapter.generatePreSignedUrl(networkWithPRADestinationPath);
+        final String networksWithPraDestinationPath = makeTargetDirectoryPath(raoRequest) + File.separator + NETWORKS_ZIP;
+        minioAdapter.uploadArtifact(networksWithPraDestinationPath, new ByteArrayInputStream(outputStreamRaoResult.toByteArray()));
+        return minioAdapter.generatePreSignedUrl(networksWithPraDestinationPath);
     }
 
     String saveRaoResult(final RaoResult raoResult, final Crac crac, final RaoRequest raoRequest, final Unit unit) {
@@ -92,17 +101,12 @@ public class FileExporter {
         return minioAdapter.generatePreSignedUrl(raoResultDestinationPath);
     }
 
-    String saveInterTemporalRaoResult(final InterTemporalRaoResult raoResult,
-                                      final InterTemporalRaoInputWithNetworkPaths raoInput,
-                                      final InterTemporalRaoRequest raoRequest) throws IOException {
-        final Properties properties = new Properties();
-        properties.put("rao-result.export.json.flows-in-megawatts", "true");
-        properties.put("inter-temporal-rao-result.export.filename-template", "'RAO_RESULT_'yyyy-MM-dd'T'HH:mm:ss'.json'");
-        properties.put("inter-temporal-rao-result.export.summary-filename", "summary.json");
-
+    String saveTimeCoupledRaoResult(final TimeCoupledRaoResult raoResult,
+                                    final TimeCoupledRaoInputWithNetworkPaths raoInput,
+                                    final TimeCoupledRaoRequest raoRequest) throws IOException {
         final ByteArrayOutputStream outputStreamRaoResult = new ByteArrayOutputStream();
         try (ZipOutputStream zipOutputStream = new ZipOutputStream(outputStreamRaoResult)) {
-            raoResult.write(zipOutputStream, raoInput.getRaoInputs().map(RaoInputWithNetworkPaths::getCrac), properties);
+            raoResult.write(zipOutputStream, raoInput.getRaoInputs().map(RaoInputWithNetworkPaths::getCrac), RAO_RESULT_EXPORT_PROPERTIES);
         }
 
         final String resultsDestination = makeTargetDirectoryPath(raoRequest) + File.separator + RAO_RESULTS_ZIP;
@@ -114,7 +118,7 @@ public class FileExporter {
         return makeTargetDirectoryPath(raoRequest.getResultsDestination(), raoRequest.getId());
     }
 
-    private String makeTargetDirectoryPath(final InterTemporalRaoRequest raoRequest) {
+    private String makeTargetDirectoryPath(final TimeCoupledRaoRequest raoRequest) {
         return makeTargetDirectoryPath(raoRequest.getResultsDestination(), raoRequest.getId());
     }
 

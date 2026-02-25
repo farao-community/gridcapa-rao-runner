@@ -6,12 +6,11 @@ spring:
     password: ${RABBITMQ_PASSWORD:guest}
 
 minio-adapter:
-  # TODO Don't forget to re-adapt values for the tests
-  access-key: gridcapa
-  secret-key: gridcapa
-  url: http://172.18.0.2:9000
-  bucket: gridcapa
-  base-path: RAO_TEST
+  access-key: minioadmin-test
+  secret-key: minioadmin-test
+  url: http://localhost-test:9000
+  bucket: my-bucket
+  base-path: base/path
 
 rao-runner:
   with-interruption-server: true

@@ -7,12 +7,13 @@
 package com.farao_community.farao.rao_runner.app;
 
 import com.farao_community.farao.rao_runner.api.resource.AbstractRaoResponse;
-import com.farao_community.farao.rao_runner.api.resource.InterTemporalRaoRequest;
-import com.farao_community.farao.rao_runner.api.resource.InterTemporalRaoSuccessResponse;
+import com.farao_community.farao.rao_runner.api.resource.TimeCoupledRaoRequest;
+import com.farao_community.farao.rao_runner.api.resource.TimeCoupledRaoSuccessResponse;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -22,19 +23,21 @@ import java.util.Optional;
  * @author Vincent Bochet {@literal <vincent.bochet at rte-france.com>}
  */
 @SpringBootTest
-class InterTemporalRaoRunnerServiceTest {
+class TimeCoupledRaoRunnerServiceTest {
 
     @Autowired
-    InterTemporalRaoRunnerService raoRunnerService;
+    TimeCoupledRaoRunnerService raoRunnerService;
+    @MockitoBean
+    FileExporter fileExporter;
 
     @Test
     void checkSuccessfulSimpleRaoRun() {
-        final InterTemporalRaoRequest simpleRaoRequest = new InterTemporalRaoRequest.RaoRequestBuilder()
+        final TimeCoupledRaoRequest simpleRaoRequest = new TimeCoupledRaoRequest.RaoRequestBuilder()
             .withId("id")
-            .withTimedInputsFileUrl("file:" + getClass().getResource("/intertemporal_rao_inputs/simple_case/timed-inputs.json").getPath())
-            .withIcsFileUrl("file:" + getClass().getResource("/intertemporal_rao_inputs/simple_case/intertemporal-constraints.json").getPath())
-            .withRaoParametersFileUrl("file:" + getClass().getResource("/intertemporal_rao_inputs/simple_case/RaoParameters.json").getPath())
-            .withResultsDestination("intertemporal_rao_results")
+            .withTimedInputsFileUrl("file:" + getClass().getResource("/timecoupled_rao_inputs/simple_case/timed-inputs.json").getPath())
+            .withIcsFileUrl("file:" + getClass().getResource("/timecoupled_rao_inputs/simple_case/timecoupled-constraints.json").getPath())
+            .withRaoParametersFileUrl("file:" + getClass().getResource("/timecoupled_rao_inputs/simple_case/RaoParameters.json").getPath())
+            .withResultsDestination("timecoupled_rao_results")
             .build();
 
         final AbstractRaoResponse abstractRaoResponse = raoRunnerService.runRao(simpleRaoRequest);
@@ -51,7 +54,7 @@ class InterTemporalRaoRunnerServiceTest {
         Assertions.assertThat(abstractRaoResponse)
             .isNotNull()
             .hasFieldOrPropertyWithValue("raoFailed", false);
-        final InterTemporalRaoSuccessResponse raoResponse = (InterTemporalRaoSuccessResponse) abstractRaoResponse;
+        final TimeCoupledRaoSuccessResponse raoResponse = (TimeCoupledRaoSuccessResponse) abstractRaoResponse;
         Assertions.assertThat(raoResponse)
             .hasFieldOrPropertyWithValue("id", "id")
             .hasFieldOrPropertyWithValue("instant", Optional.empty())
@@ -62,7 +65,7 @@ class InterTemporalRaoRunnerServiceTest {
         checkComputationStartAndEndInstants(raoResponse);
     }
 
-    private static void checkComputationStartAndEndInstants(final InterTemporalRaoSuccessResponse raoResponse) {
+    private static void checkComputationStartAndEndInstants(final TimeCoupledRaoSuccessResponse raoResponse) {
         final Instant now = Instant.now();
         Assertions.assertThat(raoResponse.getComputationStartInstant())
             .isBetween(now.minus(1, ChronoUnit.MINUTES), now);

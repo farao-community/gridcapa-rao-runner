@@ -5,7 +5,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 package com.farao_community.farao.rao_runner.app;
-import com.powsybl.openrao.raoapi.InterTemporalRao;
+import com.powsybl.openrao.raoapi.TimeCoupledRao;
 import com.powsybl.openrao.raoapi.Rao;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,8 +24,8 @@ public class GeneralBeans {
     }
 
     @Bean
-    public InterTemporalRao.Runner interTemporalRaoRunnerProvider() {
-        return InterTemporalRao.find();
+    public TimeCoupledRao.Runner timeCoupledRaoRunnerProvider() {
+        return TimeCoupledRao.find();
     }
 
     @Bean

@@ -35,8 +35,8 @@ public class RaoRunnerClientAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean
-    public InterTemporalRaoRunnerClient interTemporalRaoRunnerClient(AmqpTemplate amqpTemplate) {
-        return new InterTemporalRaoRunnerClient(amqpTemplate, clientProperties);
+    public TimeCoupledRaoRunnerClient timeCoupledRaoRunnerClient(AmqpTemplate amqpTemplate) {
+        return new TimeCoupledRaoRunnerClient(amqpTemplate, clientProperties);
     }
 
     @Bean

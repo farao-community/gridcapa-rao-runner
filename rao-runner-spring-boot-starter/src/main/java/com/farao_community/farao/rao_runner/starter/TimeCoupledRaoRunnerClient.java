@@ -8,7 +8,7 @@ package com.farao_community.farao.rao_runner.starter;
 
 import com.farao_community.farao.rao_runner.api.JsonApiConverter;
 import com.farao_community.farao.rao_runner.api.resource.AbstractRaoResponse;
-import com.farao_community.farao.rao_runner.api.resource.InterTemporalRaoRequest;
+import com.farao_community.farao.rao_runner.api.resource.TimeCoupledRaoRequest;
 import com.farao_community.farao.rao_runner.api.resource.RaoFailureResponse;
 import org.springframework.amqp.core.AmqpTemplate;
 import org.springframework.amqp.core.Message;
@@ -20,7 +20,7 @@ import org.springframework.amqp.core.MessagePropertiesBuilder;
 /**
  * @author Vincent Bochet {@literal <vincent.bochet at rte-france.com>}
  */
-public class InterTemporalRaoRunnerClient {
+public class TimeCoupledRaoRunnerClient {
 
     private static final String CONTENT_ENCODING = "UTF-8";
     private static final String CONTENT_TYPE = "application/vnd.api+json";
@@ -30,16 +30,16 @@ public class InterTemporalRaoRunnerClient {
     private final RaoRunnerClientProperties raoRunnerClientProperties;
     private final JsonApiConverter jsonConverter;
 
-    public InterTemporalRaoRunnerClient(AmqpTemplate amqpTemplate, RaoRunnerClientProperties raoRunnerClientProperties) {
+    public TimeCoupledRaoRunnerClient(AmqpTemplate amqpTemplate, RaoRunnerClientProperties raoRunnerClientProperties) {
         this.amqpTemplate = amqpTemplate;
         this.raoRunnerClientProperties = raoRunnerClientProperties;
         this.jsonConverter = new JsonApiConverter();
     }
 
-    public AbstractRaoResponse runRao(final InterTemporalRaoRequest raoRequest, final int priority) {
+    public AbstractRaoResponse runRao(final TimeCoupledRaoRequest raoRequest, final int priority) {
         final Message responseMessage = amqpTemplate.sendAndReceive(raoRunnerClientProperties.getAmqp().getQueueName(), buildMessage(raoRequest, priority));
         if (responseMessage != null) {
-            return RaoResponseConversionHelper.convertInterTemporalRaoResponse(responseMessage, jsonConverter);
+            return RaoResponseConversionHelper.convertTimeCoupledRaoResponse(responseMessage, jsonConverter);
         } else {
             return new RaoFailureResponse.Builder()
                     .withId(raoRequest.getId())
@@ -48,11 +48,11 @@ public class InterTemporalRaoRunnerClient {
         }
     }
 
-    public AbstractRaoResponse runRao(final InterTemporalRaoRequest raoRequest) {
+    public AbstractRaoResponse runRao(final TimeCoupledRaoRequest raoRequest) {
         return runRao(raoRequest, DEFAULT_PRIORITY);
     }
 
-    private Message buildMessage(final InterTemporalRaoRequest raoRequest, final int priority) {
+    private Message buildMessage(final TimeCoupledRaoRequest raoRequest, final int priority) {
         return MessageBuilder.withBody(jsonConverter.toJsonMessage(raoRequest))
                 .andProperties(buildMessageProperties(priority))
                 .build();

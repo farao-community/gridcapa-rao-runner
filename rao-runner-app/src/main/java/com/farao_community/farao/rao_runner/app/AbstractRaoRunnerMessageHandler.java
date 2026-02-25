@@ -29,6 +29,7 @@ import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.Optional;
 
 /**
@@ -150,5 +151,31 @@ public abstract class AbstractRaoRunnerMessageHandler<RAO_RUNNER_SERVICE_TYPE> {
             .setPriority(PRIORITY)
             .setHeaderIfAbsent("rao-failure", failed)
             .build();
+    }
+
+    protected void startRaoComputation(final GenericThreadLauncher<? extends AbstractRaoRunnerService, ? extends AbstractRaoResponse> launcher,
+                                       final AbstractRaoRequest raoRequest,
+                                       final String replyTo,
+                                       final String brokerCorrelationId) throws Exception {
+        businessLogger.info("Starting the RAO computation");
+        launcher.start();
+
+        final ThreadLauncherResult<? extends AbstractRaoResponse> raoThreadResult = launcher.getResult();
+        if (raoThreadResult.hasError()) {
+            final Exception exception = raoThreadResult.exception();
+            if (exception instanceof InvocationTargetException ite) {
+                throw (Exception) ite.getCause();
+            } else {
+                throw exception;
+            }
+        } else if (raoThreadResult.isInterrupted()) {
+            sendRaoInterruptedResponse(raoRequest, replyTo, brokerCorrelationId);
+        } else {
+            final AbstractRaoResponse raoResponse = raoThreadResult.result();
+            businessLogger.info("RAO computation is finished");
+            LOGGER.info("RAO response sent: {}", raoResponse);
+            sendRaoResponse(raoResponse, replyTo, brokerCorrelationId);
+        }
+        System.gc(); // NOSONAR because memory management is crucial for rao-runner, therefore suggesting to the JVM to collect garbage here should not be considered as a problem by Sonar
     }
 }

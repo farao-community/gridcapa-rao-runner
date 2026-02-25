@@ -20,8 +20,6 @@ import org.springframework.amqp.core.Message;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.stereotype.Component;
 
-import java.lang.reflect.InvocationTargetException;
-
 /**
  * @author Mohamed BenRejeb {@literal <mohamed.ben-rejeb at rte-france.com>}
  */
@@ -53,26 +51,7 @@ public class RaoRunnerMessageHandler extends AbstractRaoRunnerMessageHandler<Rao
                 raoRequest
             );
 
-            businessLogger.info("Starting the RAO computation");
-            launcher.start();
-
-            final ThreadLauncherResult<AbstractRaoResponse> raoThreadResult = launcher.getResult();
-            if (raoThreadResult.hasError()) {
-                final Exception exception = raoThreadResult.exception();
-                if (exception instanceof InvocationTargetException ite) {
-                    throw (Exception) ite.getCause();
-                } else {
-                    throw exception;
-                }
-            } else if (raoThreadResult.isInterrupted()) {
-                sendRaoInterruptedResponse(raoRequest, replyTo, brokerCorrelationId);
-            } else {
-                final AbstractRaoResponse raoResponse = raoThreadResult.result();
-                businessLogger.info("RAO computation is finished");
-                LOGGER.info("RAO response sent: {}", raoResponse);
-                sendRaoResponse(raoResponse, replyTo, brokerCorrelationId);
-            }
-            System.gc(); // NOSONAR because memory management is crucial for rao-runner, therefore suggesting to the JVM to collect garbage here should not be considered as a problem by Sonar
+            startRaoComputation(launcher, raoRequest, replyTo, brokerCorrelationId);
         } catch (RaoRunnerException e) {
             sendRaoFailedResponse(e, replyTo, brokerCorrelationId);
         } catch (Exception e) {

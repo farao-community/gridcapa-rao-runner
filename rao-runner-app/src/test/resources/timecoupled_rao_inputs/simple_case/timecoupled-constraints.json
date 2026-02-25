@@ -1,5 +1,5 @@
 {
-  "type": "OpenRAO Intertemporal Constraints",
+  "type": "OpenRAO time-coupled Constraints",
   "version": "1.0",
   "generatorConstraints": [
     {

@@ -9,7 +9,7 @@ package com.farao_community.farao.rao_runner.starter;
 import com.farao_community.farao.rao_runner.api.JsonApiConverter;
 import com.farao_community.farao.rao_runner.api.exceptions.RaoRunnerException;
 import com.farao_community.farao.rao_runner.api.resource.AbstractRaoResponse;
-import com.farao_community.farao.rao_runner.api.resource.InterTemporalRaoSuccessResponse;
+import com.farao_community.farao.rao_runner.api.resource.TimeCoupledRaoSuccessResponse;
 import com.farao_community.farao.rao_runner.api.resource.RaoFailureResponse;
 import com.farao_community.farao.rao_runner.api.resource.RaoSuccessResponse;
 import org.springframework.amqp.core.Message;
@@ -27,16 +27,16 @@ public final class RaoResponseConversionHelper {
         return convertRaoResponse(message, jsonConverter, false);
     }
 
-    public static AbstractRaoResponse convertInterTemporalRaoResponse(final Message message, final JsonApiConverter jsonConverter) {
+    public static AbstractRaoResponse convertTimeCoupledRaoResponse(final Message message, final JsonApiConverter jsonConverter) {
         return convertRaoResponse(message, jsonConverter, true);
     }
 
-    private static AbstractRaoResponse convertRaoResponse(final Message message, final JsonApiConverter jsonConverter, final boolean isInterTemporal) {
+    private static AbstractRaoResponse convertRaoResponse(final Message message, final JsonApiConverter jsonConverter, final boolean isTimeCoupled) {
         try {
             if (isFailureMessage(message)) {
                 return jsonConverter.fromJsonMessage(message.getBody(), RaoFailureResponse.class);
             } else {
-                final Class<? extends AbstractRaoResponse> responseClass = isInterTemporal ? InterTemporalRaoSuccessResponse.class : RaoSuccessResponse.class;
+                final Class<? extends AbstractRaoResponse> responseClass = isTimeCoupled ? TimeCoupledRaoSuccessResponse.class : RaoSuccessResponse.class;
                 return jsonConverter.fromJsonMessage(message.getBody(), responseClass);
             }
         } catch (Exception unknownException) {
