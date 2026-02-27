@@ -66,7 +66,7 @@ public class TimeCoupledRaoRunnerClient {
                 .setDeliveryMode(MessageDeliveryMode.NON_PERSISTENT)
                 .setExpiration(raoRunnerClientProperties.getAmqp().getExpiration())
                 .setPriority(priority)
-                .setReceivedRoutingKey("INTERTEMPORAL")
+                .setReceivedRoutingKey("TIME-COUPLED")
                 .build();
     }
 }

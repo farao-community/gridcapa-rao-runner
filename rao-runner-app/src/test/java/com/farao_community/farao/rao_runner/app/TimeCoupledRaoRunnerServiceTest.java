@@ -7,15 +7,28 @@
 package com.farao_community.farao.rao_runner.app;
 
 import com.farao_community.farao.rao_runner.api.resource.AbstractRaoResponse;
+import com.farao_community.farao.rao_runner.api.resource.RaoFailureResponse;
 import com.farao_community.farao.rao_runner.api.resource.TimeCoupledRaoRequest;
 import com.farao_community.farao.rao_runner.api.resource.TimeCoupledRaoSuccessResponse;
+import com.farao_community.farao.rao_runner.api.resource.TimedInput;
+import com.powsybl.iidm.network.Network;
+import com.powsybl.openrao.commons.OpenRaoException;
+import com.powsybl.openrao.data.crac.api.Crac;
+import com.powsybl.openrao.data.raoresult.api.ComputationStatus;
+import com.powsybl.openrao.data.raoresult.api.TimeCoupledRaoResult;
+import com.powsybl.openrao.data.timecoupledconstraints.TimeCoupledConstraints;
+import com.powsybl.openrao.raoapi.TimeCoupledRao;
+import com.powsybl.openrao.raoapi.parameters.RaoParameters;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
+import java.io.IOException;
 import java.time.Instant;
+import java.time.OffsetDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.Optional;
 
@@ -26,41 +39,114 @@ import java.util.Optional;
 class TimeCoupledRaoRunnerServiceTest {
 
     @Autowired
-    TimeCoupledRaoRunnerService raoRunnerService;
+    private TimeCoupledRaoRunnerService raoRunnerService;
     @MockitoBean
-    FileExporter fileExporter;
+    private FileExporter fileExporter;
+    @MockitoBean
+    private FileImporter fileImporter;
+    @MockitoBean
+    private TimeCoupledRao.Runner raoRunnerProvider;
 
     @Test
-    void checkSuccessfulSimpleRaoRun() {
-        final TimeCoupledRaoRequest simpleRaoRequest = new TimeCoupledRaoRequest.RaoRequestBuilder()
-            .withId("id")
-            .withTimedInputsFileUrl("file:" + getClass().getResource("/timecoupled_rao_inputs/simple_case/timed-inputs.json").getPath())
-            .withIcsFileUrl("file:" + getClass().getResource("/timecoupled_rao_inputs/simple_case/timecoupled-constraints.json").getPath())
-            .withRaoParametersFileUrl("file:" + getClass().getResource("/timecoupled_rao_inputs/simple_case/RaoParameters.json").getPath())
-            .withResultsDestination("timecoupled_rao_results")
-            .build();
+    void raoThrowFIETest() throws FileImporterException {
+        final TimeCoupledRaoRequest simpleRaoRequest = TimeCoupledTestHelper.getValidTimeCoupledRaoRequest("file:");
+        Mockito.when(fileImporter.importRaoParameters(Mockito.any())).thenThrow(new FileImporterException("It's a test", null));
 
         final AbstractRaoResponse abstractRaoResponse = raoRunnerService.runRao(simpleRaoRequest);
 
-        Assertions.assertThat(abstractRaoResponse).isNotNull();
+        Assertions.assertThat(abstractRaoResponse)
+            .isNotNull()
+            .hasFieldOrPropertyWithValue("raoFailed", true);
 
-//
-//        Assertions.assertThat(raoInputCaptor.getValue())
-//            .isNotNull()
-//            .hasFieldOrPropertyWithValue("crac", crac)
-//            .hasFieldOrPropertyWithValue("network", network)
-//            .hasFieldOrPropertyWithValue("glsk", null)
-//            .hasFieldOrPropertyWithValue("referenceProgram", null);
+        final RaoFailureResponse raoFailureResponse = (RaoFailureResponse) abstractRaoResponse;
+        Assertions.assertThat(raoFailureResponse)
+            .hasFieldOrPropertyWithValue("id", "raoRequestId")
+            .hasFieldOrPropertyWithValue("errorMessage", "Exception occurred in rao-runner: It's a test");
+    }
+
+    @Test
+    void raoThrowORETest() throws FileImporterException {
+        final TimeCoupledRaoRequest simpleRaoRequest = TimeCoupledTestHelper.getValidTimeCoupledRaoRequest("file:");
+        final Crac crac = Mockito.mock(Crac.class);
+        Mockito.when(fileImporter.importRaoParameters(Mockito.any())).thenReturn(new RaoParameters());
+        Mockito.when(fileImporter.importIcsFile(Mockito.any())).thenReturn(new TimeCoupledConstraints());
+        Mockito.when(fileImporter.importNetwork(Mockito.any())).thenReturn(Mockito.mock(Network.class));
+        Mockito.when(fileImporter.importCracWithContext(Mockito.any(), Mockito.any())).thenReturn(crac);
+        Mockito.when(crac.getTimestamp()).thenReturn(Optional.of(OffsetDateTime.now()));
+        Mockito.when(raoRunnerProvider.run(Mockito.any(), Mockito.any())).thenThrow(new OpenRaoException("It's a test"));
+
+        final AbstractRaoResponse abstractRaoResponse = raoRunnerService.runRao(simpleRaoRequest);
+
+        Assertions.assertThat(abstractRaoResponse)
+            .isNotNull()
+            .hasFieldOrPropertyWithValue("raoFailed", true);
+
+        final RaoFailureResponse raoFailureResponse = (RaoFailureResponse) abstractRaoResponse;
+        Assertions.assertThat(raoFailureResponse)
+            .hasFieldOrPropertyWithValue("id", "raoRequestId")
+            .hasFieldOrPropertyWithValue("errorMessage", "FARAO exception occurred when running rao: It's a test");
+    }
+
+    @Test
+    void raoFailureTest() throws FileImporterException {
+        final TimeCoupledRaoRequest simpleRaoRequest = TimeCoupledTestHelper.getValidTimeCoupledRaoRequest("file:");
+        final Crac crac = Mockito.mock(Crac.class);
+        Mockito.when(fileImporter.importRaoParameters(Mockito.any())).thenReturn(new RaoParameters());
+        Mockito.when(fileImporter.importIcsFile(Mockito.any())).thenReturn(new TimeCoupledConstraints());
+        Mockito.when(fileImporter.importNetwork(Mockito.any())).thenReturn(Mockito.mock(Network.class));
+        Mockito.when(fileImporter.importCracWithContext(Mockito.any(), Mockito.any())).thenReturn(crac);
+        Mockito.when(crac.getTimestamp()).thenReturn(Optional.of(OffsetDateTime.now()));
+
+        final TimeCoupledRaoResult timeCoupledRaoResult = Mockito.mock(TimeCoupledRaoResult.class);
+        Mockito.when(raoRunnerProvider.run(Mockito.any(), Mockito.any())).thenReturn(timeCoupledRaoResult);
+        Mockito.when(timeCoupledRaoResult.getComputationStatus()).thenReturn(ComputationStatus.FAILURE);
+
+        final AbstractRaoResponse abstractRaoResponse = raoRunnerService.runRao(simpleRaoRequest);
+
+        Assertions.assertThat(abstractRaoResponse)
+            .isNotNull()
+            .hasFieldOrPropertyWithValue("raoFailed", true);
+
+        final RaoFailureResponse raoFailureResponse = (RaoFailureResponse) abstractRaoResponse;
+        Assertions.assertThat(raoFailureResponse)
+            .hasFieldOrPropertyWithValue("id", "raoRequestId")
+            .hasFieldOrPropertyWithValue("errorMessage", "RAO computation failed");
+    }
+
+    @Test
+    void checkSuccessfulSimpleRaoRun() throws FileImporterException, IOException {
+        final TimeCoupledRaoRequest simpleRaoRequest = TimeCoupledTestHelper.getValidTimeCoupledRaoRequest("file:");
+        final RaoParameters raoParameters = new RaoParameters();
+        final TimeCoupledConstraints timeCoupledConstraints = new TimeCoupledConstraints();
+
+        Mockito.when(fileImporter.importRaoParameters(simpleRaoRequest.getRaoParametersFileUrl())).thenReturn(raoParameters);
+        Mockito.when(fileImporter.importIcsFile(simpleRaoRequest.getIcsFileUrl())).thenReturn(timeCoupledConstraints);
+        for (TimedInput timedInput : simpleRaoRequest.getTimedInputs()) {
+            final Network network = Mockito.mock(Network.class);
+            final Crac crac = Mockito.mock(Crac.class);
+            Mockito.when(fileImporter.importNetwork(timedInput.networkFileUrl())).thenReturn(network);
+            Mockito.when(fileImporter.importCracWithContext(timedInput.cracFileUrl(), network)).thenReturn(crac);
+            Mockito.when(crac.getTimestamp()).thenReturn(Optional.of(timedInput.timestamp()));
+        }
+
+        final TimeCoupledRaoResult timeCoupledRaoResult = Mockito.mock(TimeCoupledRaoResult.class);
+        Mockito.when(raoRunnerProvider.run(Mockito.any(), Mockito.any())).thenReturn(timeCoupledRaoResult);
+        Mockito.when(timeCoupledRaoResult.getComputationStatus()).thenReturn(ComputationStatus.DEFAULT);
+
+        Mockito.when(fileExporter.saveTimeCoupledRaoResult(Mockito.any(), Mockito.any(), Mockito.any())).thenReturn("raoResultsUrl");
+        Mockito.when(fileExporter.saveNetworks(Mockito.any(), Mockito.any(), Mockito.any())).thenReturn("networksUrl");
+
+        final AbstractRaoResponse abstractRaoResponse = raoRunnerService.runRao(simpleRaoRequest);
+
         Assertions.assertThat(abstractRaoResponse)
             .isNotNull()
             .hasFieldOrPropertyWithValue("raoFailed", false);
         final TimeCoupledRaoSuccessResponse raoResponse = (TimeCoupledRaoSuccessResponse) abstractRaoResponse;
         Assertions.assertThat(raoResponse)
-            .hasFieldOrPropertyWithValue("id", "id")
+            .hasFieldOrPropertyWithValue("id", "raoRequestId")
             .hasFieldOrPropertyWithValue("instant", Optional.empty())
-//            .hasFieldOrPropertyWithValue("networkWithPraFileUrl", "simple-networkWithPRA-url")
-//            .hasFieldOrPropertyWithValue("cracFileUrl", "http://host:9000/crac.json")
-//            .hasFieldOrPropertyWithValue("raoResultFileUrl", "simple-RaoResultJson-url")
+            .hasFieldOrPropertyWithValue("networksWithPraFileUrl", "networksUrl")
+            .hasFieldOrPropertyWithValue("raoResultsFileUrl", "raoResultsUrl")
             .hasFieldOrPropertyWithValue("interrupted", false);
         checkComputationStartAndEndInstants(raoResponse);
     }

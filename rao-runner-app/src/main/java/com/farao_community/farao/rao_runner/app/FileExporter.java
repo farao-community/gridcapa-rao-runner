@@ -18,6 +18,8 @@ import com.powsybl.openrao.data.raoresult.api.RaoResult;
 import com.powsybl.openrao.raoapi.TimeCoupledRaoInputWithNetworkPaths;
 import com.powsybl.openrao.raoapi.RaoInputWithNetworkPaths;
 import org.apache.commons.io.FilenameUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.io.ByteArrayInputStream;
@@ -28,6 +30,8 @@ import java.time.OffsetDateTime;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
@@ -38,7 +42,9 @@ import static com.farao_community.farao.rao_runner.app.RaoResultWriterProperties
  */
 @Service
 public class FileExporter {
+    private static final Logger LOGGER = LoggerFactory.getLogger(FileExporter.class);
     private static final Properties RAO_RESULT_EXPORT_PROPERTIES = new Properties();
+    private static final Pattern NETWORK_FILENAME_PATTERN = Pattern.compile("(?<filenameNoExt>.*)\\.(?<extension>[j|x]iidm)");
 
     static {
         RAO_RESULT_EXPORT_PROPERTIES.put("rao-result.export.json.flows-in-megawatts", "true");
@@ -67,30 +73,52 @@ public class FileExporter {
         return minioAdapter.generatePreSignedUrl(networkWithPRADestinationPath);
     }
 
-    String saveNetwork(final Map<OffsetDateTime, Network> networksMithPrasMap,
-                       final TimeCoupledRaoInputWithNetworkPaths raoInput,
-                       final TimeCoupledRaoRequest raoRequest) throws IOException {
+    String saveNetworks(final Map<OffsetDateTime, Network> networksWithPrasMap,
+                        final TimeCoupledRaoInputWithNetworkPaths raoInput,
+                        final TimeCoupledRaoRequest raoRequest) throws IOException {
         final ByteArrayOutputStream outputStreamRaoResult = new ByteArrayOutputStream();
         try (ZipOutputStream zipOutputStream = new ZipOutputStream(outputStreamRaoResult)) {
-            for (final Map.Entry<OffsetDateTime, Network> entry : networksMithPrasMap.entrySet()) {
+            for (final Map.Entry<OffsetDateTime, Network> entry : networksWithPrasMap.entrySet()) {
                 final OffsetDateTime offsetDateTime = entry.getKey();
                 final Network network = entry.getValue();
                 // Write network
-                final MemDataSource dataSource = new MemDataSource();
-                network.write(IIDM_EXPORT_FORMAT, new Properties(), dataSource);
-
-                // Add network to zip
-                final String filePath = raoInput.getRaoInputs().getData(offsetDateTime).orElseThrow().getPostIcsImportNetworkPath();
-                // TODO Voir si on peut utiliser le même format {X|J}IIDM que le fichier d'entrée
-                final String name = FilenameUtils.getName(filePath).split(".xiidm")[0].concat("_afterPRA.xiidm");
-                final ZipEntry zipEntry = new ZipEntry(name);
-                zipOutputStream.putNextEntry(zipEntry);
-                zipOutputStream.write(dataSource.getData(null, IIDM_EXTENSION));
+                final MemDataSource networkDataSource = new MemDataSource();
+                network.write(IIDM_EXPORT_FORMAT, new Properties(), networkDataSource);
+                addNetworkToZip(networkDataSource, zipOutputStream, raoInput, offsetDateTime);
             }
         }
         final String networksWithPraDestinationPath = makeTargetDirectoryPath(raoRequest) + File.separator + NETWORKS_ZIP;
         minioAdapter.uploadArtifact(networksWithPraDestinationPath, new ByteArrayInputStream(outputStreamRaoResult.toByteArray()));
         return minioAdapter.generatePreSignedUrl(networksWithPraDestinationPath);
+    }
+
+    private static void addNetworkToZip(final MemDataSource dataSource,
+                                        final ZipOutputStream zipOutputStream,
+                                        final TimeCoupledRaoInputWithNetworkPaths raoInput,
+                                        final OffsetDateTime offsetDateTime) throws IOException {
+        final String networkFilePath = raoInput.getRaoInputs().getData(offsetDateTime).orElseThrow().getPostIcsImportNetworkPath();
+        final String networkFilename = FilenameUtils.getName(networkFilePath);
+        final Matcher matcher = NETWORK_FILENAME_PATTERN.matcher(networkFilename);
+        final String outputExtension;
+        final String filenameNoExt;
+        if (matcher.find()) {
+            outputExtension = matcher.group("extension");
+            filenameNoExt = matcher.group("filenameNoExt");
+        } else if (networkFilename.contains(".")) {
+            final int lastDotPosition = networkFilename.lastIndexOf("\\.");
+            outputExtension = networkFilename.substring(lastDotPosition);
+            filenameNoExt = networkFilename.substring(0, lastDotPosition);
+            LOGGER.warn("Could not find IIDM extension in filename {}, using extension {}", networkFilename, outputExtension);
+        } else {
+            outputExtension = "";
+            filenameNoExt = networkFilename;
+            LOGGER.warn("Could not find extension in filename {}", networkFilename);
+        }
+
+        final String outputFilename = filenameNoExt.concat("_afterPRA.").concat(outputExtension);
+        final ZipEntry zipEntry = new ZipEntry(outputFilename);
+        zipOutputStream.putNextEntry(zipEntry);
+        zipOutputStream.write(dataSource.getData(null, outputExtension));
     }
 
     String saveRaoResult(final RaoResult raoResult, final Crac crac, final RaoRequest raoRequest, final Unit unit) {
@@ -109,9 +137,9 @@ public class FileExporter {
             raoResult.write(zipOutputStream, raoInput.getRaoInputs().map(RaoInputWithNetworkPaths::getCrac), RAO_RESULT_EXPORT_PROPERTIES);
         }
 
-        final String resultsDestination = makeTargetDirectoryPath(raoRequest) + File.separator + RAO_RESULTS_ZIP;
-        minioAdapter.uploadArtifact(resultsDestination, new ByteArrayInputStream(outputStreamRaoResult.toByteArray()));
-        return minioAdapter.generatePreSignedUrl(resultsDestination);
+        final String resultDestination = makeTargetDirectoryPath(raoRequest) + File.separator + RAO_RESULTS_ZIP;
+        minioAdapter.uploadArtifact(resultDestination, new ByteArrayInputStream(outputStreamRaoResult.toByteArray()));
+        return minioAdapter.generatePreSignedUrl(resultDestination);
     }
 
     private String makeTargetDirectoryPath(final RaoRequest raoRequest) {

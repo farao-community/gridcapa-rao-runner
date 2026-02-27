@@ -6,11 +6,13 @@
  */
 package com.farao_community.farao.rao_runner.api.resource;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+
 import java.time.OffsetDateTime;
 
 /**
  * @author Vincent Bochet {@literal <vincent.bochet at rte-france.com>}
  */
-public record TimedInput(OffsetDateTime timestamp, String networkFile, String cracFile) {
+public record TimedInput(@JsonFormat(pattern = "yyyy-MM-dd'T'HH:mmXXX") OffsetDateTime timestamp, String networkFileUrl, String cracFileUrl) {
 
 }

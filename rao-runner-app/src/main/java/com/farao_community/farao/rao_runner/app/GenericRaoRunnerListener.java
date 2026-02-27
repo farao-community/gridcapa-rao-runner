@@ -27,7 +27,7 @@ public class GenericRaoRunnerListener implements MessageListener {
 
     @Override
     public void onMessage(Message message) {
-        if (message.getMessageProperties().getReceivedRoutingKey().equals("INTERTEMPORAL")) {
+        if (message.getMessageProperties().getReceivedRoutingKey().equals("TIME-COUPLED")) {
             timeCoupledRaoRunnerMessageHandler.handleMessage(message);
         } else {
             raoRunnerMessageHandler.handleMessage(message);

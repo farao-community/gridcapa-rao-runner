@@ -7,21 +7,17 @@
 package com.farao_community.farao.rao_runner.app;
 
 import com.farao_community.farao.rao_runner.api.exceptions.RaoRunnerException;
-import com.farao_community.farao.rao_runner.api.resource.TimedInput;
 import com.farao_community.farao.rao_runner.app.configuration.UrlConfiguration;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.powsybl.glsk.api.GlskDocument;
 import com.powsybl.glsk.api.io.GlskDocumentImporters;
 import com.powsybl.glsk.commons.ZonalData;
 import com.powsybl.iidm.network.Network;
 import com.powsybl.openrao.data.crac.api.Crac;
 import com.powsybl.openrao.data.crac.api.CracCreationContext;
-import com.powsybl.openrao.data.timecoupledconstraints.TimeCoupledConstraints;
-import com.powsybl.openrao.data.timecoupledconstraints.io.JsonTimeCoupledConstraints;
 import com.powsybl.openrao.data.refprog.referenceprogram.ReferenceProgram;
 import com.powsybl.openrao.data.refprog.refprogxmlimporter.RefProgImporter;
+import com.powsybl.openrao.data.timecoupledconstraints.TimeCoupledConstraints;
+import com.powsybl.openrao.data.timecoupledconstraints.io.JsonTimeCoupledConstraints;
 import com.powsybl.openrao.raoapi.json.JsonRaoParameters;
 import com.powsybl.openrao.raoapi.parameters.RaoParameters;
 import com.powsybl.openrao.virtualhubs.VirtualHubsConfiguration;
@@ -35,9 +31,7 @@ import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.nio.file.Path;
 import java.time.OffsetDateTime;
-import java.util.List;
 
 /**
  * @author Joris Mancini {@literal <joris.mancini at rte-france.com>}
@@ -130,18 +124,6 @@ public class FileImporter {
         }
     }
 
-    List<TimedInput> importTimedInputs(String timedInputsFileUrl) throws FileImporterException {
-        try (final InputStream timedInputsFileInputStream = openUrlStream(timedInputsFileUrl)) {
-            ObjectMapper objectMapper = new ObjectMapper();
-            objectMapper.registerModule(new JavaTimeModule());
-            return objectMapper.readValue(timedInputsFileInputStream.readAllBytes(), new TypeReference<>() { });
-        } catch (Exception e) {
-            final String message = String.format("Error occurred while reading timedInputs input file file %s",
-                FilenameUtils.getName(timedInputsFileUrl));
-            throw new FileImporterException(message, e);
-        }
-    }
-
     TimeCoupledConstraints importIcsFile(String icsFileUrl) throws FileImporterException {
         try (final InputStream inputStream = openUrlStream(icsFileUrl)) {
             return JsonTimeCoupledConstraints.read(inputStream);
@@ -165,6 +147,13 @@ public class FileImporter {
     }
 
     private static String getFileNameFromUrl(final String stringUrl) {
-        return Path.of(stringUrl).getFileName().toString();
+        try {
+            // toUrl() ensures that the URI is absolute
+            // getPath() gets rid of the eventual queryparams of the URL (all that comes after "?")
+            final URL url = new URI(stringUrl).toURL();
+            return FilenameUtils.getName(url.getPath());
+        } catch (IOException | URISyntaxException | IllegalArgumentException e) {
+            throw new RaoRunnerException(String.format("Exception occurred while retrieving file name from %s", stringUrl), e);
+        }
     }
 }

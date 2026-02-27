@@ -12,6 +12,8 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.github.jasminb.jsonapi.annotations.Type;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 
+import java.util.List;
+
 /**
  * @author Vincent Bochet {@literal <vincent.bochet at rte-france.com>}
  */
@@ -20,17 +22,17 @@ import org.apache.commons.lang3.builder.ToStringBuilder;
 public final class TimeCoupledRaoRequest extends AbstractRaoRequest {
 
     private final String icsFileUrl;
-    private final String timedInputsFileUrl;
+    private final List<TimedInput> timedInputs;
 
     private TimeCoupledRaoRequest(RaoRequestBuilder builder) {
         super(builder);
         this.icsFileUrl = builder.icsFileUrl;
-        this.timedInputsFileUrl = builder.timedInputsFileUrl;
+        this.timedInputs = builder.timedInputs;
     }
 
     public static class RaoRequestBuilder extends AbstractRaoRequestBuilder<RaoRequestBuilder> {
         private String icsFileUrl;
-        private String timedInputsFileUrl;
+        private List<TimedInput> timedInputs;
 
         @JsonProperty("icsFileUrl")
         public RaoRequestBuilder withIcsFileUrl(String icsFileUrl) {
@@ -38,9 +40,9 @@ public final class TimeCoupledRaoRequest extends AbstractRaoRequest {
             return this;
         }
 
-        @JsonProperty("timedInputsFileUrl")
-        public RaoRequestBuilder withTimedInputsFileUrl(String timedInputsFileUrl) {
-            this.timedInputsFileUrl = timedInputsFileUrl;
+        @JsonProperty("timedInputs")
+        public RaoRequestBuilder withTimedInputs(List<TimedInput> timedInputs) {
+            this.timedInputs = timedInputs;
             return this;
         }
 
@@ -54,8 +56,8 @@ public final class TimeCoupledRaoRequest extends AbstractRaoRequest {
         return icsFileUrl;
     }
 
-    public String getTimedInputsFileUrl() {
-        return timedInputsFileUrl;
+    public List<TimedInput> getTimedInputs() {
+        return timedInputs;
     }
 
     @Override
