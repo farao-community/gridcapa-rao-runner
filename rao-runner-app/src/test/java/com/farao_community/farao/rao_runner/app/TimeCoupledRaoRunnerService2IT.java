@@ -9,6 +9,7 @@ package com.farao_community.farao.rao_runner.app;
 import com.farao_community.farao.rao_runner.api.resource.AbstractRaoResponse;
 import com.farao_community.farao.rao_runner.api.resource.TimeCoupledRaoRequest;
 import com.farao_community.farao.rao_runner.app.configuration.UrlConfiguration;
+import com.farao_community.farao.rao_runner.app.exceptions.FileExporterException;
 import com.powsybl.openrao.data.raoresult.api.TimeCoupledRaoResult;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -18,8 +19,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.bean.override.convention.TestBean;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
-
-import java.io.IOException;
 
 /**
  * @author Vincent Bochet {@literal <vincent.bochet at rte-france.com>}
@@ -34,14 +33,14 @@ class TimeCoupledRaoRunnerService2IT {
     @MockitoBean
     private FileExporter fileExporter;
 
-    private static TestFileImporter fileImporter() {
+    private static FileImporterForTesting fileImporter() {
         final UrlConfiguration urlConfiguration = new UrlConfiguration();
         urlConfiguration.getWhitelist().add("file:/");
-        return new TestFileImporter(urlConfiguration);
+        return new FileImporterForTesting(urlConfiguration);
     }
 
     @Test
-    void getRaoInputTest() throws IOException {
+    void getRaoInputTest() throws FileExporterException {
         final TimeCoupledRaoRequest simpleRaoRequest = TimeCoupledTestHelper.getValidTimeCoupledRaoRequest("");
 
         Mockito.when(fileExporter.saveTimeCoupledRaoResult(Mockito.any(), Mockito.any(), Mockito.any())).thenReturn("raoResultUrl");

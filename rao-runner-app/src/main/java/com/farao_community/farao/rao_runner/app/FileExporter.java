@@ -9,6 +9,7 @@ package com.farao_community.farao.rao_runner.app;
 import com.farao_community.farao.minio_adapter.starter.MinioAdapter;
 import com.farao_community.farao.rao_runner.api.resource.TimeCoupledRaoRequest;
 import com.farao_community.farao.rao_runner.api.resource.RaoRequest;
+import com.farao_community.farao.rao_runner.app.exceptions.FileExporterException;
 import com.powsybl.commons.datasource.MemDataSource;
 import com.powsybl.iidm.network.Network;
 import com.powsybl.openrao.commons.Unit;
@@ -18,8 +19,6 @@ import com.powsybl.openrao.data.raoresult.api.RaoResult;
 import com.powsybl.openrao.raoapi.TimeCoupledRaoInputWithNetworkPaths;
 import com.powsybl.openrao.raoapi.RaoInputWithNetworkPaths;
 import org.apache.commons.io.FilenameUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.io.ByteArrayInputStream;
@@ -42,9 +41,8 @@ import static com.farao_community.farao.rao_runner.app.RaoResultWriterProperties
  */
 @Service
 public class FileExporter {
-    private static final Logger LOGGER = LoggerFactory.getLogger(FileExporter.class);
     private static final Properties RAO_RESULT_EXPORT_PROPERTIES = new Properties();
-    private static final Pattern NETWORK_FILENAME_PATTERN = Pattern.compile("(?<filenameNoExt>.*)\\.(?<extension>[j|x]iidm)");
+    private static final Pattern NETWORK_FILENAME_PATTERN = Pattern.compile("(?<filenameNoExt>.*)\\.(?<extension>[bjx]iidm)");
 
     static {
         RAO_RESULT_EXPORT_PROPERTIES.put("rao-result.export.json.flows-in-megawatts", "true");
@@ -56,8 +54,8 @@ public class FileExporter {
     private static final String NETWORKS_ZIP = "networksWithPRA.zip";
     private static final String RAO_RESULT_JSON = "raoResult.json";
     private static final String RAO_RESULTS_ZIP = "raoResults.zip";
-    private static final String IIDM_EXPORT_FORMAT = "XIIDM";
-    private static final String IIDM_EXTENSION = "xiidm";
+    private static final String XIIDM_EXPORT_FORMAT = "XIIDM";
+    private static final String XIIDM_EXTENSION = "xiidm";
 
     private final MinioAdapter minioAdapter;
 
@@ -67,35 +65,35 @@ public class FileExporter {
 
     String saveNetwork(final Network network, final RaoRequest raoRequest) {
         final MemDataSource dataSource = new MemDataSource();
-        network.write(IIDM_EXPORT_FORMAT, null, dataSource);
+        network.write(XIIDM_EXPORT_FORMAT, null, dataSource);
         final String networkWithPRADestinationPath = makeTargetDirectoryPath(raoRequest) + File.separator + NETWORK_XIIDM;
-        minioAdapter.uploadArtifact(networkWithPRADestinationPath, new ByteArrayInputStream(dataSource.getData(null, IIDM_EXTENSION)));
+        minioAdapter.uploadArtifact(networkWithPRADestinationPath, new ByteArrayInputStream(dataSource.getData(null, XIIDM_EXTENSION)));
         return minioAdapter.generatePreSignedUrl(networkWithPRADestinationPath);
     }
 
     String saveNetworks(final Map<OffsetDateTime, Network> networksWithPrasMap,
                         final TimeCoupledRaoInputWithNetworkPaths raoInput,
-                        final TimeCoupledRaoRequest raoRequest) throws IOException {
+                        final TimeCoupledRaoRequest raoRequest) throws FileExporterException {
         final ByteArrayOutputStream outputStreamRaoResult = new ByteArrayOutputStream();
         try (ZipOutputStream zipOutputStream = new ZipOutputStream(outputStreamRaoResult)) {
             for (final Map.Entry<OffsetDateTime, Network> entry : networksWithPrasMap.entrySet()) {
                 final OffsetDateTime offsetDateTime = entry.getKey();
                 final Network network = entry.getValue();
                 // Write network
-                final MemDataSource networkDataSource = new MemDataSource();
-                network.write(IIDM_EXPORT_FORMAT, new Properties(), networkDataSource);
-                addNetworkToZip(networkDataSource, zipOutputStream, raoInput, offsetDateTime);
+                addNetworkToZip(network, zipOutputStream, raoInput, offsetDateTime);
             }
+        } catch (final IOException ioe) {
+            throw new FileExporterException("Error occurred while trying to export time coupled networks", ioe);
         }
         final String networksWithPraDestinationPath = makeTargetDirectoryPath(raoRequest) + File.separator + NETWORKS_ZIP;
         minioAdapter.uploadArtifact(networksWithPraDestinationPath, new ByteArrayInputStream(outputStreamRaoResult.toByteArray()));
         return minioAdapter.generatePreSignedUrl(networksWithPraDestinationPath);
     }
 
-    private static void addNetworkToZip(final MemDataSource dataSource,
+    private static void addNetworkToZip(final Network network,
                                         final ZipOutputStream zipOutputStream,
                                         final TimeCoupledRaoInputWithNetworkPaths raoInput,
-                                        final OffsetDateTime offsetDateTime) throws IOException {
+                                        final OffsetDateTime offsetDateTime) throws IOException, FileExporterException {
         final String networkFilePath = raoInput.getRaoInputs().getData(offsetDateTime).orElseThrow().getPostIcsImportNetworkPath();
         final String networkFilename = FilenameUtils.getName(networkFilePath);
         final Matcher matcher = NETWORK_FILENAME_PATTERN.matcher(networkFilename);
@@ -104,21 +102,22 @@ public class FileExporter {
         if (matcher.find()) {
             outputExtension = matcher.group("extension");
             filenameNoExt = matcher.group("filenameNoExt");
-        } else if (networkFilename.contains(".")) {
-            final int lastDotPosition = networkFilename.lastIndexOf("\\.");
-            outputExtension = networkFilename.substring(lastDotPosition);
-            filenameNoExt = networkFilename.substring(0, lastDotPosition);
-            LOGGER.warn("Could not find IIDM extension in filename {}, using extension {}", networkFilename, outputExtension);
         } else {
-            outputExtension = "";
-            filenameNoExt = networkFilename;
-            LOGGER.warn("Could not find extension in filename {}", networkFilename);
+            final int lastDotPosition = networkFilename.lastIndexOf(".");
+            final int index = lastDotPosition == -1 ? networkFilename.length() : lastDotPosition;
+            outputExtension = networkFilename.substring(Math.min(index + 1, networkFilename.length()));
+            throw new FileExporterException("Unsupported network format \"%s\" with filename %s".formatted(outputExtension, networkFilename));
         }
 
         final String outputFilename = filenameNoExt.concat("_afterPRA.").concat(outputExtension);
+        final String outputFormat = outputExtension.toUpperCase();
         final ZipEntry zipEntry = new ZipEntry(outputFilename);
         zipOutputStream.putNextEntry(zipEntry);
-        zipOutputStream.write(dataSource.getData(null, outputExtension));
+
+        final MemDataSource networkDataSource = new MemDataSource();
+        network.write(outputFormat, new Properties(), networkDataSource);
+
+        zipOutputStream.write(networkDataSource.getData(null, outputExtension));
     }
 
     String saveRaoResult(final RaoResult raoResult, final Crac crac, final RaoRequest raoRequest, final Unit unit) {
@@ -131,10 +130,12 @@ public class FileExporter {
 
     String saveTimeCoupledRaoResult(final TimeCoupledRaoResult raoResult,
                                     final TimeCoupledRaoInputWithNetworkPaths raoInput,
-                                    final TimeCoupledRaoRequest raoRequest) throws IOException {
+                                    final TimeCoupledRaoRequest raoRequest) throws FileExporterException {
         final ByteArrayOutputStream outputStreamRaoResult = new ByteArrayOutputStream();
         try (ZipOutputStream zipOutputStream = new ZipOutputStream(outputStreamRaoResult)) {
             raoResult.write(zipOutputStream, raoInput.getRaoInputs().map(RaoInputWithNetworkPaths::getCrac), RAO_RESULT_EXPORT_PROPERTIES);
+        } catch (final IOException ioe) {
+            throw new FileExporterException("Error occurred while trying to export time coupled rao result", ioe);
         }
 
         final String resultDestination = makeTargetDirectoryPath(raoRequest) + File.separator + RAO_RESULTS_ZIP;

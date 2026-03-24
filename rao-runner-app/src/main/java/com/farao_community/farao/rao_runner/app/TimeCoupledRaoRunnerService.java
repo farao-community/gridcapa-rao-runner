@@ -10,6 +10,8 @@ import com.farao_community.farao.rao_runner.api.resource.AbstractRaoResponse;
 import com.farao_community.farao.rao_runner.api.resource.TimeCoupledRaoRequest;
 import com.farao_community.farao.rao_runner.api.resource.TimeCoupledRaoSuccessResponse;
 import com.farao_community.farao.rao_runner.api.resource.TimedInput;
+import com.farao_community.farao.rao_runner.app.exceptions.FileExporterException;
+import com.farao_community.farao.rao_runner.app.exceptions.FileImporterException;
 import com.powsybl.iidm.network.Generator;
 import com.powsybl.iidm.network.Network;
 import com.powsybl.openrao.commons.OpenRaoException;
@@ -76,7 +78,7 @@ public class TimeCoupledRaoRunnerService implements AbstractRaoRunnerService {
             return saveResultsAndCreateRaoResponse(raoRequest, raoInput, raoResult, computationStartInstant);
         } catch (OpenRaoException ore) {
             return buildRaoFailureResponse(raoRequest.getId(), "FARAO exception occurred when running rao: " + ore.getMessage());
-        } catch (IOException | FileImporterException e) {
+        } catch (FileExporterException | FileImporterException e) {
             return buildRaoFailureResponse(raoRequest.getId(), "Exception occurred in rao-runner: " + e.getMessage());
         }
     }
@@ -119,7 +121,7 @@ public class TimeCoupledRaoRunnerService implements AbstractRaoRunnerService {
     private TimeCoupledRaoSuccessResponse saveResultsAndCreateRaoResponse(final TimeCoupledRaoRequest raoRequest,
                                                                           final TimeCoupledRaoInputWithNetworkPaths raoInput,
                                                                           final TimeCoupledRaoResult raoResult,
-                                                                          final Instant computationStartInstant) throws IOException {
+                                                                          final Instant computationStartInstant) throws FileExporterException {
 
         final String raoResultFileUrl = fileExporter.saveTimeCoupledRaoResult(raoResult, raoInput, raoRequest);
         final Map<OffsetDateTime, Network> networksWithPrasMap = applyRemedialActions(raoResult, raoInput);

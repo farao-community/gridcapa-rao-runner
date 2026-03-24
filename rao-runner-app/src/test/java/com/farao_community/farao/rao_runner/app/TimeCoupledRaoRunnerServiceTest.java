@@ -11,6 +11,8 @@ import com.farao_community.farao.rao_runner.api.resource.RaoFailureResponse;
 import com.farao_community.farao.rao_runner.api.resource.TimeCoupledRaoRequest;
 import com.farao_community.farao.rao_runner.api.resource.TimeCoupledRaoSuccessResponse;
 import com.farao_community.farao.rao_runner.api.resource.TimedInput;
+import com.farao_community.farao.rao_runner.app.exceptions.FileExporterException;
+import com.farao_community.farao.rao_runner.app.exceptions.FileImporterException;
 import com.powsybl.iidm.network.Network;
 import com.powsybl.openrao.commons.OpenRaoException;
 import com.powsybl.openrao.data.crac.api.Crac;
@@ -26,7 +28,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
-import java.io.IOException;
 import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.time.temporal.ChronoUnit;
@@ -114,7 +115,7 @@ class TimeCoupledRaoRunnerServiceTest {
     }
 
     @Test
-    void checkSuccessfulSimpleRaoRun() throws FileImporterException, IOException {
+    void checkSuccessfulSimpleRaoRun() throws FileImporterException, FileExporterException {
         final TimeCoupledRaoRequest simpleRaoRequest = TimeCoupledTestHelper.getValidTimeCoupledRaoRequest("file:");
         final RaoParameters raoParameters = new RaoParameters();
         final TimeCoupledConstraints timeCoupledConstraints = new TimeCoupledConstraints();

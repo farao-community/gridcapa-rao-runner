@@ -16,27 +16,26 @@ import com.farao_community.farao.rao_runner.api.resource.RaoSuccessResponse;
 import com.powsybl.openrao.commons.OpenRaoException;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.NullSource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.core.Message;
-import org.springframework.amqp.core.MessageBuilder;
 import org.springframework.amqp.core.MessageProperties;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.boot.web.client.RestTemplateBuilder;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.web.client.RestTemplate;
 
 import java.io.IOException;
 import java.util.Map;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -49,10 +48,10 @@ import static org.mockito.Mockito.when;
  * @author Mohamed BenRejeb {@literal <mohamed.ben-rejeb at rte-france.com>}
  */
 @SpringBootTest
-class RaoRunnerListenerTest {
+class RaoRunnerMessageHandlerTest {
 
     @Autowired
-    RaoRunnerMessageHandler raoRunnerListener;
+    RaoRunnerMessageHandler raoRunnerMessageHandler;
 
     @MockitoBean
     RestTemplateBuilder restTemplateBuilder;
@@ -65,68 +64,49 @@ class RaoRunnerListenerTest {
 
     private final JsonApiConverter jsonApiConverter = new JsonApiConverter();
 
-    @Test
-    void checkThatMdcMetadataIsPropagatedCorrectly() {
-        Logger logger = (Logger) LoggerFactory.getLogger("LOGGER");
-        ListAppender<ILoggingEvent> listAppender = new ListAppender<>();
+    @ParameterizedTest
+    @NullSource
+    @ValueSource(strings = {"prefix"})
+    void mdcMetadataPropagationTest(final String prefixValue) {
+        final Logger logger = (Logger) LoggerFactory.getLogger("LOGGER");
+        final ListAppender<ILoggingEvent> listAppender = new ListAppender<>();
         listAppender.start();
         logger.addAppender(listAppender);
-        raoRunnerListener.addMetaDataToLogsModelContext("process-id", "request-id", "client-id", Optional.of("prefix"));
+
+        raoRunnerMessageHandler.addMetaDataToLogsModelContext("process-id", "request-id", "client-id", Optional.ofNullable(prefixValue));
         logger.info("message");
+
         final Map<String, String> mdcPropertyMap = listAppender.list.getFirst().getMDCPropertyMap();
-        assertEquals(4, mdcPropertyMap.size());
-        assertEquals("process-id", mdcPropertyMap.get("gridcapaTaskId"));
-        assertEquals("request-id", mdcPropertyMap.get("computationId"));
-        assertEquals("client-id", mdcPropertyMap.get("clientAppId"));
-        assertEquals("prefix", mdcPropertyMap.get("eventPrefix"));
+        Assertions.assertThat(mdcPropertyMap)
+            .hasSize(prefixValue == null ? 3 : 4)
+            .containsEntry("gridcapaTaskId", "process-id")
+            .containsEntry("computationId", "request-id")
+            .containsEntry("clientAppId", "client-id");
+        final String eventPrefix = mdcPropertyMap.get("eventPrefix");
+        Assertions.assertThat(eventPrefix).isEqualTo(prefixValue);
     }
 
     @Test
-    void checkThatMdcMetadataIsPropagatedCorrectlyWithoutPrefix() {
-        Logger logger = (Logger) LoggerFactory.getLogger("LOGGER");
-        ListAppender<ILoggingEvent> listAppender = new ListAppender<>();
-        listAppender.start();
-        logger.addAppender(listAppender);
-        raoRunnerListener.addMetaDataToLogsModelContext("process-id", "request-id", "client-id", Optional.empty());
-        logger.info("message");
-        final Map<String, String> mdcPropertyMap = listAppender.list.getFirst().getMDCPropertyMap();
-        assertEquals(3, mdcPropertyMap.size());
-        assertEquals("process-id", mdcPropertyMap.get("gridcapaTaskId"));
-        assertEquals("request-id", mdcPropertyMap.get("computationId"));
-        assertEquals("client-id", mdcPropertyMap.get("clientAppId"));
-        assertNull(mdcPropertyMap.get("eventPrefix"));
-    }
+    void pendingInterruptionTest() throws IOException {
+        final byte[] request = getClass().getResourceAsStream("/raoRequestMessage.json").readAllBytes();
+        final MessageProperties properties = new MessageProperties();
+        properties.setReplyTo("ReplyTo");
+        properties.setCorrelationId("CorrelationId");
+        final Message message = new Message(request, properties);
 
-    @Test
-    void checkThatPendingInterruptWorks() throws IOException {
-        Message message = Mockito.mock(Message.class);
-        byte[] requestBytes = getClass().getResourceAsStream("/raoRequestMessage.json").readAllBytes();
-        when(message.getBody()).thenReturn(requestBytes);
-        MessageProperties messageProperties = Mockito.mock(MessageProperties.class);
-        RaoRequest raoRequest = Mockito.mock(RaoRequest.class);
-
-        Mockito.when(message.getMessageProperties()).thenReturn(messageProperties);
-        Mockito.when(messageProperties.getReplyTo()).thenReturn("ReplyTo");
-        Mockito.when(messageProperties.getCorrelationId()).thenReturn("CorrelationId");
-
-        Mockito.when(raoRequest.getRunId()).thenReturn("MyRunId");
-
-        RestTemplate restTemplate = mock(RestTemplate.class);
+        final RestTemplate restTemplate = mock(RestTemplate.class);
         when(restTemplateBuilder.build()).thenReturn(restTemplate);
-        ResponseEntity<Boolean> responseEntity = mock(ResponseEntity.class);
-        when(restTemplate.getForEntity(anyString(), any(Class.class))).thenReturn(responseEntity);
-        when(responseEntity.getStatusCode()).thenReturn(HttpStatus.OK);
-        when(responseEntity.getBody()).thenReturn(Boolean.TRUE);
+        when(restTemplate.getForEntity(anyString(), any(Class.class))).thenReturn(ResponseEntity.ok(Boolean.TRUE));
 
-        raoRunnerListener.handleMessage(message);
+        raoRunnerMessageHandler.handleMessage(message);
 
         Mockito.verify(amqpTemplate, Mockito.times(1)).send(Mockito.eq("ReplyTo"), Mockito.any(Message.class));
         Mockito.verify(raoRunnerService, Mockito.never()).runRao(Mockito.any(RaoRequest.class));
     }
 
     @Test
-    void onMessageRaoHasError() {
-        final RaoRequest raoRequest = new RaoRequest.RaoRequestBuilder()
+    void onMessageRaoHasErrorTest() {
+        final RaoRequest request = new RaoRequest.RaoRequestBuilder()
                 .withId("id")
                 .withRunId("runId")
                 .withEventPrefix("prefix")
@@ -134,21 +114,14 @@ class RaoRunnerListenerTest {
         final MessageProperties properties = new MessageProperties();
         properties.setReplyTo("replyToMe");
         properties.setCorrelationId("correlationId");
-        final Message message = MessageBuilder
-                .withBody(jsonApiConverter.toJsonMessage(raoRequest))
-                .andProperties(properties)
-                .build();
+        final Message message = new Message(jsonApiConverter.toJsonMessage(request), properties);
 
         final RestTemplate restTemplate = mock(RestTemplate.class);
         when(restTemplateBuilder.build()).thenReturn(restTemplate);
-        ResponseEntity<Boolean> responseEntity = mock(ResponseEntity.class);
-        when(restTemplate.getForEntity(anyString(), any(Class.class))).thenReturn(responseEntity);
-        when(responseEntity.getStatusCode()).thenReturn(HttpStatus.OK);
-        when(responseEntity.getBody()).thenReturn(Boolean.FALSE);
-
+        when(restTemplate.getForEntity(anyString(), any(Class.class))).thenReturn(ResponseEntity.ok(Boolean.FALSE));
         when(raoRunnerService.runRao(any())).thenThrow(new OpenRaoException("Hey I just met you"));
 
-        raoRunnerListener.handleMessage(message);
+        raoRunnerMessageHandler.handleMessage(message);
 
         final ArgumentCaptor<Message> messageCaptor = ArgumentCaptor.forClass(Message.class);
         verify(amqpTemplate, times(1)).send(eq("replyToMe"), messageCaptor.capture());
@@ -158,8 +131,8 @@ class RaoRunnerListenerTest {
     }
 
     @Test
-    void onMessageRaoSuccess() {
-        final RaoRequest raoRequest = new RaoRequest.RaoRequestBuilder()
+    void onMessageRaoSuccessTest() {
+        final RaoRequest request = new RaoRequest.RaoRequestBuilder()
                 .withId("id")
                 .withRunId("runId")
                 .withEventPrefix("prefix")
@@ -167,22 +140,16 @@ class RaoRunnerListenerTest {
         final MessageProperties properties = new MessageProperties();
         properties.setReplyTo("replyToMe");
         properties.setCorrelationId("correlationId");
-        final Message message = MessageBuilder
-                .withBody(jsonApiConverter.toJsonMessage(raoRequest))
-                .andProperties(properties)
-                .build();
+        final Message message = new Message(jsonApiConverter.toJsonMessage(request), properties);
 
         final RestTemplate restTemplate = mock(RestTemplate.class);
         when(restTemplateBuilder.build()).thenReturn(restTemplate);
-        final ResponseEntity<Boolean> responseEntity = mock(ResponseEntity.class);
-        when(restTemplate.getForEntity(anyString(), any(Class.class))).thenReturn(responseEntity);
-        when(responseEntity.getStatusCode()).thenReturn(HttpStatus.OK);
-        when(responseEntity.getBody()).thenReturn(Boolean.FALSE);
+        when(restTemplate.getForEntity(anyString(), any(Class.class))).thenReturn(ResponseEntity.ok(Boolean.FALSE));
 
         final RaoSuccessResponse raoSuccessResponse = new RaoSuccessResponse.Builder().withId("testId").build();
         when(raoRunnerService.runRao(any())).thenReturn(raoSuccessResponse);
 
-        raoRunnerListener.handleMessage(message);
+        raoRunnerMessageHandler.handleMessage(message);
 
         final ArgumentCaptor<Message> messageCaptor = ArgumentCaptor.forClass(Message.class);
         verify(amqpTemplate, times(1)).send(eq("replyToMe"), messageCaptor.capture());

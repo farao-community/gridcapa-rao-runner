@@ -7,6 +7,7 @@
 package com.farao_community.farao.rao_runner.app;
 
 import com.farao_community.farao.rao_runner.api.resource.TimeCoupledRaoRequest;
+import com.farao_community.farao.rao_runner.app.exceptions.FileImporterException;
 import com.powsybl.openrao.raoapi.RaoInputWithNetworkPaths;
 import com.powsybl.openrao.raoapi.TimeCoupledRaoInputWithNetworkPaths;
 import org.assertj.core.api.Assertions;

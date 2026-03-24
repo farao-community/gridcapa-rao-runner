@@ -17,7 +17,7 @@ import java.util.List;
 /**
  * @author Vincent Bochet {@literal <vincent.bochet at rte-france.com>}
  */
-@Type("rao-request")
+@Type("time-coupled-rao-request")
 @JsonDeserialize(builder = TimeCoupledRaoRequest.RaoRequestBuilder.class)
 public final class TimeCoupledRaoRequest extends AbstractRaoRequest {
 

@@ -9,7 +9,6 @@ package com.farao_community.farao.rao_runner.api.resource;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.github.jasminb.jsonapi.annotations.Id;
-import com.github.jasminb.jsonapi.annotations.Type;
 
 import java.time.Instant;
 import java.util.Optional;
@@ -17,7 +16,6 @@ import java.util.Optional;
 /**
  * @author Vincent Bochet {@literal <vincent.bochet at rte-france.com>}
  */
-@Type("rao-request")
 @JsonDeserialize(builder = AbstractRaoRequest.AbstractRaoRequestBuilder.class)
 public abstract class AbstractRaoRequest {
 

@@ -19,7 +19,7 @@ import java.util.Optional;
 /**
  * @author Vincent Bochet {@literal <vincent.bochet at rte-france.com>}
  */
-@Type("rao-response")
+@Type("time-coupled-rao-response")
 @JsonDeserialize(builder = TimeCoupledRaoSuccessResponse.Builder.class)
 public final class TimeCoupledRaoSuccessResponse extends AbstractRaoResponse {
 

@@ -8,6 +8,7 @@ package com.farao_community.farao.rao_runner.app;
 
 import com.farao_community.farao.rao_runner.api.exceptions.RaoRunnerException;
 import com.farao_community.farao.rao_runner.app.configuration.UrlConfiguration;
+import com.farao_community.farao.rao_runner.app.exceptions.FileImporterException;
 import com.powsybl.glsk.api.GlskDocument;
 import com.powsybl.glsk.api.io.GlskDocumentImporters;
 import com.powsybl.glsk.commons.ZonalData;

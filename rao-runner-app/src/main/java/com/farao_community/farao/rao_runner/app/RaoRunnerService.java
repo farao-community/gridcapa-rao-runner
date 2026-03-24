@@ -9,6 +9,7 @@ package com.farao_community.farao.rao_runner.app;
 import com.farao_community.farao.rao_runner.api.resource.AbstractRaoResponse;
 import com.farao_community.farao.rao_runner.api.resource.RaoRequest;
 import com.farao_community.farao.rao_runner.api.resource.RaoSuccessResponse;
+import com.farao_community.farao.rao_runner.app.exceptions.FileImporterException;
 import com.powsybl.glsk.commons.ZonalData;
 import com.powsybl.iidm.network.Network;
 import com.powsybl.openrao.commons.OpenRaoException;

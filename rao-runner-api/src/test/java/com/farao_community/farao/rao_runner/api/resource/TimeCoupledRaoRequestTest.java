@@ -1,7 +1,5 @@
-package com.farao_community.farao.rao_runner.api;
+package com.farao_community.farao.rao_runner.api.resource;
 
-import com.farao_community.farao.rao_runner.api.resource.TimeCoupledRaoRequest;
-import com.farao_community.farao.rao_runner.api.resource.TimedInput;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;

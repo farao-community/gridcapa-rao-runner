@@ -1,0 +1,16 @@
+{
+  "data": {
+    "type": "time-coupled-rao-request",
+    "id": "id",
+    "attributes": {
+      "instant": "instant",
+      "icsFileUrl": "icsFileUrl",
+      "timedInputs": [{
+        "timestamp": "2025-12-31T12:34Z",
+        "networkFileUrl": "networkFileUrl",
+        "cracFileUrl": "cracFileUrl"
+      }],
+      "raoParametersFileUrl": "raoParametersFileUrl"
+    }
+  }
+}

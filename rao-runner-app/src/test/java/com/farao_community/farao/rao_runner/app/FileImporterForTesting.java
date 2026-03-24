@@ -7,6 +7,7 @@
 package com.farao_community.farao.rao_runner.app;
 
 import com.farao_community.farao.rao_runner.app.configuration.UrlConfiguration;
+import com.farao_community.farao.rao_runner.app.exceptions.FileImporterException;
 import com.powsybl.iidm.network.Network;
 import com.powsybl.openrao.data.crac.api.Crac;
 import com.powsybl.openrao.data.timecoupledconstraints.TimeCoupledConstraints;
@@ -15,8 +16,8 @@ import com.powsybl.openrao.raoapi.parameters.RaoParameters;
 /**
  * @author Vincent Bochet {@literal <vincent.bochet at rte-france.com>}
  */
-public class TestFileImporter extends FileImporter {
-    public TestFileImporter(UrlConfiguration urlConfiguration) {
+public class FileImporterForTesting extends FileImporter {
+    public FileImporterForTesting(UrlConfiguration urlConfiguration) {
         super(urlConfiguration);
     }
 

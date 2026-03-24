@@ -17,17 +17,18 @@ import org.springframework.stereotype.Component;
 @Component
 public class GenericRaoRunnerListener implements MessageListener {
 
-    private final TimeCoupledRaoRunnerMessageHandler timeCoupledRaoRunnerMessageHandler;
     private final RaoRunnerMessageHandler raoRunnerMessageHandler;
+    private final TimeCoupledRaoRunnerMessageHandler timeCoupledRaoRunnerMessageHandler;
 
-    public GenericRaoRunnerListener(final TimeCoupledRaoRunnerMessageHandler timeCoupledRaoRunnerMessageHandler, final RaoRunnerMessageHandler raoRunnerMessageHandler) {
-        this.timeCoupledRaoRunnerMessageHandler = timeCoupledRaoRunnerMessageHandler;
+    public GenericRaoRunnerListener(final RaoRunnerMessageHandler raoRunnerMessageHandler,
+                                    final TimeCoupledRaoRunnerMessageHandler timeCoupledRaoRunnerMessageHandler) {
         this.raoRunnerMessageHandler = raoRunnerMessageHandler;
+        this.timeCoupledRaoRunnerMessageHandler = timeCoupledRaoRunnerMessageHandler;
     }
 
     @Override
     public void onMessage(Message message) {
-        if (message.getMessageProperties().getReceivedRoutingKey().equals("TIME-COUPLED")) {
+        if ("TIME-COUPLED".equals(message.getMessageProperties().getReceivedRoutingKey())) {
             timeCoupledRaoRunnerMessageHandler.handleMessage(message);
         } else {
             raoRunnerMessageHandler.handleMessage(message);
