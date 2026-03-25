@@ -145,7 +145,6 @@ class TimeCoupledRaoRunnerServiceTest {
         final TimeCoupledRaoSuccessResponse raoResponse = (TimeCoupledRaoSuccessResponse) abstractRaoResponse;
         Assertions.assertThat(raoResponse)
             .hasFieldOrPropertyWithValue("id", "raoRequestId")
-            .hasFieldOrPropertyWithValue("instant", Optional.empty())
             .hasFieldOrPropertyWithValue("networksWithPraFileUrl", "networksUrl")
             .hasFieldOrPropertyWithValue("raoResultsFileUrl", "raoResultsUrl")
             .hasFieldOrPropertyWithValue("interrupted", false);

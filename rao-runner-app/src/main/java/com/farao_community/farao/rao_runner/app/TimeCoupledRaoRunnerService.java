@@ -127,11 +127,9 @@ public class TimeCoupledRaoRunnerService implements AbstractRaoRunnerService {
         final Map<OffsetDateTime, Network> networksWithPrasMap = applyRemedialActions(raoResult, raoInput);
         final String networksWithPraFileUrl = fileExporter.saveNetworks(networksWithPrasMap, raoInput, raoRequest);
 
-        final String raoInstant = raoRequest.getInstant().orElse(null); // TODO Vérifier si on a une valeur mais à mon avis ça n'a pas de sens pour de l'intertemporel donc on devrait pouvoir retirer l'appel à withInstant() ci-dessous
         final Instant computationEndInstant = Instant.now();
         return new TimeCoupledRaoSuccessResponse.Builder()
             .withId(raoRequest.getId())
-            .withInstant(raoInstant)
             .withNetworksWithPraFileUrl(networksWithPraFileUrl)
             .withRaoResultsFileUrl(raoResultFileUrl)
             .withComputationStartInstant(computationStartInstant)

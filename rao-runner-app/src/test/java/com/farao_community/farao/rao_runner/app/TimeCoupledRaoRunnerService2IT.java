@@ -20,6 +20,8 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.bean.override.convention.TestBean;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
+import java.time.OffsetDateTime;
+
 /**
  * @author Vincent Bochet {@literal <vincent.bochet at rte-france.com>}
  */
@@ -58,6 +60,5 @@ class TimeCoupledRaoRunnerService2IT {
             .hasFieldOrPropertyWithValue("raoResultsFileUrl", "raoResultUrl");
 
         Assertions.assertThat(raoResultArgumentCaptor.getValue().getTimestamps()).hasSize(4);
-        // TODO Improve test with checks about raoResult internal data
     }
 }

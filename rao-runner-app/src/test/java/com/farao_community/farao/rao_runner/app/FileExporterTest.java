@@ -70,14 +70,12 @@ class FileExporterTest {
 
     private final TimeCoupledRaoRequest simpleTimeCoupledRaoRequest = new TimeCoupledRaoRequest.RaoRequestBuilder()
         .withId("id")
-        .withInstant("instant")
         .withIcsFileUrl("icsFileUrl")
         .withRaoParametersFileUrl("raoParametersFileUrl")
         .withTimedInputs(List.of(new TimedInput(OffsetDateTime.now(), "networkFileUrl", "cracFileUrl")))
         .build();
     private final TimeCoupledRaoRequest timeCoupledRaoRequestWithResultDestination = new TimeCoupledRaoRequest.RaoRequestBuilder()
         .withId("id")
-        .withInstant("instant")
         .withIcsFileUrl("icsFileUrl")
         .withRaoParametersFileUrl("raoParametersFileUrl")
         .withTimedInputs(List.of(new TimedInput(OffsetDateTime.now(), "networkFileUrl", "cracFileUrl")))

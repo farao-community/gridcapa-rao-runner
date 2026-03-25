@@ -20,7 +20,6 @@ class TimeCoupledRaoSuccessResponseTest {
     void checkRaoRequestNormalUsage() {
         TimeCoupledRaoSuccessResponse raoResponse = new TimeCoupledRaoSuccessResponse.Builder()
                 .withId("id")
-                .withInstant("instant")
                 .withNetworksWithPraFileUrl("networksWithPraFileUrl")
                 .withRaoResultsFileUrl("raoResultsFileUrl")
                 .withComputationStartInstant(Instant.ofEpochSecond(3600))
@@ -29,7 +28,6 @@ class TimeCoupledRaoSuccessResponseTest {
                 .build();
         Assertions.assertThat(raoResponse).isNotNull();
         Assertions.assertThat(raoResponse.getId()).isEqualTo("id");
-        Assertions.assertThat(raoResponse.getInstant()).contains("instant");
         Assertions.assertThat(raoResponse.getNetworksWithPraFileUrl()).isEqualTo("networksWithPraFileUrl");
         Assertions.assertThat(raoResponse.getRaoResultsFileUrl()).isEqualTo("raoResultsFileUrl");
         Assertions.assertThat(raoResponse.getComputationStartInstant()).isEqualTo(Instant.ofEpochSecond(3600));

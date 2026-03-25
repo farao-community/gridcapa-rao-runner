@@ -14,7 +14,6 @@ import com.github.jasminb.jsonapi.annotations.Type;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 
 import java.time.Instant;
-import java.util.Optional;
 
 /**
  * @author Vincent Bochet {@literal <vincent.bochet at rte-france.com>}
@@ -25,7 +24,6 @@ public final class TimeCoupledRaoSuccessResponse extends AbstractRaoResponse {
 
     @Id
     private final String id;
-    private final String instant;
     private final String networksWithPraFileUrl;
     private final String raoResultsFileUrl;
     private final Instant computationStartInstant;
@@ -34,7 +32,6 @@ public final class TimeCoupledRaoSuccessResponse extends AbstractRaoResponse {
 
     private TimeCoupledRaoSuccessResponse(Builder builder) {
         this.id = builder.id;
-        this.instant = builder.instant;
         this.networksWithPraFileUrl = builder.networksWithPraFileUrl;
         this.raoResultsFileUrl = builder.raoResultsFileUrl;
         this.computationStartInstant = builder.computationStartInstant;
@@ -45,7 +42,6 @@ public final class TimeCoupledRaoSuccessResponse extends AbstractRaoResponse {
 
     public static class Builder {
         private String id;
-        private String instant;
         private String networksWithPraFileUrl;
         private String raoResultsFileUrl;
         private Instant computationStartInstant;
@@ -55,12 +51,6 @@ public final class TimeCoupledRaoSuccessResponse extends AbstractRaoResponse {
         @JsonProperty("id")
         public Builder withId(String id) {
             this.id = id;
-            return this;
-        }
-
-        @JsonProperty("instant")
-        public Builder withInstant(String instant) {
-            this.instant = instant;
             return this;
         }
 
@@ -102,10 +92,6 @@ public final class TimeCoupledRaoSuccessResponse extends AbstractRaoResponse {
 
     public String getId() {
         return id;
-    }
-
-    public Optional<String> getInstant() {
-        return Optional.ofNullable(instant);
     }
 
     public String getNetworksWithPraFileUrl() {

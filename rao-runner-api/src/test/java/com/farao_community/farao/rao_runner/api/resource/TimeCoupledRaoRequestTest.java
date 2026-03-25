@@ -25,7 +25,6 @@ class TimeCoupledRaoRequestTest {
             {
               "id": "8",
               "runId": "1234-56-7890",
-              "instant": null,
               "raoParametersFileUrl": "/test_base_path/RaoParameters.json",
               "resultsDestination": "timecoupled_rao_results",
               "targetEndInstant": null,
@@ -60,7 +59,6 @@ class TimeCoupledRaoRequestTest {
             .isNotNull()
             .hasFieldOrPropertyWithValue("id", "8")
             .hasFieldOrPropertyWithValue("runId", "1234-56-7890")
-            .hasFieldOrPropertyWithValue("instant", Optional.empty())
             .hasFieldOrPropertyWithValue("raoParametersFileUrl", "/test_base_path/RaoParameters.json")
             .hasFieldOrPropertyWithValue("resultsDestination", Optional.of("timecoupled_rao_results"))
             .hasFieldOrPropertyWithValue("targetEndInstant", Optional.empty())
@@ -100,6 +98,6 @@ class TimeCoupledRaoRequestTest {
 
         final String serializedTimeCoupledRaoRequest = objectMapper.writeValueAsString(timeCoupledRaoRequest);
         Assertions.assertThat(serializedTimeCoupledRaoRequest)
-            .isEqualTo("{\"id\":\"8\",\"runId\":\"1234-56-7890\",\"instant\":null,\"raoParametersFileUrl\":\"/timecoupled_rao_inputs/simple_case/RaoParameters.json\",\"resultsDestination\":\"timecoupled_rao_results\",\"targetEndInstant\":null,\"eventPrefix\":null,\"icsFileUrl\":\"/timecoupled_rao_inputs/simple_case/timecoupled-constraints.json\",\"timedInputs\":[{\"timestamp\":\"2019-01-08T00:30+01:00\",\"networkFileUrl\":\"/test_base_url/initialNetwork_0030.xiidm\",\"cracFileUrl\":\"/test_base_url/crac_0030.json\"},{\"timestamp\":\"2019-01-08T01:30+01:00\",\"networkFileUrl\":\"/test_base_url/initialNetwork_0130.xiidm\",\"cracFileUrl\":\"/test_base_url/crac_0130.json\"},{\"timestamp\":\"2019-01-08T02:30+01:00\",\"networkFileUrl\":\"/test_base_url/initialNetwork_0230.xiidm\",\"cracFileUrl\":\"/test_base_url/crac_0230.json\"},{\"timestamp\":\"2019-01-08T03:30+01:00\",\"networkFileUrl\":\"/test_base_url/initialNetwork_0330.xiidm\",\"cracFileUrl\":\"/test_base_url/crac_0330.json\"}]}");
+            .isEqualTo("{\"id\":\"8\",\"runId\":\"1234-56-7890\",\"raoParametersFileUrl\":\"/timecoupled_rao_inputs/simple_case/RaoParameters.json\",\"resultsDestination\":\"timecoupled_rao_results\",\"targetEndInstant\":null,\"eventPrefix\":null,\"icsFileUrl\":\"/timecoupled_rao_inputs/simple_case/timecoupled-constraints.json\",\"timedInputs\":[{\"timestamp\":\"2019-01-08T00:30+01:00\",\"networkFileUrl\":\"/test_base_url/initialNetwork_0030.xiidm\",\"cracFileUrl\":\"/test_base_url/crac_0030.json\"},{\"timestamp\":\"2019-01-08T01:30+01:00\",\"networkFileUrl\":\"/test_base_url/initialNetwork_0130.xiidm\",\"cracFileUrl\":\"/test_base_url/crac_0130.json\"},{\"timestamp\":\"2019-01-08T02:30+01:00\",\"networkFileUrl\":\"/test_base_url/initialNetwork_0230.xiidm\",\"cracFileUrl\":\"/test_base_url/crac_0230.json\"},{\"timestamp\":\"2019-01-08T03:30+01:00\",\"networkFileUrl\":\"/test_base_url/initialNetwork_0330.xiidm\",\"cracFileUrl\":\"/test_base_url/crac_0330.json\"}]}");
     }
 }

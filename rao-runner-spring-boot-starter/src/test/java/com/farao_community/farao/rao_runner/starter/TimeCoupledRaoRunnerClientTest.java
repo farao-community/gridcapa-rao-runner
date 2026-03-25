@@ -46,7 +46,6 @@ class TimeCoupledRaoRunnerClientTest {
         Assertions.assertThat(raoResponse).isInstanceOf(TimeCoupledRaoSuccessResponse.class);
         final TimeCoupledRaoSuccessResponse raoSuccessResponse = (TimeCoupledRaoSuccessResponse) raoResponse;
         Assertions.assertThat(raoSuccessResponse.getId()).isEqualTo("id");
-        Assertions.assertThat(raoSuccessResponse.getInstant()).contains("instant");
         Assertions.assertThat(raoSuccessResponse.getNetworksWithPraFileUrl()).isEqualTo("networksWithPraFileUrl");
         Assertions.assertThat(raoSuccessResponse.getRaoResultsFileUrl()).isEqualTo("raoResultsFileUrl");
         Assertions.assertThat(messageArgumentCaptor.getValue().getMessageProperties().getReceivedRoutingKey()).isEqualTo("TIME-COUPLED");

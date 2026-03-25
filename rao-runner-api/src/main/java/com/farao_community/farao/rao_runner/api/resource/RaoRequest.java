@@ -21,6 +21,7 @@ import java.util.Optional;
 @JsonDeserialize(builder = RaoRequest.RaoRequestBuilder.class)
 public final class RaoRequest extends AbstractRaoRequest {
 
+    private final String instant;
     private final String networkFileUrl;
     private final String cracFileUrl;
     private final String refprogFileUrl;
@@ -29,6 +30,7 @@ public final class RaoRequest extends AbstractRaoRequest {
 
     private RaoRequest(RaoRequestBuilder builder) {
         super(builder);
+        this.instant = builder.instant;
         this.networkFileUrl = builder.networkFileUrl;
         this.cracFileUrl = builder.cracFileUrl;
         this.refprogFileUrl = builder.refprogFileUrl;
@@ -37,11 +39,18 @@ public final class RaoRequest extends AbstractRaoRequest {
     }
 
     public static class RaoRequestBuilder extends AbstractRaoRequestBuilder<RaoRequestBuilder> {
+        private String instant;
         private String networkFileUrl;
         private String cracFileUrl;
         private String refprogFileUrl;
         private String realGlskFileUrl;
         private String virtualhubsFileUrl;
+
+        @JsonProperty("instant")
+        public RaoRequestBuilder withInstant(String instant) {
+            this.instant = instant;
+            return this;
+        }
 
         @JsonProperty("networkFileUrl")
         public RaoRequestBuilder withNetworkFileUrl(String networkFileUrl) {
@@ -77,6 +86,10 @@ public final class RaoRequest extends AbstractRaoRequest {
         public RaoRequest build() {
             return new RaoRequest(this);
         }
+    }
+
+    public Optional<String> getInstant() {
+        return Optional.ofNullable(instant);
     }
 
     public String getNetworkFileUrl() {

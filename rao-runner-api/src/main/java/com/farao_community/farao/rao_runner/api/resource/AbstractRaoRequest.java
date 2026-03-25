@@ -22,7 +22,6 @@ public abstract class AbstractRaoRequest {
     @Id
     private final String id;
     private final String runId;
-    private final String instant;
     private final String raoParametersFileUrl;
     private final String resultsDestination;
     private final Instant targetEndInstant;
@@ -31,7 +30,6 @@ public abstract class AbstractRaoRequest {
     protected AbstractRaoRequest(AbstractRaoRequestBuilder builder) {
         this.id = builder.id;
         this.runId = builder.runId;
-        this.instant = builder.instant;
         this.raoParametersFileUrl = builder.raoParametersFileUrl;
         this.resultsDestination = builder.resultsDestination;
         this.targetEndInstant = builder.targetEndInstant;
@@ -41,7 +39,6 @@ public abstract class AbstractRaoRequest {
     public abstract static class AbstractRaoRequestBuilder<T extends AbstractRaoRequestBuilder> {
         private String id;
         private String runId;
-        private String instant;
         private String raoParametersFileUrl;
         private String resultsDestination;
         private Instant targetEndInstant;
@@ -56,12 +53,6 @@ public abstract class AbstractRaoRequest {
         @JsonProperty("runId")
         public T withRunId(String runId) {
             this.runId = runId;
-            return (T) this;
-        }
-
-        @JsonProperty("instant")
-        public T withInstant(String instant) {
-            this.instant = instant;
             return (T) this;
         }
 
@@ -96,10 +87,6 @@ public abstract class AbstractRaoRequest {
 
     public String getRunId() {
         return runId;
-    }
-
-    public Optional<String> getInstant() {
-        return Optional.ofNullable(instant);
     }
 
     public String getRaoParametersFileUrl() {

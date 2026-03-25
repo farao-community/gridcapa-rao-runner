@@ -141,7 +141,6 @@ class JsonApiConverterTest {
         final TimeCoupledRaoRequest raoRequest = jsonConverter.fromJsonMessage(requestBytes, TimeCoupledRaoRequest.class);
 
         Assertions.assertThat(raoRequest.getId()).isEqualTo("id");
-        Assertions.assertThat(raoRequest.getInstant()).contains("instant");
         Assertions.assertThat(raoRequest.getIcsFileUrl()).isEqualTo("icsFileUrl");
         Assertions.assertThat(raoRequest.getTimedInputs()).isEqualTo(List.of(TIMED_INPUT));
         Assertions.assertThat(raoRequest.getRaoParametersFileUrl()).isEqualTo("raoParametersFileUrl");
@@ -155,7 +154,6 @@ class JsonApiConverterTest {
         final TimeCoupledRaoRequest importedRaoRequest = jsonConverter.fromJsonMessage(jsonConverter.toJsonMessage(raoRequest), TimeCoupledRaoRequest.class);
 
         Assertions.assertThat(importedRaoRequest.getId()).isEqualTo(raoRequest.getId());
-        Assertions.assertThat(importedRaoRequest.getInstant()).isEqualTo(raoRequest.getInstant());
         Assertions.assertThat(importedRaoRequest.getIcsFileUrl()).isEqualTo(raoRequest.getIcsFileUrl());
         Assertions.assertThat(importedRaoRequest.getTimedInputs()).isEqualTo(raoRequest.getTimedInputs());
         Assertions.assertThat(importedRaoRequest.getRaoParametersFileUrl()).isEqualTo(raoRequest.getRaoParametersFileUrl());
@@ -167,7 +165,6 @@ class JsonApiConverterTest {
     void timeCoupledRoundTripTest() {
         final TimeCoupledRaoRequest raoRequest = new TimeCoupledRaoRequest.RaoRequestBuilder()
             .withId("id")
-            .withInstant("instant")
             .withIcsFileUrl("icsFileUrl")
             .withTimedInputs(List.of(TIMED_INPUT))
             .withRaoParametersFileUrl("raoParametersFileUrl")
@@ -183,7 +180,6 @@ class JsonApiConverterTest {
     void timeCoupledRoundTripTestWithEmptyOptionals() {
         final TimeCoupledRaoRequest raoRequest = new TimeCoupledRaoRequest.RaoRequestBuilder()
             .withId("id")
-            .withInstant("instant")
             .withIcsFileUrl("icsFileUrl")
             .withTimedInputs(List.of(TIMED_INPUT))
             .build();
@@ -199,7 +195,6 @@ class JsonApiConverterTest {
         final TimeCoupledRaoRequest raoRequest = jsonConverter.fromJsonMessage(requestBytes, TimeCoupledRaoRequest.class);
 
         Assertions.assertThat(raoRequest.getId()).isEqualTo("id");
-        Assertions.assertThat(raoRequest.getInstant()).contains("instant");
         Assertions.assertThat(raoRequest.getIcsFileUrl()).isEqualTo("icsFileUrl");
         Assertions.assertThat(raoRequest.getTimedInputs()).isEqualTo(List.of(TIMED_INPUT));
         Assertions.assertThat(raoRequest.getRaoParametersFileUrl()).isEqualTo("raoParametersFileUrl");
@@ -216,25 +211,9 @@ class JsonApiConverterTest {
         final TimeCoupledRaoSuccessResponse raoResponse = jsonConverter.fromJsonMessage(requestBytes, TimeCoupledRaoSuccessResponse.class);
 
         Assertions.assertThat(raoResponse.getId()).isEqualTo("id");
-        Assertions.assertThat(raoResponse.getInstant()).contains("instant");
         Assertions.assertThat(raoResponse.getNetworksWithPraFileUrl()).isEqualTo("networksWithPraFileUrl");
         Assertions.assertThat(raoResponse.getRaoResultsFileUrl()).isEqualTo("raoResultsFileUrl");
         Assertions.assertThat(raoResponse.getComputationStartInstant()).isEqualTo(Instant.ofEpochSecond(1637052884, 944727000));
         Assertions.assertThat(raoResponse.getComputationEndInstant()).isEqualTo(Instant.ofEpochSecond(1647057884, 934927000));
-    }
-
-    @Test
-    void checkTimeCoupledRaoResponseJsonConversionWhithNullInstant() throws IOException {
-        final JsonApiConverter jsonConverter = new JsonApiConverter();
-        final byte[] requestBytes = getClass().getResourceAsStream("/timeCoupledRaoResponseMessageNullInstant.json").readAllBytes();
-
-        final TimeCoupledRaoSuccessResponse raoResponse = jsonConverter.fromJsonMessage(requestBytes, TimeCoupledRaoSuccessResponse.class);
-
-        Assertions.assertThat(raoResponse.getId()).isEqualTo("id");
-        Assertions.assertThat(raoResponse.getInstant()).isEmpty();
-        Assertions.assertThat(raoResponse.getNetworksWithPraFileUrl()).isEqualTo("networksWithPraFileUrl");
-        Assertions.assertThat(raoResponse.getRaoResultsFileUrl()).isEqualTo("raoResultsFileUrl");
-        Assertions.assertThat(raoResponse.getComputationStartInstant()).isNull();
-        Assertions.assertThat(raoResponse.getComputationEndInstant()).isNull();
     }
 }
