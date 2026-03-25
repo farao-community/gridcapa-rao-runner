@@ -6,6 +6,7 @@
  */
 package com.farao_community.farao.rao_runner.app;
 
+import com.farao_community.farao.rao_runner.api.RaoRunnerConstants;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.core.MessageListener;
 import org.springframework.stereotype.Component;
@@ -28,7 +29,7 @@ public class GenericRaoRunnerListener implements MessageListener {
 
     @Override
     public void onMessage(Message message) {
-        if ("TIME-COUPLED".equals(message.getMessageProperties().getReceivedRoutingKey())) {
+        if (RaoRunnerConstants.TIME_COUPLED_ROUTING_KEY.equals(message.getMessageProperties().getReceivedRoutingKey())) {
             timeCoupledRaoRunnerMessageHandler.handleMessage(message);
         } else {
             raoRunnerMessageHandler.handleMessage(message);

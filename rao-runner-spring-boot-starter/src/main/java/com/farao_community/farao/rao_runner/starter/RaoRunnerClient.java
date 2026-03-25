@@ -7,9 +7,9 @@
 package com.farao_community.farao.rao_runner.starter;
 
 import com.farao_community.farao.rao_runner.api.JsonApiConverter;
+import com.farao_community.farao.rao_runner.api.resource.AbstractRaoResponse;
 import com.farao_community.farao.rao_runner.api.resource.RaoFailureResponse;
 import com.farao_community.farao.rao_runner.api.resource.RaoRequest;
-import com.farao_community.farao.rao_runner.api.resource.AbstractRaoResponse;
 import org.springframework.amqp.core.AmqpTemplate;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.core.MessageBuilder;

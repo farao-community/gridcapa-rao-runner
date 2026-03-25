@@ -7,9 +7,10 @@
 package com.farao_community.farao.rao_runner.starter;
 
 import com.farao_community.farao.rao_runner.api.JsonApiConverter;
+import com.farao_community.farao.rao_runner.api.RaoRunnerConstants;
 import com.farao_community.farao.rao_runner.api.resource.AbstractRaoResponse;
-import com.farao_community.farao.rao_runner.api.resource.TimeCoupledRaoRequest;
 import com.farao_community.farao.rao_runner.api.resource.RaoFailureResponse;
+import com.farao_community.farao.rao_runner.api.resource.TimeCoupledRaoRequest;
 import org.springframework.amqp.core.AmqpTemplate;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.core.MessageBuilder;
@@ -66,7 +67,7 @@ public class TimeCoupledRaoRunnerClient {
                 .setDeliveryMode(MessageDeliveryMode.NON_PERSISTENT)
                 .setExpiration(raoRunnerClientProperties.getAmqp().getExpiration())
                 .setPriority(priority)
-                .setReceivedRoutingKey("TIME-COUPLED")
+                .setReceivedRoutingKey(RaoRunnerConstants.TIME_COUPLED_ROUTING_KEY)
                 .build();
     }
 }
