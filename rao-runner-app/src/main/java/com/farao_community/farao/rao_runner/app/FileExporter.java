@@ -13,6 +13,7 @@ import com.farao_community.farao.minio_adapter.starter.MinioAdapter;
 import com.farao_community.farao.rao_runner.api.resource.RaoRequest;
 import com.powsybl.commons.datasource.MemDataSource;
 import com.powsybl.iidm.network.Network;
+import io.opentelemetry.instrumentation.annotations.WithSpan;
 import org.springframework.stereotype.Service;
 
 import java.io.ByteArrayInputStream;
@@ -36,6 +37,7 @@ public class FileExporter {
         this.minioAdapter = minioAdapter;
     }
 
+    @WithSpan("saveNetwork")
     String saveNetwork(final Network network, final RaoRequest raoRequest) {
         final MemDataSource dataSource = new MemDataSource();
         network.write(IIDM_EXPORT_FORMAT, null, dataSource);
@@ -44,6 +46,7 @@ public class FileExporter {
         return minioAdapter.generatePreSignedUrl(networkWithPRADestinationPath);
     }
 
+    @WithSpan("saveRaoResult")
     String saveRaoResult(final RaoResult raoResult, final Crac crac, final RaoRequest raoRequest, final Unit unit) {
         final ByteArrayOutputStream outputStreamRaoResult = new ByteArrayOutputStream();
         raoResult.write("JSON", crac, generateJsonProperties(unit), outputStreamRaoResult);

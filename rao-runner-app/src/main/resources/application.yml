@@ -1,6 +1,8 @@
 spring:
   application:
     name: rao-runner-app
+    git:
+      version: ${GIT_VERSION:unknown}
   servlet:
     multipart:
       max-file-size: 100MB
@@ -18,3 +20,19 @@ rao-runner:
     rao-response:
       exchange: rao-response
       expiration: 600000 # (10x60s), time for applications to read the response
+
+management:
+  tracing.enabled: true
+  otel.tracing.sampler: always_on
+
+otel.exporter.otlp.endpoint: http://otel-collector:4317
+otel.exporter.export-logs: false
+
+logging:
+  level:
+    root: info
+    org.springframework: info
+    io.opentelemetry: info
+    com.farao_community: debug
+    com.powsybl: debug
+
