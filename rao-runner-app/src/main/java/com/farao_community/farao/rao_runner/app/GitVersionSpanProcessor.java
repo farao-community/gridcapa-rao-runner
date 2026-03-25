@@ -6,29 +6,29 @@ import io.opentelemetry.sdk.trace.ReadableSpan;
 
 public class GitVersionSpanProcessor implements io.opentelemetry.sdk.trace.SpanProcessor {
 
-  private final String gitVersion;
+    private final String gitVersion;
 
-  public GitVersionSpanProcessor(String gitVersion) {
-    this.gitVersion = gitVersion;
-  }
+    public GitVersionSpanProcessor(String gitVersion) {
+        this.gitVersion = gitVersion;
+    }
 
-  @Override
-  public void onStart(Context parentContext, ReadWriteSpan span) {
-    span.setAttribute("git.version", gitVersion);
-  }
+    @Override
+    public void onStart(Context parentContext, ReadWriteSpan span) {
+        span.setAttribute("git.version", gitVersion);
+    }
 
-  @Override
-  public boolean isStartRequired() {
-    return true;
-  }
+    @Override
+    public boolean isStartRequired() {
+        return true;
+    }
 
-  @Override
-  public void onEnd(ReadableSpan readableSpan) {
+    @Override
+    public void onEnd(ReadableSpan readableSpan) {
 
-  }
+    }
 
-  @Override
-  public boolean isEndRequired() {
-    return true;
-  }
+    @Override
+    public boolean isEndRequired() {
+        return true;
+    }
 }

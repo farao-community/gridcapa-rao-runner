@@ -46,6 +46,7 @@ public final class RaoSuccessResponse extends AbstractRaoResponse {
     }
 
     public static class Builder {
+
         private String id;
         private String instant;
         private String networkWithPraFileUrl;
@@ -53,7 +54,7 @@ public final class RaoSuccessResponse extends AbstractRaoResponse {
         private String raoResultFileUrl;
         private Instant computationStartInstant;
         private Instant computationEndInstant;
-        private  boolean interrupted;
+        private boolean interrupted;
 
         @JsonProperty("id")
         public Builder withId(String id) {

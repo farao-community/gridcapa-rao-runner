@@ -5,6 +5,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 package com.farao_community.farao.rao_runner.app;
+
 import com.powsybl.openrao.raoapi.Rao;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,7 +25,7 @@ public class GeneralBeans {
 
     @Bean
     public Logger getLogger() {
-        return  LoggerFactory.getLogger("RAO_RUNNER_BUSINESS_LOGGER");
+        return LoggerFactory.getLogger("RAO_RUNNER_BUSINESS_LOGGER");
     }
 
 }

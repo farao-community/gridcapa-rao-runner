@@ -18,40 +18,40 @@ import com.powsybl.openrao.commons.opentelemetry.OpenTelemetryReporter;
 @ConditionalOnProperty(name = "management.tracing.enabled", havingValue = "true")
 public class OpenTelemetryConfiguration {
 
-  @Value("${spring.application.name}")
-  private String serviceName;
+    @Value("${spring.application.name}")
+    private String serviceName;
 
-  @Value("${otel.exporter.otlp.endpoint}")
-  private String otlpEndpoint;
+    @Value("${otel.exporter.otlp.endpoint}")
+    private String otlpEndpoint;
 
-  @Value("${otel.exporter.export-logs:false}")
-  private boolean otlpExportLogs;
+    @Value("${otel.exporter.export-logs:false}")
+    private boolean otlpExportLogs;
 
-  @Value("${spring.application.git.version}")
-  private String gitVersion;
+    @Value("${spring.application.git.version}")
+    private String gitVersion;
 
-  @Bean
-  public OpenTelemetry openTelemetry(SdkTracerProvider tracerProvider) {
-    OpenTelemetryReporter.setOpenTelemetryTracer(tracerProvider, otlpExportLogs);
-    return OpenTelemetrySdk.builder()
-        .setTracerProvider(tracerProvider)
-        .build();
-  }
+    @Bean
+    public OpenTelemetry openTelemetry(SdkTracerProvider tracerProvider) {
+        OpenTelemetryReporter.setOpenTelemetryTracer(tracerProvider, otlpExportLogs);
+        return OpenTelemetrySdk.builder()
+            .setTracerProvider(tracerProvider)
+            .build();
+    }
 
-  @Bean
-  public OtlpGrpcSpanExporter otlpGrpcSpanExporter() {
-    return OtlpGrpcSpanExporter.builder().setEndpoint(otlpEndpoint).build();
-  }
+    @Bean
+    public OtlpGrpcSpanExporter otlpGrpcSpanExporter() {
+        return OtlpGrpcSpanExporter.builder().setEndpoint(otlpEndpoint).build();
+    }
 
-  @Bean
-  public SdkTracerProvider sdkTracerProvider(OtlpGrpcSpanExporter spanExporter) {
-    return SdkTracerProvider.builder()
-        .addSpanProcessor(BatchSpanProcessor.builder(spanExporter).build())
-        .addSpanProcessor(new GitVersionSpanProcessor(gitVersion))
-        .setResource(Resource.getDefault().merge(
-            Resource.create(Attributes.of(ResourceAttributes.SERVICE_NAME, serviceName))
-        ))
-        .build();
-  }
+    @Bean
+    public SdkTracerProvider sdkTracerProvider(OtlpGrpcSpanExporter spanExporter) {
+        return SdkTracerProvider.builder()
+            .addSpanProcessor(BatchSpanProcessor.builder(spanExporter).build())
+            .addSpanProcessor(new GitVersionSpanProcessor(gitVersion))
+            .setResource(Resource.getDefault().merge(
+                Resource.create(Attributes.of(ResourceAttributes.SERVICE_NAME, serviceName))
+            ))
+            .build();
+    }
 
 }
