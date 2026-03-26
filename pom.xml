@@ -50,7 +50,7 @@
         <jaxb-runtime.version>4.0.5</jaxb-runtime.version>
         <jsonapi.converter.version>0.11</jsonapi.converter.version>
         <junit.launcher.version>1.6.3</junit.launcher.version>
-        <farao.dependencies.version>1.46.2</farao.dependencies.version>
+        <farao.dependencies.version>1.47.0-SNAPSHOT</farao.dependencies.version>
         <gridcapa.starter.minio.adapter.version>1.8.0</gridcapa.starter.minio.adapter.version>
     </properties>
 

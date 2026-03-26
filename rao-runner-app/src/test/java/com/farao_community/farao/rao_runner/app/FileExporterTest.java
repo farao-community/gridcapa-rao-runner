@@ -6,15 +6,26 @@
  */
 package com.farao_community.farao.rao_runner.app;
 
-import com.powsybl.openrao.commons.Unit;
-import com.powsybl.openrao.data.crac.api.Crac;
-import com.powsybl.openrao.data.raoresult.api.RaoResult;
 import com.farao_community.farao.minio_adapter.starter.MinioAdapter;
 import com.farao_community.farao.minio_adapter.starter.MinioAdapterProperties;
 import com.farao_community.farao.rao_runner.api.resource.RaoRequest;
+import com.farao_community.farao.rao_runner.api.resource.TimeCoupledRaoRequest;
+import com.farao_community.farao.rao_runner.api.resource.TimedInput;
+import com.farao_community.farao.rao_runner.app.exceptions.FileExporterException;
 import com.powsybl.iidm.network.Network;
+import com.powsybl.openrao.commons.TemporalDataImpl;
+import com.powsybl.openrao.commons.Unit;
+import com.powsybl.openrao.data.crac.api.Crac;
+import com.powsybl.openrao.data.raoresult.api.RaoResult;
+import com.powsybl.openrao.data.raoresult.api.TimeCoupledRaoResult;
+import com.powsybl.openrao.data.timecoupledconstraints.TimeCoupledConstraints;
+import com.powsybl.openrao.raoapi.RaoInputWithNetworkPaths;
+import com.powsybl.openrao.raoapi.TimeCoupledRaoInputWithNetworkPaths;
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -22,9 +33,10 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.time.OffsetDateTime;
+import java.util.List;
+import java.util.Map;
 import java.util.Objects;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
  * @author Mohamed BenRejeb {@literal <mohamed.ben-rejeb at rte-france.com>}
@@ -33,18 +45,21 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 class FileExporterTest {
 
     @Autowired
-    FileExporter fileExporter;
+    private TimeCoupledRaoRunnerService timeCoupledRaoRunnerService;
+    @Autowired
+    private FileExporter fileExporter;
     @MockitoBean
-    MinioAdapter minioAdapter;
+    private MinioAdapter minioAdapter;
 
-    RaoRequest simpleRaoRequest = new RaoRequest.RaoRequestBuilder()
+    private final Network network = Network.read("network.xiidm", getClass().getResourceAsStream("/rao_inputs/network.xiidm"));
+    private final RaoRequest simpleRaoRequest = new RaoRequest.RaoRequestBuilder()
             .withId("id")
             .withInstant("instant")
             .withNetworkFileUrl("networkFileUrl")
             .withCracFileUrl("cracFileUrl")
             .withRaoParametersFileUrl("raoParametersFileUrl")
             .build();
-    RaoRequest raoRequestWithResultDestination = new RaoRequest.RaoRequestBuilder()
+    private final RaoRequest raoRequestWithResultDestination = new RaoRequest.RaoRequestBuilder()
             .withId("id")
             .withInstant("instant")
             .withNetworkFileUrl("networkFileUrl")
@@ -52,7 +67,20 @@ class FileExporterTest {
             .withRaoParametersFileUrl("raoParametersFileUrl")
             .withResultsDestination("destination-key")
             .build();
-    Network network = Network.read("network.xiidm", getClass().getResourceAsStream("/rao_inputs/network.xiidm"));
+
+    private final TimeCoupledRaoRequest simpleTimeCoupledRaoRequest = new TimeCoupledRaoRequest.RaoRequestBuilder()
+        .withId("id")
+        .withIcsFileUrl("icsFileUrl")
+        .withRaoParametersFileUrl("raoParametersFileUrl")
+        .withTimedInputs(List.of(new TimedInput(OffsetDateTime.now(), "networkFileUrl", "cracFileUrl")))
+        .build();
+    private final TimeCoupledRaoRequest timeCoupledRaoRequestWithResultDestination = new TimeCoupledRaoRequest.RaoRequestBuilder()
+        .withId("id")
+        .withIcsFileUrl("icsFileUrl")
+        .withRaoParametersFileUrl("raoParametersFileUrl")
+        .withTimedInputs(List.of(new TimedInput(OffsetDateTime.now(), "networkFileUrl", "cracFileUrl")))
+        .withResultsDestination("destination-key")
+        .build();
 
     @BeforeEach
     void setUp() {
@@ -60,40 +88,103 @@ class FileExporterTest {
         Mockito.doNothing().when(minioAdapter).uploadArtifact(Mockito.any(), Mockito.any());
     }
 
-    @Test
-    void checkRaoResultSavingWithResultDestination() throws IOException {
-        Mockito.when(minioAdapter.generatePreSignedUrl("destination-key/raoResult.json")).thenReturn("raoResultUrl");
-        InputStream raoResultInputStream = getClass().getResourceAsStream("/rao_inputs/raoResult.json");
-        Crac crac = Crac.read("crac.json", Objects.requireNonNull(getClass().getResourceAsStream("/rao_inputs/crac.json")), network);
-        RaoResult raoResult = RaoResult.read(raoResultInputStream, crac);
-        String resultsDestination = fileExporter.saveRaoResult(raoResult, crac, raoRequestWithResultDestination, Unit.AMPERE);
-        assertEquals("raoResultUrl", resultsDestination);
+    private void checkNetworkSaving(final String filePath, final RaoRequest raoRequest) {
+        Mockito.when(minioAdapter.generatePreSignedUrl(filePath)).thenReturn("networkWithPraUrl");
+
+        final String networkPraUrl = fileExporter.saveNetwork(network, raoRequest);
+
+        Assertions.assertThat(networkPraUrl).isEqualTo("networkWithPraUrl");
     }
 
     @Test
-    void checkRaoResultSavingWithNoResultDestination() throws IOException {
-        Mockito.when(minioAdapter.generatePreSignedUrl("base/path/id/raoResult.json")).thenReturn("raoResultUrl");
-        InputStream raoResultInputStream = getClass().getResourceAsStream("/rao_inputs/raoResult.json");
-        Crac crac = Crac.read("crac.json", Objects.requireNonNull(getClass().getResourceAsStream("/rao_inputs/crac.json")), network);
-        RaoResult raoResult = RaoResult.read(raoResultInputStream, crac);
-        String resultsDestination = fileExporter.saveRaoResult(raoResult, crac, simpleRaoRequest, Unit.AMPERE);
-        assertEquals("raoResultUrl", resultsDestination);
+    void saveNetworkWithResultDestinationTest() {
+        checkNetworkSaving("destination-key/networkWithPRA.xiidm", raoRequestWithResultDestination);
     }
 
     @Test
-    void checkNetworkSavingWithResultDestination() {
-        Mockito.when(minioAdapter.generatePreSignedUrl("destination-key/networkWithPRA.xiidm")).thenReturn("networkWithPraUrl");
+    void saveNetworkWithNoResultDestinationTest() {
+        checkNetworkSaving("base/path/id/networkWithPRA.xiidm", simpleRaoRequest);
+    }
 
-        String networkPraUrl = fileExporter.saveNetwork(network, raoRequestWithResultDestination);
-        assertEquals("networkWithPraUrl", networkPraUrl);
+    private void checkTimeCoupledNetworkSaving(final String filePath, final TimeCoupledRaoRequest raoRequest, final String postIcsImportNetworkPath) throws FileExporterException, IOException {
+        final OffsetDateTime timestamp = OffsetDateTime.now();
+        final Crac crac = Crac.read("crac.json", getResourceAsStream("/rao_inputs/crac.json"), network);
+        final TemporalDataImpl<RaoInputWithNetworkPaths> raoInputs = new TemporalDataImpl<>();
+        raoInputs.put(timestamp, RaoInputWithNetworkPaths.build("networkFileUrl", postIcsImportNetworkPath, crac).build());
+        final TimeCoupledConstraints timeCoupledConstraints = new TimeCoupledConstraints();
+        final TimeCoupledRaoInputWithNetworkPaths timeCoupledRaoInput = new TimeCoupledRaoInputWithNetworkPaths(raoInputs, timeCoupledConstraints);
+        Mockito.when(minioAdapter.generatePreSignedUrl(filePath)).thenReturn("networksWithPraUrl");
+
+        final String networkPraUrl = fileExporter.saveNetworks(Map.of(timestamp, network), timeCoupledRaoInput, raoRequest);
+
+        Assertions.assertThat(networkPraUrl).isEqualTo("networksWithPraUrl");
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"biidm", "jiidm", "xiidm"})
+    void saveTimeCoupledNetworkWithResultDestinationTest(final String format) throws FileExporterException, IOException {
+        checkTimeCoupledNetworkSaving("destination-key/networksWithPRA.zip", timeCoupledRaoRequestWithResultDestination, "postIcsNetworkPath." + format);
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"biidm", "jiidm", "xiidm"})
+    void saveTimeCoupledNetworkWithNoResultDestinationTest(final String format) throws FileExporterException, IOException {
+        checkTimeCoupledNetworkSaving("base/path/id/networksWithPRA.zip", simpleTimeCoupledRaoRequest, "postIcsNetworkPath." + format);
     }
 
     @Test
-    void checkNetworkSavingWithNoResultDestination() {
-        Mockito.when(minioAdapter.generatePreSignedUrl("base/path/id/networkWithPRA.xiidm")).thenReturn("networkWithPraUrl");
-
-        String networkPraUrl = fileExporter.saveNetwork(network, simpleRaoRequest);
-        assertEquals("networkWithPraUrl", networkPraUrl);
+    void saveTimeCoupledNetworkWithInvalidFormatThrowsTest() {
+        Assertions.assertThatExceptionOfType(FileExporterException.class)
+            .isThrownBy(() -> checkTimeCoupledNetworkSaving("base/path/id/networksWithPRA.zip", simpleTimeCoupledRaoRequest, "postIcsNetworkPath.txt"))
+            .withMessage("Unsupported network format \"txt\" with filename postIcsNetworkPath.txt");
     }
 
+    private void checkRaoResultSaving(final String filePath, final RaoRequest raoRequestWithResultDestination) throws IOException {
+        final Crac crac = Crac.read("crac.json", getResourceAsStream("/rao_inputs/crac.json"), network);
+        final RaoResult raoResult = RaoResult.read(getResourceAsStream("/rao_inputs/raoResult.json"), crac);
+        Mockito.when(minioAdapter.generatePreSignedUrl(filePath)).thenReturn("raoResultUrl");
+
+        final String resultsDestination = fileExporter.saveRaoResult(raoResult, crac, raoRequestWithResultDestination, Unit.AMPERE);
+
+        Assertions.assertThat(resultsDestination).isEqualTo("raoResultUrl");
+    }
+
+    @Test
+    void saveRaoResultWithResultDestinationTest() throws IOException {
+        checkRaoResultSaving("destination-key/raoResult.json", raoRequestWithResultDestination);
+    }
+
+    @Test
+    void saveRaoResultWithoutResultDestinationTest() throws IOException {
+        checkRaoResultSaving("base/path/id/raoResult.json", simpleRaoRequest);
+    }
+
+    private void checkTimeCoupledRaoResultSaving(final String filePath, final TimeCoupledRaoRequest timeCoupledRaoRequestWithResultDestination) throws FileExporterException, IOException {
+        final Crac crac = Crac.read("crac.json", getResourceAsStream("/rao_inputs/crac.json"), network);
+        final TemporalDataImpl<RaoInputWithNetworkPaths> raoInputs = new TemporalDataImpl<>();
+        raoInputs.put(OffsetDateTime.now(), RaoInputWithNetworkPaths.build("networkFileUrl", crac).build());
+        final TimeCoupledConstraints timeCoupledConstraints = new TimeCoupledConstraints();
+        final TimeCoupledRaoInputWithNetworkPaths timeCoupledRaoInput = new TimeCoupledRaoInputWithNetworkPaths(raoInputs, timeCoupledConstraints);
+        final TimeCoupledRaoResult timeCoupledRaoResult = Mockito.mock(TimeCoupledRaoResult.class);
+        Mockito.when(minioAdapter.generatePreSignedUrl(filePath)).thenReturn("raoResultsUrl");
+
+        final String resultsDestination = fileExporter.saveTimeCoupledRaoResult(timeCoupledRaoResult, timeCoupledRaoInput, timeCoupledRaoRequestWithResultDestination);
+
+        Mockito.verify(timeCoupledRaoResult).write(Mockito.any(), Mockito.any(), Mockito.any());
+        Assertions.assertThat(resultsDestination).isEqualTo("raoResultsUrl");
+    }
+
+    @Test
+    void saveTimeCoupledRaoResultWithResultDestinationTest() throws FileExporterException, IOException {
+        checkTimeCoupledRaoResultSaving("destination-key/raoResults.zip", timeCoupledRaoRequestWithResultDestination);
+    }
+
+    @Test
+    void saveTimeCoupledRaoResultWithoutResultDestinationTest() throws FileExporterException, IOException {
+        checkTimeCoupledRaoResultSaving("base/path/id/raoResults.zip", simpleTimeCoupledRaoRequest);
+    }
+
+    private InputStream getResourceAsStream(final String resourcePath) {
+        return Objects.requireNonNull(getClass().getResourceAsStream(resourcePath));
+    }
 }

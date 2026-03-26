@@ -10,11 +10,13 @@ import com.farao_community.farao.rao_runner.api.resource.AbstractRaoResponse;
 import com.farao_community.farao.rao_runner.api.resource.RaoFailureResponse;
 import com.farao_community.farao.rao_runner.api.resource.RaoRequest;
 import com.farao_community.farao.rao_runner.api.resource.RaoSuccessResponse;
+import com.farao_community.farao.rao_runner.app.exceptions.FileImporterException;
 import com.powsybl.glsk.api.GlskDocument;
 import com.powsybl.glsk.api.io.GlskDocumentImporters;
 import com.powsybl.glsk.commons.ZonalData;
 import com.powsybl.iidm.network.Network;
 import com.powsybl.openrao.commons.OpenRaoException;
+import com.powsybl.openrao.commons.Unit;
 import com.powsybl.openrao.data.crac.api.Crac;
 import com.powsybl.openrao.data.raoresult.api.ComputationStatus;
 import com.powsybl.openrao.data.raoresult.api.RaoResult;
@@ -174,7 +176,7 @@ class RaoRunnerServiceTest {
         when(fileImporter.importVirtualHubs(coreRaoRequest.getVirtualhubsFileUrl().get())).thenReturn(virtualHubsConfiguration);
 
         when(fileExporter.saveNetwork(network, coreRaoRequest)).thenReturn("simple-networkWithPRA-url");
-        when(fileExporter.saveRaoResult(raoResult, crac, coreRaoRequest, RaoParameters.load().getObjectiveFunctionParameters().getUnit())).thenReturn("simple-RaoResultJson-url");
+        when(fileExporter.saveRaoResult(raoResult, crac, coreRaoRequest, Unit.AMPERE)).thenReturn("simple-RaoResultJson-url");
 
         final ArgumentCaptor<RaoInput> raoInputCaptor = ArgumentCaptor.forClass(RaoInput.class);
         when(raoRunnerProvider.run(raoInputCaptor.capture(), eq(raoParameters))).thenReturn(raoResult);

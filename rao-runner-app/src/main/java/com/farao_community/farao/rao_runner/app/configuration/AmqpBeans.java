@@ -6,7 +6,7 @@
  */
 package com.farao_community.farao.rao_runner.app.configuration;
 
-import com.farao_community.farao.rao_runner.app.RaoRunnerListener;
+import com.farao_community.farao.rao_runner.app.GenericRaoRunnerListener;
 import org.springframework.amqp.core.Binding;
 import org.springframework.amqp.core.BindingBuilder;
 import org.springframework.amqp.core.DirectExchange;
@@ -54,7 +54,7 @@ public class AmqpBeans {
     }
 
     @Bean
-    public MessageListenerContainer messageListenerContainer(ConnectionFactory connectionFactory, Queue raoRequestQueue, RaoRunnerListener listener) {
+    public MessageListenerContainer messageListenerContainer(ConnectionFactory connectionFactory, Queue raoRequestQueue, GenericRaoRunnerListener listener) {
         SimpleMessageListenerContainer simpleMessageListenerContainer = new SimpleMessageListenerContainer();
         simpleMessageListenerContainer.setConnectionFactory(connectionFactory);
         simpleMessageListenerContainer.setQueues(raoRequestQueue);

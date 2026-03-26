@@ -7,12 +7,13 @@
 package com.farao_community.farao.rao_runner.app;
 
 import com.farao_community.farao.rao_runner.api.resource.AbstractRaoResponse;
-import com.farao_community.farao.rao_runner.api.resource.RaoFailureResponse;
 import com.farao_community.farao.rao_runner.api.resource.RaoRequest;
 import com.farao_community.farao.rao_runner.api.resource.RaoSuccessResponse;
+import com.farao_community.farao.rao_runner.app.exceptions.FileImporterException;
 import com.powsybl.glsk.commons.ZonalData;
 import com.powsybl.iidm.network.Network;
 import com.powsybl.openrao.commons.OpenRaoException;
+import com.powsybl.openrao.commons.Unit;
 import com.powsybl.openrao.data.crac.api.Crac;
 import com.powsybl.openrao.data.crac.api.State;
 import com.powsybl.openrao.data.glsk.virtual.hubs.GlskVirtualHubs;
@@ -34,13 +35,15 @@ import java.io.IOException;
 import java.time.Instant;
 import java.util.Optional;
 
+import static com.powsybl.openrao.raoapi.parameters.extensions.LoadFlowAndSensitivityParameters.getSensitivityWithLoadFlowParameters;
+
 /**
  * @author Pengbo Wang {@literal <pengbo.wang at rte-international.com>}
  * @author Mohamed BenRejeb {@literal <mohamed.ben-rejeb at rte-france.com>}
  * @author Vincent Bochet {@literal <vincent.bochet at rte-france.com>}
  */
 @Service
-public class RaoRunnerService {
+public class RaoRunnerService implements AbstractRaoRunnerService {
     private static final Logger LOGGER = LoggerFactory.getLogger(RaoRunnerService.class);
 
     private final Rao.Runner raoRunnerProvider;
@@ -121,7 +124,8 @@ public class RaoRunnerService {
     }
 
     private RaoSuccessResponse saveResultsAndCreateRaoResponse(final RaoRequest raoRequest, final Crac crac, final RaoResult raoResult, final Network network, final Instant computationStartInstant, final RaoParameters raoParameters) {
-        final String raoResultFileUrl = fileExporter.saveRaoResult(raoResult, crac, raoRequest, raoParameters.getObjectiveFunctionParameters().getUnit());
+        final Unit flowUnit = getSensitivityWithLoadFlowParameters(raoParameters).getLoadFlowParameters().isDc() ? Unit.MEGAWATT : Unit.AMPERE;
+        final String raoResultFileUrl = fileExporter.saveRaoResult(raoResult, crac, raoRequest, flowUnit);
         final String networkWithPraFileUrl = fileExporter.saveNetwork(network, raoRequest);
         final String raoInstant = raoRequest.getInstant().orElse(null);
         final Instant computationEndInstant = Instant.now();
@@ -134,13 +138,6 @@ public class RaoRunnerService {
                 .withComputationStartInstant(computationStartInstant)
                 .withComputationEndInstant(computationEndInstant)
                 .withInterrupted(false)
-                .build();
-    }
-
-    private RaoFailureResponse buildRaoFailureResponse(final String id, final String message) {
-        return new RaoFailureResponse.Builder()
-                .withId(id)
-                .withErrorMessage(message)
                 .build();
     }
 }

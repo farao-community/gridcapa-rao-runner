@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, RTE (http://www.rte-france.com)
+ * Copyright (c) 2026, RTE (http://www.rte-france.com)
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -9,8 +9,8 @@ package com.farao_community.farao.rao_runner.starter;
 import com.farao_community.farao.rao_runner.api.JsonApiConverter;
 import com.farao_community.farao.rao_runner.api.resource.AbstractRaoResponse;
 import com.farao_community.farao.rao_runner.api.resource.RaoFailureResponse;
-import com.farao_community.farao.rao_runner.api.resource.RaoRequest;
-import com.farao_community.farao.rao_runner.api.resource.RaoSuccessResponse;
+import com.farao_community.farao.rao_runner.api.resource.TimeCoupledRaoRequest;
+import com.farao_community.farao.rao_runner.api.resource.TimeCoupledRaoSuccessResponse;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -22,20 +22,20 @@ import org.springframework.amqp.core.MessageProperties;
 import java.io.IOException;
 
 /**
- * @author Mohamed BenRejeb {@literal <mohamed.ben-rejeb at rte-france.com>}
+ * @author Vincent Bochet {@literal <vincent.bochet at rte-france.com>}
  */
-class RaoRunnerClientTest {
+class TimeCoupledRaoRunnerClientTest {
 
     private final JsonApiConverter jsonConverter = new JsonApiConverter();
 
     @Test
     void raoRunnerClientSuccessTest() throws IOException {
         final AmqpTemplate amqpTemplate = Mockito.mock(AmqpTemplate.class);
-        final RaoRunnerClient client = new RaoRunnerClient(amqpTemplate, buildProperties());
-        final RaoRequest raoRequest = jsonConverter.fromJsonMessage(getClass().getResourceAsStream("/raoRequestMessage.json").readAllBytes(), RaoRequest.class);
+        final TimeCoupledRaoRunnerClient client = new TimeCoupledRaoRunnerClient(amqpTemplate, buildProperties());
+        final TimeCoupledRaoRequest raoRequest = jsonConverter.fromJsonMessage(getClass().getResourceAsStream("/timeCoupledRaoRequestMessage.json").readAllBytes(), TimeCoupledRaoRequest.class);
 
         final Message responseMessage = Mockito.mock(Message.class);
-        Mockito.when(responseMessage.getBody()).thenReturn(getClass().getResourceAsStream("/raoResponseMessage.json").readAllBytes());
+        Mockito.when(responseMessage.getBody()).thenReturn(getClass().getResourceAsStream("/timeCoupledRaoResponseMessage.json").readAllBytes());
         final MessageProperties messageProperties = new MessageProperties();
         Mockito.when(responseMessage.getMessageProperties()).thenReturn(messageProperties);
         final ArgumentCaptor<Message> messageArgumentCaptor = ArgumentCaptor.forClass(Message.class);
@@ -43,21 +43,19 @@ class RaoRunnerClientTest {
 
         final AbstractRaoResponse raoResponse = client.runRao(raoRequest);
 
-        Assertions.assertThat(raoResponse).isInstanceOf(RaoSuccessResponse.class);
-        final RaoSuccessResponse raoSuccessResponse = (RaoSuccessResponse) raoResponse;
+        Assertions.assertThat(raoResponse).isInstanceOf(TimeCoupledRaoSuccessResponse.class);
+        final TimeCoupledRaoSuccessResponse raoSuccessResponse = (TimeCoupledRaoSuccessResponse) raoResponse;
         Assertions.assertThat(raoSuccessResponse.getId()).isEqualTo("id");
-        Assertions.assertThat(raoSuccessResponse.getInstant()).contains("instant");
-        Assertions.assertThat(raoSuccessResponse.getNetworkWithPraFileUrl()).isEqualTo("networkWithPraFileUrl");
-        Assertions.assertThat(raoSuccessResponse.getCracFileUrl()).isEqualTo("cracFileUrl");
-        Assertions.assertThat(raoSuccessResponse.getRaoResultFileUrl()).isEqualTo("raoResultFileUrl");
-        Assertions.assertThat(messageArgumentCaptor.getValue().getMessageProperties().getReceivedRoutingKey()).isNull();
+        Assertions.assertThat(raoSuccessResponse.getNetworksWithPraFileUrl()).isEqualTo("networksWithPraFileUrl");
+        Assertions.assertThat(raoSuccessResponse.getRaoResultsFileUrl()).isEqualTo("raoResultsFileUrl");
+        Assertions.assertThat(messageArgumentCaptor.getValue().getMessageProperties().getReceivedRoutingKey()).isEqualTo("TIME-COUPLED");
     }
 
     @Test
     void raoRunnerClientFailTest() throws IOException {
         final AmqpTemplate amqpTemplate = Mockito.mock(AmqpTemplate.class);
-        final RaoRunnerClient client = new RaoRunnerClient(amqpTemplate, buildProperties());
-        final RaoRequest raoRequest = jsonConverter.fromJsonMessage(getClass().getResourceAsStream("/raoRequestMessage.json").readAllBytes(), RaoRequest.class);
+        final TimeCoupledRaoRunnerClient client = new TimeCoupledRaoRunnerClient(amqpTemplate, buildProperties());
+        final TimeCoupledRaoRequest raoRequest = jsonConverter.fromJsonMessage(getClass().getResourceAsStream("/timeCoupledRaoRequestMessage.json").readAllBytes(), TimeCoupledRaoRequest.class);
 
         Mockito.when(amqpTemplate.sendAndReceive(Mockito.same("my-queue"), Mockito.any())).thenReturn(null);
 
