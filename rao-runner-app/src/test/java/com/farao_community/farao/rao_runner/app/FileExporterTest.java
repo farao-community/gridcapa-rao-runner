@@ -121,13 +121,13 @@ class FileExporterTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {"biidm, jiidm, xiidm"})
+    @ValueSource(strings = {"biidm", "jiidm", "xiidm"})
     void saveTimeCoupledNetworkWithResultDestinationTest(final String format) throws FileExporterException, IOException {
         checkTimeCoupledNetworkSaving("destination-key/networksWithPRA.zip", timeCoupledRaoRequestWithResultDestination, "postIcsNetworkPath." + format);
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {"biidm, jiidm, xiidm"})
+    @ValueSource(strings = {"biidm", "jiidm", "xiidm"})
     void saveTimeCoupledNetworkWithNoResultDestinationTest(final String format) throws FileExporterException, IOException {
         checkTimeCoupledNetworkSaving("base/path/id/networksWithPRA.zip", simpleTimeCoupledRaoRequest, "postIcsNetworkPath." + format);
     }

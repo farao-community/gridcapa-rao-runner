@@ -47,7 +47,7 @@ class TimeCoupledRaoRunnerServiceIT {
                     && constraint.getUpwardPowerGradient().equals(Optional.of(150.0))
                     && constraint.getDownwardPowerGradient().equals(Optional.of(-250.0))
             );
-        List<OffsetDateTime> timestamps = List.of(
+        final List<OffsetDateTime> timestamps = List.of(
             OffsetDateTime.parse("2019-01-08T00:30+01:00"),
             OffsetDateTime.parse("2019-01-08T01:30+01:00"),
             OffsetDateTime.parse("2019-01-08T02:30+01:00"),
@@ -55,12 +55,12 @@ class TimeCoupledRaoRunnerServiceIT {
         );
         Assertions.assertThat(raoInput.getTimestampsToRun()).containsExactlyInAnyOrderElementsOf(timestamps);
         Assertions.assertThat(raoInput.getRaoInputs().getDataPerTimestamp()).hasSize(4);
-        for (int i = 0; i < 4; i++) {
-            final OffsetDateTime timestamp = timestamps.get(i);
+        for (final OffsetDateTime timestamp : timestamps) {
             final RaoInputWithNetworkPaths raoInputForTimestamp = raoInput.getRaoInputs().getData(timestamp).orElseThrow();
             Assertions.assertThat(raoInputForTimestamp.getCrac().getTimestamp()).isEqualTo(Optional.of(timestamp));
-            Assertions.assertThat(raoInputForTimestamp.getInitialNetworkPath()).endsWith("timecoupled_rao_inputs/simple_case/initialNetwork_0" + i + "30.xiidm");
-            Assertions.assertThat(raoInputForTimestamp.getPostIcsImportNetworkPath()).endsWith("timecoupled_rao_inputs/simple_case/initialNetwork_0" + i + "30.xiidm");
+            final int hour = timestamp.getHour();
+            Assertions.assertThat(raoInputForTimestamp.getInitialNetworkPath()).endsWith("timecoupled_rao_inputs/simple_case/initialNetwork_0" + hour + "30.xiidm");
+            Assertions.assertThat(raoInputForTimestamp.getPostIcsImportNetworkPath()).endsWith("timecoupled_rao_inputs/simple_case/initialNetwork_0" + hour + "30.xiidm");
         }
     }
 }

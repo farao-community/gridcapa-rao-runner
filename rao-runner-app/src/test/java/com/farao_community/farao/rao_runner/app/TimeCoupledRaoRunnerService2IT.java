@@ -20,8 +20,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.bean.override.convention.TestBean;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
-import java.time.OffsetDateTime;
-
 /**
  * @author Vincent Bochet {@literal <vincent.bochet at rte-france.com>}
  */

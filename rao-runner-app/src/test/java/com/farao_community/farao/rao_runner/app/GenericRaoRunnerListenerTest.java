@@ -20,15 +20,15 @@ import static org.mockito.Mockito.times;
  */
 class GenericRaoRunnerListenerTest {
     private GenericRaoRunnerListener genericListener;
-    private RaoRunnerMessageHandler stantardRaoRunnerMessageHandler;
+    private RaoRunnerMessageHandler standardRaoRunnerMessageHandler;
     private TimeCoupledRaoRunnerMessageHandler timeCoupledRaoRunnerMessageHandler;
 
     @BeforeEach
     void setUp() {
-        stantardRaoRunnerMessageHandler = mock(RaoRunnerMessageHandler.class);
+        standardRaoRunnerMessageHandler = mock(RaoRunnerMessageHandler.class);
         timeCoupledRaoRunnerMessageHandler = mock(TimeCoupledRaoRunnerMessageHandler.class);
         genericListener = new GenericRaoRunnerListener(
-            stantardRaoRunnerMessageHandler,
+            standardRaoRunnerMessageHandler,
             timeCoupledRaoRunnerMessageHandler
         );
     }
@@ -41,7 +41,7 @@ class GenericRaoRunnerListenerTest {
 
         genericListener.onMessage(message);
 
-        Mockito.verify(stantardRaoRunnerMessageHandler, times(0)).handleMessage(message);
+        Mockito.verify(standardRaoRunnerMessageHandler, times(0)).handleMessage(message);
         Mockito.verify(timeCoupledRaoRunnerMessageHandler, times(1)).handleMessage(message);
     }
 
@@ -53,7 +53,7 @@ class GenericRaoRunnerListenerTest {
 
         genericListener.onMessage(message);
 
-        Mockito.verify(stantardRaoRunnerMessageHandler, times(1)).handleMessage(message);
+        Mockito.verify(standardRaoRunnerMessageHandler, times(1)).handleMessage(message);
         Mockito.verify(timeCoupledRaoRunnerMessageHandler, times(0)).handleMessage(message);
     }
 }
