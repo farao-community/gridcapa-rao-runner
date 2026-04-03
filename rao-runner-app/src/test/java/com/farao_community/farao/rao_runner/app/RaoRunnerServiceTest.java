@@ -23,6 +23,7 @@ import com.powsybl.openrao.data.refprog.refprogxmlimporter.RefProgImporter;
 import com.powsybl.openrao.raoapi.Rao;
 import com.powsybl.openrao.raoapi.RaoInput;
 import com.powsybl.openrao.raoapi.parameters.RaoParameters;
+import com.powsybl.openrao.searchtreerao.commons.RaoUtil;
 import com.powsybl.openrao.virtualhubs.VirtualHubsConfiguration;
 import com.powsybl.openrao.virtualhubs.xml.XmlVirtualHubsConfiguration;
 import com.powsybl.sensitivity.SensitivityVariableSet;
@@ -174,7 +175,7 @@ class RaoRunnerServiceTest {
         when(fileImporter.importVirtualHubs(coreRaoRequest.getVirtualhubsFileUrl().get())).thenReturn(virtualHubsConfiguration);
 
         when(fileExporter.saveNetwork(network, coreRaoRequest)).thenReturn("simple-networkWithPRA-url");
-        when(fileExporter.saveRaoResult(raoResult, crac, coreRaoRequest, RaoParameters.load().getObjectiveFunctionParameters().getUnit())).thenReturn("simple-RaoResultJson-url");
+        when(fileExporter.saveRaoResult(raoResult, crac, coreRaoRequest, RaoUtil.getFlowUnit(RaoParameters.load()))).thenReturn("simple-RaoResultJson-url");
 
         final ArgumentCaptor<RaoInput> raoInputCaptor = ArgumentCaptor.forClass(RaoInput.class);
         when(raoRunnerProvider.run(raoInputCaptor.capture(), eq(raoParameters))).thenReturn(raoResult);

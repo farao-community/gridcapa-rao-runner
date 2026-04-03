@@ -23,6 +23,7 @@ import com.powsybl.openrao.raoapi.Rao;
 import com.powsybl.openrao.raoapi.RaoInput;
 import com.powsybl.openrao.raoapi.json.JsonRaoParameters;
 import com.powsybl.openrao.raoapi.parameters.RaoParameters;
+import com.powsybl.openrao.searchtreerao.commons.RaoUtil;
 import com.powsybl.openrao.virtualhubs.VirtualHubsConfiguration;
 import com.powsybl.sensitivity.SensitivityVariableSet;
 import org.slf4j.Logger;
@@ -121,7 +122,7 @@ public class RaoRunnerService {
     }
 
     private RaoSuccessResponse saveResultsAndCreateRaoResponse(final RaoRequest raoRequest, final Crac crac, final RaoResult raoResult, final Network network, final Instant computationStartInstant, final RaoParameters raoParameters) {
-        final String raoResultFileUrl = fileExporter.saveRaoResult(raoResult, crac, raoRequest, raoParameters.getObjectiveFunctionParameters().getUnit());
+        final String raoResultFileUrl = fileExporter.saveRaoResult(raoResult, crac, raoRequest, RaoUtil.getFlowUnit(raoParameters));
         final String networkWithPraFileUrl = fileExporter.saveNetwork(network, raoRequest);
         final String raoInstant = raoRequest.getInstant().orElse(null);
         final Instant computationEndInstant = Instant.now();
