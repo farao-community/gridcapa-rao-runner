@@ -14,6 +14,7 @@ import com.farao_community.farao.rao_runner.api.resource.TimedInput;
 import com.farao_community.farao.rao_runner.app.exceptions.FileExporterException;
 import com.farao_community.farao.rao_runner.app.exceptions.FileImporterException;
 import com.powsybl.iidm.network.Network;
+import com.powsybl.iidm.network.VariantManager;
 import com.powsybl.openrao.commons.OpenRaoException;
 import com.powsybl.openrao.data.crac.api.Crac;
 import com.powsybl.openrao.data.raoresult.api.ComputationStatus;
@@ -71,7 +72,9 @@ class TimeCoupledRaoRunnerServiceTest {
         final Crac crac = Mockito.mock(Crac.class);
         Mockito.when(fileImporter.importRaoParameters(Mockito.any())).thenReturn(new RaoParameters());
         Mockito.when(fileImporter.importIcsFile(Mockito.any())).thenReturn(new TimeCoupledConstraints());
-        Mockito.when(fileImporter.importNetwork(Mockito.any())).thenReturn(Mockito.mock(Network.class));
+        final Network network = Mockito.mock(Network.class);
+        Mockito.when(network.getVariantManager()).thenReturn(Mockito.mock(VariantManager.class));
+        Mockito.when(fileImporter.importNetwork(Mockito.any())).thenReturn(network);
         Mockito.when(fileImporter.importCracWithContext(Mockito.any(), Mockito.any())).thenReturn(crac);
         Mockito.when(crac.getTimestamp()).thenReturn(Optional.of(OffsetDateTime.now()));
         Mockito.when(raoRunnerProvider.run(Mockito.any(), Mockito.any())).thenThrow(new OpenRaoException("It's a test"));
@@ -94,7 +97,9 @@ class TimeCoupledRaoRunnerServiceTest {
         final Crac crac = Mockito.mock(Crac.class);
         Mockito.when(fileImporter.importRaoParameters(Mockito.any())).thenReturn(new RaoParameters());
         Mockito.when(fileImporter.importIcsFile(Mockito.any())).thenReturn(new TimeCoupledConstraints());
-        Mockito.when(fileImporter.importNetwork(Mockito.any())).thenReturn(Mockito.mock(Network.class));
+        final Network network = Mockito.mock(Network.class);
+        Mockito.when(network.getVariantManager()).thenReturn(Mockito.mock(VariantManager.class));
+        Mockito.when(fileImporter.importNetwork(Mockito.any())).thenReturn(network);
         Mockito.when(fileImporter.importCracWithContext(Mockito.any(), Mockito.any())).thenReturn(crac);
         Mockito.when(crac.getTimestamp()).thenReturn(Optional.of(OffsetDateTime.now()));
 
@@ -124,10 +129,12 @@ class TimeCoupledRaoRunnerServiceTest {
         Mockito.when(fileImporter.importIcsFile(simpleRaoRequest.getIcsFileUrl())).thenReturn(timeCoupledConstraints);
         for (TimedInput timedInput : simpleRaoRequest.getTimedInputs()) {
             final Network network = Mockito.mock(Network.class);
-            final Crac crac = Mockito.mock(Crac.class);
+            Mockito.when(network.getVariantManager()).thenReturn(Mockito.mock(VariantManager.class));
             Mockito.when(fileImporter.importNetwork(timedInput.networkFileUrl())).thenReturn(network);
-            Mockito.when(fileImporter.importCracWithContext(timedInput.cracFileUrl(), network)).thenReturn(crac);
+            final Crac crac = Mockito.mock(Crac.class);
             Mockito.when(crac.getTimestamp()).thenReturn(Optional.of(timedInput.timestamp()));
+            Mockito.when(fileImporter.importCracWithContext(timedInput.cracFileUrl(), network)).thenReturn(crac);
+            fileImporter.importCracWithContext(timedInput.cracFileUrl(), network);
         }
 
         final TimeCoupledRaoResult timeCoupledRaoResult = Mockito.mock(TimeCoupledRaoResult.class);
@@ -135,7 +142,7 @@ class TimeCoupledRaoRunnerServiceTest {
         Mockito.when(timeCoupledRaoResult.getComputationStatus()).thenReturn(ComputationStatus.DEFAULT);
 
         Mockito.when(fileExporter.saveTimeCoupledRaoResult(Mockito.any(), Mockito.any(), Mockito.any())).thenReturn("raoResultsUrl");
-        Mockito.when(fileExporter.saveNetworks(Mockito.any(), Mockito.any(), Mockito.any())).thenReturn("networksUrl");
+        Mockito.when(fileExporter.saveNetworks(Mockito.any(), Mockito.any())).thenReturn("networksUrl");
 
         final AbstractRaoResponse abstractRaoResponse = raoRunnerService.runRao(simpleRaoRequest);
 

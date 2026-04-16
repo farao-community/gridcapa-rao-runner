@@ -35,8 +35,6 @@ import java.io.IOException;
 import java.time.Instant;
 import java.util.Optional;
 
-import static com.powsybl.openrao.raoapi.parameters.extensions.LoadFlowAndSensitivityParameters.getSensitivityWithLoadFlowParameters;
-
 /**
  * @author Pengbo Wang {@literal <pengbo.wang at rte-international.com>}
  * @author Mohamed BenRejeb {@literal <mohamed.ben-rejeb at rte-france.com>}

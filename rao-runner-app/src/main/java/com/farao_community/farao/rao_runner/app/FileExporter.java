@@ -16,8 +16,8 @@ import com.powsybl.openrao.commons.Unit;
 import com.powsybl.openrao.data.crac.api.Crac;
 import com.powsybl.openrao.data.raoresult.api.TimeCoupledRaoResult;
 import com.powsybl.openrao.data.raoresult.api.RaoResult;
-import com.powsybl.openrao.raoapi.TimeCoupledRaoInputWithNetworkPaths;
-import com.powsybl.openrao.raoapi.RaoInputWithNetworkPaths;
+import com.powsybl.openrao.raoapi.RaoInput;
+import com.powsybl.openrao.raoapi.TimeCoupledRaoInput;
 import org.apache.commons.io.FilenameUtils;
 import org.springframework.stereotype.Service;
 
@@ -72,7 +72,6 @@ public class FileExporter {
     }
 
     String saveNetworks(final Map<OffsetDateTime, Network> networksWithPrasMap,
-                        final TimeCoupledRaoInputWithNetworkPaths raoInput,
                         final TimeCoupledRaoRequest raoRequest) throws FileExporterException {
         final ByteArrayOutputStream outputStreamRaoResult = new ByteArrayOutputStream();
         try (ZipOutputStream zipOutputStream = new ZipOutputStream(outputStreamRaoResult)) {
@@ -80,7 +79,7 @@ public class FileExporter {
                 final OffsetDateTime offsetDateTime = entry.getKey();
                 final Network network = entry.getValue();
                 // Write network
-                addNetworkToZip(network, zipOutputStream, raoInput, offsetDateTime);
+                addNetworkToZip(network, zipOutputStream, raoRequest, offsetDateTime);
             }
         } catch (final IOException ioe) {
             throw new FileExporterException("Error occurred while trying to export time coupled networks", ioe);
@@ -92,9 +91,12 @@ public class FileExporter {
 
     private static void addNetworkToZip(final Network network,
                                         final ZipOutputStream zipOutputStream,
-                                        final TimeCoupledRaoInputWithNetworkPaths raoInput,
+                                        final TimeCoupledRaoRequest raoRequest,
                                         final OffsetDateTime offsetDateTime) throws IOException, FileExporterException {
-        final String networkFilePath = raoInput.getRaoInputs().getData(offsetDateTime).orElseThrow().getPostIcsImportNetworkPath();
+        final String networkFilePath = raoRequest.getTimedInputs().stream()
+            .filter(input -> input.timestamp().isEqual(offsetDateTime))
+            .findFirst().orElseThrow()
+            .networkFileUrl();
         final String networkFilename = FilenameUtils.getName(networkFilePath);
         final Matcher matcher = NETWORK_FILENAME_PATTERN.matcher(networkFilename);
         final String outputExtension;
@@ -129,11 +131,11 @@ public class FileExporter {
     }
 
     String saveTimeCoupledRaoResult(final TimeCoupledRaoResult raoResult,
-                                    final TimeCoupledRaoInputWithNetworkPaths raoInput,
+                                    final TimeCoupledRaoInput raoInput,
                                     final TimeCoupledRaoRequest raoRequest) throws FileExporterException {
         final ByteArrayOutputStream outputStreamRaoResult = new ByteArrayOutputStream();
         try (ZipOutputStream zipOutputStream = new ZipOutputStream(outputStreamRaoResult)) {
-            raoResult.write(zipOutputStream, raoInput.getRaoInputs().map(RaoInputWithNetworkPaths::getCrac), RAO_RESULT_EXPORT_PROPERTIES);
+            raoResult.write(zipOutputStream, raoInput.getRaoInputs().map(RaoInput::getCrac), RAO_RESULT_EXPORT_PROPERTIES);
         } catch (final IOException ioe) {
             throw new FileExporterException("Error occurred while trying to export time coupled rao result", ioe);
         }

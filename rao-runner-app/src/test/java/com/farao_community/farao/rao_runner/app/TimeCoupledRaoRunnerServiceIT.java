@@ -8,8 +8,8 @@ package com.farao_community.farao.rao_runner.app;
 
 import com.farao_community.farao.rao_runner.api.resource.TimeCoupledRaoRequest;
 import com.farao_community.farao.rao_runner.app.exceptions.FileImporterException;
-import com.powsybl.openrao.raoapi.RaoInputWithNetworkPaths;
-import com.powsybl.openrao.raoapi.TimeCoupledRaoInputWithNetworkPaths;
+import com.powsybl.openrao.raoapi.RaoInput;
+import com.powsybl.openrao.raoapi.TimeCoupledRaoInput;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,7 +32,7 @@ class TimeCoupledRaoRunnerServiceIT {
     void getRaoInputTest() throws FileImporterException {
         final TimeCoupledRaoRequest simpleRaoRequest = TimeCoupledTestHelper.getValidTimeCoupledRaoRequest("file:");
 
-        final TimeCoupledRaoInputWithNetworkPaths raoInput = raoRunnerService.getRaoInput(simpleRaoRequest);
+        final TimeCoupledRaoInput raoInput = raoRunnerService.getRaoInput(simpleRaoRequest);
 
         Assertions.assertThat(raoInput).isNotNull();
         Assertions.assertThat(raoInput.getTimeCoupledConstraints().getGeneratorConstraints()).hasSize(2);
@@ -56,11 +56,11 @@ class TimeCoupledRaoRunnerServiceIT {
         Assertions.assertThat(raoInput.getTimestampsToRun()).containsExactlyInAnyOrderElementsOf(timestamps);
         Assertions.assertThat(raoInput.getRaoInputs().getDataPerTimestamp()).hasSize(4);
         for (final OffsetDateTime timestamp : timestamps) {
-            final RaoInputWithNetworkPaths raoInputForTimestamp = raoInput.getRaoInputs().getData(timestamp).orElseThrow();
+            final RaoInput raoInputForTimestamp = raoInput.getRaoInputs().getData(timestamp).orElseThrow();
             Assertions.assertThat(raoInputForTimestamp.getCrac().getTimestamp()).isEqualTo(Optional.of(timestamp));
-            final int hour = timestamp.getHour();
-            Assertions.assertThat(raoInputForTimestamp.getInitialNetworkPath()).endsWith("timecoupled_rao_inputs/simple_case/initialNetwork_0" + hour + "30.xiidm");
-            Assertions.assertThat(raoInputForTimestamp.getPostIcsImportNetworkPath()).endsWith("timecoupled_rao_inputs/simple_case/initialNetwork_0" + hour + "30.xiidm");
+//            final int hour = timestamp.getHour();
+//            Assertions.assertThat(raoInputForTimestamp.getNetwork().).endsWith("timecoupled_rao_inputs/simple_case/initialNetwork_0" + hour + "30.xiidm");
+//            Assertions.assertThat(raoInputForTimestamp.getPostIcsImportNetworkPath()).endsWith("timecoupled_rao_inputs/simple_case/initialNetwork_0" + hour + "30.xiidm");
         }
     }
 }

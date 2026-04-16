@@ -26,9 +26,9 @@ import com.powsybl.openrao.data.raoresult.api.ComputationStatus;
 import com.powsybl.openrao.data.raoresult.api.RaoResult;
 import com.powsybl.openrao.data.raoresult.api.TimeCoupledRaoResult;
 import com.powsybl.openrao.data.timecoupledconstraints.TimeCoupledConstraints;
-import com.powsybl.openrao.raoapi.RaoInputWithNetworkPaths;
+import com.powsybl.openrao.raoapi.RaoInput;
 import com.powsybl.openrao.raoapi.TimeCoupledRao;
-import com.powsybl.openrao.raoapi.TimeCoupledRaoInputWithNetworkPaths;
+import com.powsybl.openrao.raoapi.TimeCoupledRaoInput;
 import com.powsybl.openrao.raoapi.json.JsonRaoParameters;
 import com.powsybl.openrao.raoapi.parameters.RaoParameters;
 import org.slf4j.Logger;
@@ -68,7 +68,7 @@ public class TimeCoupledRaoRunnerService implements AbstractRaoRunnerService {
             final Instant computationStartInstant = Instant.now();
             final RaoParameters raoParameters = fileImporter.importRaoParameters(raoRequest.getRaoParametersFileUrl());
             logParameters(raoParameters);
-            final TimeCoupledRaoInputWithNetworkPaths raoInput = getRaoInput(raoRequest);
+            final TimeCoupledRaoInput raoInput = getRaoInput(raoRequest);
 
             final TimeCoupledRaoResult raoResult = raoRunnerProvider.run(raoInput, raoParameters);
 
@@ -94,15 +94,15 @@ public class TimeCoupledRaoRunnerService implements AbstractRaoRunnerService {
         }
     }
 
-    TimeCoupledRaoInputWithNetworkPaths getRaoInput(final TimeCoupledRaoRequest raoRequest) throws FileImporterException {
+    TimeCoupledRaoInput getRaoInput(final TimeCoupledRaoRequest raoRequest) throws FileImporterException {
         final List<TimedInput> timedInputs = raoRequest.getTimedInputs();
-        final Map<OffsetDateTime, RaoInputWithNetworkPaths> timedInputMap = buildInputs(timedInputs);
+        final Map<OffsetDateTime, RaoInput> timedInputMap = buildInputs(timedInputs);
         final TimeCoupledConstraints timeCoupledConstraints = fileImporter.importIcsFile(raoRequest.getIcsFileUrl());
-        return new TimeCoupledRaoInputWithNetworkPaths(new TemporalDataImpl<>(timedInputMap), timeCoupledConstraints);
+        return new TimeCoupledRaoInput(new TemporalDataImpl<>(timedInputMap), timeCoupledConstraints);
     }
 
-    private Map<OffsetDateTime, RaoInputWithNetworkPaths> buildInputs(final List<TimedInput> inputs) throws FileImporterException {
-        final Map<OffsetDateTime, RaoInputWithNetworkPaths> timedInputMap = new HashMap<>();
+    private Map<OffsetDateTime, RaoInput> buildInputs(final List<TimedInput> inputs) throws FileImporterException {
+        final Map<OffsetDateTime, RaoInput> timedInputMap = new HashMap<>();
         final List<TimedInput> sortedTimedInputs = inputs.stream()
             .sorted(Comparator.comparing(TimedInput::timestamp))
             .toList();
@@ -112,20 +112,19 @@ public class TimeCoupledRaoRunnerService implements AbstractRaoRunnerService {
             final Crac crac = fileImporter.importCracWithContext(timedInput.cracFileUrl(), network);
 
             // TODO fix this. should use timedInput.ts instead of crac.ts, but it is in UTC
-            timedInputMap.put(crac.getTimestamp().orElseThrow(),
-                RaoInputWithNetworkPaths.build(timedInput.networkFileUrl(), timedInput.networkFileUrl(), crac).build());
+            timedInputMap.put(crac.getTimestamp().orElseThrow(), RaoInput.build(network, crac).build());
         }
         return timedInputMap;
     }
 
     private TimeCoupledRaoSuccessResponse saveResultsAndCreateRaoResponse(final TimeCoupledRaoRequest raoRequest,
-                                                                          final TimeCoupledRaoInputWithNetworkPaths raoInput,
+                                                                          final TimeCoupledRaoInput raoInput,
                                                                           final TimeCoupledRaoResult raoResult,
                                                                           final Instant computationStartInstant) throws FileExporterException {
 
         final String raoResultFileUrl = fileExporter.saveTimeCoupledRaoResult(raoResult, raoInput, raoRequest);
         final Map<OffsetDateTime, Network> networksWithPrasMap = applyRemedialActions(raoResult, raoInput);
-        final String networksWithPraFileUrl = fileExporter.saveNetworks(networksWithPrasMap, raoInput, raoRequest);
+        final String networksWithPraFileUrl = fileExporter.saveNetworks(networksWithPrasMap, raoRequest);
 
         final Instant computationEndInstant = Instant.now();
         return new TimeCoupledRaoSuccessResponse.Builder()
@@ -138,14 +137,14 @@ public class TimeCoupledRaoRunnerService implements AbstractRaoRunnerService {
             .build();
     }
 
-    private static Map<OffsetDateTime, Network> applyRemedialActions(final TimeCoupledRaoResult result, final TimeCoupledRaoInputWithNetworkPaths raoInput) {
+    private static Map<OffsetDateTime, Network> applyRemedialActions(final TimeCoupledRaoResult result, final TimeCoupledRaoInput timeCoupledRaoInput) {
         final Map<OffsetDateTime, Network> networksWithPrasMap = new HashMap<>();
 
         for (final OffsetDateTime offsetDateTime : result.getTimestamps()) {
             final RaoResult individualRaoResult = result.getIndividualRaoResult(offsetDateTime);
-            final RaoInputWithNetworkPaths raoInputWithNetworkPaths = raoInput.getRaoInputs().getData(offsetDateTime).orElseThrow();
-            final Network network = Network.read(raoInputWithNetworkPaths.getInitialNetworkPath());
-            final State preventiveState = raoInputWithNetworkPaths.getCrac().getPreventiveState();
+            final RaoInput raoInput = timeCoupledRaoInput.getRaoInputs().getData(offsetDateTime).orElseThrow();
+            final Network network = raoInput.getNetwork();
+            final State preventiveState = raoInput.getCrac().getPreventiveState();
             final Set<NetworkAction> preventiveNetworkActions = individualRaoResult.getActivatedNetworkActionsDuringState(preventiveState);
             final Set<RangeAction<?>> preventiveRangeActions = individualRaoResult.getActivatedRangeActionsDuringState(preventiveState);
 
