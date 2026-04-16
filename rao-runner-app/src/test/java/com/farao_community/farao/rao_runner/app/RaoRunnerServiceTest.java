@@ -233,7 +233,7 @@ class RaoRunnerServiceTest {
         final RaoFailureResponse raoResponse = (RaoFailureResponse) abstractRaoResponse;
         Assertions.assertThat(raoResponse)
                 .hasFieldOrPropertyWithValue("id", "id")
-                .hasFieldOrPropertyWithValue("errorMessage", "FARAO exception occurred when running rao: This is a test");
+                .hasFieldOrPropertyWithValue("errorMessage", "RAO exception occurred: This is a test");
     }
 
     @Test

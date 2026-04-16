@@ -7,6 +7,7 @@
 package com.farao_community.farao.rao_runner.app;
 
 import com.farao_community.farao.rao_runner.api.JsonApiConverter;
+import com.farao_community.farao.rao_runner.api.RaoRunnerConstants;
 import com.farao_community.farao.rao_runner.api.exceptions.RaoRunnerException;
 import com.farao_community.farao.rao_runner.api.resource.AbstractRaoRequest;
 import com.farao_community.farao.rao_runner.api.resource.AbstractRaoResponse;
@@ -35,12 +36,9 @@ import java.util.Optional;
 /**
  * @author Vincent Bochet {@literal <vincent.bochet at rte-france.com>}
  */
-public abstract class AbstractRaoRunnerMessageHandler<RAO_RUNNER_SERVICE_TYPE> {
+public abstract class AbstractRaoRunnerMessageHandler<RAO_RUNNER_SERVICE_TYPE extends AbstractRaoRunnerService> {
     protected static final Logger LOGGER = LoggerFactory.getLogger(AbstractRaoRunnerMessageHandler.class);
     protected static final String APPLICATION_ID = "rao-runner-server";
-    protected static final String CONTENT_ENCODING = "UTF-8";
-    protected static final String CONTENT_TYPE = "application/vnd.api+json";
-    protected static final int PRIORITY = 1;
 
     protected final JsonApiConverter jsonApiConverter;
     protected final RAO_RUNNER_SERVICE_TYPE raoRunnerService;
@@ -66,6 +64,34 @@ public abstract class AbstractRaoRunnerMessageHandler<RAO_RUNNER_SERVICE_TYPE> {
     }
 
     protected abstract void handleMessage(Message message);
+
+    protected void handleMessage(Message message, Class<? extends AbstractRaoRequest> raoRequestClass) {
+        final String replyTo = message.getMessageProperties().getReplyTo();
+        final String brokerCorrelationId = message.getMessageProperties().getCorrelationId();
+
+        try {
+            final AbstractRaoRequest raoRequest = jsonApiConverter.fromJsonMessage(message.getBody(), raoRequestClass);
+            LOGGER.info("RAO request received: {}", raoRequest);
+            if (interruptionServerIsActivated && checkIsInterrupted(raoRequest)) {
+                sendRaoInterruptedResponse(raoRequest, replyTo, brokerCorrelationId);
+                return;
+            }
+            addMetaDataToLogsModelContext(raoRequest.getId(), brokerCorrelationId, message.getMessageProperties().getAppId(), raoRequest.getEventPrefix());
+            final GenericThreadLauncher<RAO_RUNNER_SERVICE_TYPE, AbstractRaoResponse> launcher = new GenericThreadLauncher<>(
+                raoRunnerService,
+                raoRequest.getRunId(),
+                MDC.getCopyOfContextMap(),
+                raoRequest
+            );
+
+            startRaoComputation(launcher, raoRequest, replyTo, brokerCorrelationId);
+        } catch (RaoRunnerException e) {
+            sendRaoFailedResponse(e, replyTo, brokerCorrelationId);
+        } catch (Exception e) {
+            final RaoRunnerException wrappingException = new RaoRunnerException("Unhandled exception: " + e.getMessage(), e);
+            sendRaoFailedResponse(wrappingException, replyTo, brokerCorrelationId);
+        }
+    }
 
     protected boolean checkIsInterrupted(final AbstractRaoRequest raoRequest) {
         final String requestUrl = urlConfiguration.getInterruptServerUrl() + raoRequest.getRunId();
@@ -143,17 +169,17 @@ public abstract class AbstractRaoRunnerMessageHandler<RAO_RUNNER_SERVICE_TYPE> {
     private MessageProperties buildMessageResponseProperties(final String correlationId, final boolean failed) {
         return MessagePropertiesBuilder.newInstance()
             .setAppId(APPLICATION_ID)
-            .setContentEncoding(CONTENT_ENCODING)
-            .setContentType(CONTENT_TYPE)
+            .setContentEncoding(RaoRunnerConstants.CONTENT_ENCODING)
+            .setContentType(RaoRunnerConstants.CONTENT_TYPE)
             .setCorrelationId(correlationId)
             .setDeliveryMode(MessageDeliveryMode.NON_PERSISTENT)
             .setExpiration(amqpConfiguration.raoResponseExpiration())
-            .setPriority(PRIORITY)
+            .setPriority(RaoRunnerConstants.DEFAULT_PRIORITY)
             .setHeaderIfAbsent("rao-failure", failed)
             .build();
     }
 
-    protected void startRaoComputation(final GenericThreadLauncher<? extends AbstractRaoRunnerService, ? extends AbstractRaoResponse> launcher,
+    protected void startRaoComputation(final GenericThreadLauncher<RAO_RUNNER_SERVICE_TYPE, ? extends AbstractRaoResponse> launcher,
                                        final AbstractRaoRequest raoRequest,
                                        final String replyTo,
                                        final String brokerCorrelationId) throws Exception {

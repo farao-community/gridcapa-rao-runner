@@ -7,6 +7,7 @@
 package com.farao_community.farao.rao_runner.starter;
 
 import com.farao_community.farao.rao_runner.api.JsonApiConverter;
+import com.farao_community.farao.rao_runner.api.RaoRunnerConstants;
 import com.farao_community.farao.rao_runner.api.resource.AbstractRaoResponse;
 import com.farao_community.farao.rao_runner.api.resource.RaoFailureResponse;
 import com.farao_community.farao.rao_runner.api.resource.RaoRequest;
@@ -21,23 +22,18 @@ import org.springframework.amqp.core.MessagePropertiesBuilder;
  * @author Mohamed BenRejeb {@literal <mohamed.ben-rejeb at rte-france.com>}
  */
 public class RaoRunnerClient {
-
-    private static final String CONTENT_ENCODING = "UTF-8";
-    private static final String CONTENT_TYPE = "application/vnd.api+json";
-    private static final int DEFAULT_PRIORITY = 1;
-
+    private final RaoRunnerClientProperties.AmqpConfiguration amqpConfiguration;
     private final AmqpTemplate amqpTemplate;
-    private final RaoRunnerClientProperties raoRunnerClientProperties;
     private final JsonApiConverter jsonConverter;
 
     public RaoRunnerClient(AmqpTemplate amqpTemplate, RaoRunnerClientProperties raoRunnerClientProperties) {
+        this.amqpConfiguration = raoRunnerClientProperties.getAmqp();
         this.amqpTemplate = amqpTemplate;
-        this.raoRunnerClientProperties = raoRunnerClientProperties;
         this.jsonConverter = new JsonApiConverter();
     }
 
     public AbstractRaoResponse runRao(final RaoRequest raoRequest, final int priority) {
-        final Message responseMessage = amqpTemplate.sendAndReceive(raoRunnerClientProperties.getAmqp().getQueueName(), buildMessage(raoRequest, priority));
+        final Message responseMessage = amqpTemplate.sendAndReceive(amqpConfiguration.getQueueName(), buildMessage(raoRequest, priority));
         if (responseMessage != null) {
             return RaoResponseConversionHelper.convertRaoResponse(responseMessage, jsonConverter);
         } else {
@@ -49,7 +45,7 @@ public class RaoRunnerClient {
     }
 
     public AbstractRaoResponse runRao(final RaoRequest raoRequest) {
-        return runRao(raoRequest, DEFAULT_PRIORITY);
+        return runRao(raoRequest, RaoRunnerConstants.DEFAULT_PRIORITY);
     }
 
     private Message buildMessage(final RaoRequest raoRequest, final int priority) {
@@ -60,11 +56,11 @@ public class RaoRunnerClient {
 
     private MessageProperties buildMessageProperties(final int priority) {
         return MessagePropertiesBuilder.newInstance()
-                .setAppId(raoRunnerClientProperties.getAmqp().getClientAppId())
-                .setContentEncoding(CONTENT_ENCODING)
-                .setContentType(CONTENT_TYPE)
+                .setAppId(amqpConfiguration.getClientAppId())
+                .setContentEncoding(RaoRunnerConstants.CONTENT_ENCODING)
+                .setContentType(RaoRunnerConstants.CONTENT_TYPE)
                 .setDeliveryMode(MessageDeliveryMode.NON_PERSISTENT)
-                .setExpiration(raoRunnerClientProperties.getAmqp().getExpiration())
+                .setExpiration(amqpConfiguration.getExpiration())
                 .setPriority(priority)
                 .build();
     }

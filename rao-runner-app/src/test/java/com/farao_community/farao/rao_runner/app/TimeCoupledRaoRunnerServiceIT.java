@@ -58,9 +58,6 @@ class TimeCoupledRaoRunnerServiceIT {
         for (final OffsetDateTime timestamp : timestamps) {
             final RaoInput raoInputForTimestamp = raoInput.getRaoInputs().getData(timestamp).orElseThrow();
             Assertions.assertThat(raoInputForTimestamp.getCrac().getTimestamp()).isEqualTo(Optional.of(timestamp));
-//            final int hour = timestamp.getHour();
-//            Assertions.assertThat(raoInputForTimestamp.getNetwork().).endsWith("timecoupled_rao_inputs/simple_case/initialNetwork_0" + hour + "30.xiidm");
-//            Assertions.assertThat(raoInputForTimestamp.getPostIcsImportNetworkPath()).endsWith("timecoupled_rao_inputs/simple_case/initialNetwork_0" + hour + "30.xiidm");
         }
     }
 }

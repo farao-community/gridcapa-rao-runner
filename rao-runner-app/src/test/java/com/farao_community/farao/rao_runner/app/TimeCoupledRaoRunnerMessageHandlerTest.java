@@ -101,7 +101,7 @@ class TimeCoupledRaoRunnerMessageHandlerTest {
         raoRunnerMessageHandler.handleMessage(message);
 
         Mockito.verify(amqpTemplate, Mockito.times(1)).send(Mockito.eq("ReplyTo"), Mockito.any(Message.class));
-        Mockito.verify(raoRunnerService, Mockito.never()).runRao(Mockito.any(TimeCoupledRaoRequest.class));
+        Mockito.verify(raoRunnerService, Mockito.never()).runTimeCoupledRao(Mockito.any(TimeCoupledRaoRequest.class));
     }
 
     @Test
@@ -119,7 +119,7 @@ class TimeCoupledRaoRunnerMessageHandlerTest {
         final RestTemplate restTemplate = mock(RestTemplate.class);
         when(restTemplateBuilder.build()).thenReturn(restTemplate);
         when(restTemplate.getForEntity(anyString(), any(Class.class))).thenReturn(ResponseEntity.ok(Boolean.FALSE));
-        when(raoRunnerService.runRao(any())).thenThrow(new OpenRaoException("Hey I just met you"));
+        when(raoRunnerService.runTimeCoupledRao(any())).thenThrow(new OpenRaoException("Hey I just met you"));
 
         raoRunnerMessageHandler.handleMessage(message);
 
@@ -147,7 +147,7 @@ class TimeCoupledRaoRunnerMessageHandlerTest {
         when(restTemplate.getForEntity(anyString(), any(Class.class))).thenReturn(ResponseEntity.ok(Boolean.FALSE));
 
         final TimeCoupledRaoSuccessResponse raoSuccessResponse = new TimeCoupledRaoSuccessResponse.Builder().withId("testId").build();
-        when(raoRunnerService.runRao(any())).thenReturn(raoSuccessResponse);
+        when(raoRunnerService.runTimeCoupledRao(any())).thenReturn(raoSuccessResponse);
 
         raoRunnerMessageHandler.handleMessage(message);
 

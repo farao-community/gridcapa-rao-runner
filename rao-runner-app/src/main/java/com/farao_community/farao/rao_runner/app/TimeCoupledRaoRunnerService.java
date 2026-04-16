@@ -63,7 +63,7 @@ public class TimeCoupledRaoRunnerService implements AbstractRaoRunnerService {
     }
 
     @Threadable
-    public AbstractRaoResponse runRao(final TimeCoupledRaoRequest raoRequest) {
+    public AbstractRaoResponse runTimeCoupledRao(final TimeCoupledRaoRequest raoRequest) {
         try {
             final Instant computationStartInstant = Instant.now();
             final RaoParameters raoParameters = fileImporter.importRaoParameters(raoRequest.getRaoParametersFileUrl());
@@ -77,7 +77,7 @@ public class TimeCoupledRaoRunnerService implements AbstractRaoRunnerService {
             }
             return saveResultsAndCreateRaoResponse(raoRequest, raoInput, raoResult, computationStartInstant);
         } catch (OpenRaoException ore) {
-            return buildRaoFailureResponse(raoRequest.getId(), "FARAO exception occurred when running rao: " + ore.getMessage());
+            return buildRaoFailureResponse(raoRequest.getId(), "RAO exception occurred: " + ore.getMessage());
         } catch (FileExporterException | FileImporterException e) {
             return buildRaoFailureResponse(raoRequest.getId(), "Exception occurred in rao-runner: " + e.getMessage());
         }
@@ -137,12 +137,13 @@ public class TimeCoupledRaoRunnerService implements AbstractRaoRunnerService {
             .build();
     }
 
-    private static Map<OffsetDateTime, Network> applyRemedialActions(final TimeCoupledRaoResult result, final TimeCoupledRaoInput timeCoupledRaoInput) {
+    private static Map<OffsetDateTime, Network> applyRemedialActions(final TimeCoupledRaoResult timeCoupledRaoResult,
+                                                                     final TimeCoupledRaoInput timeCoupledRaoInput) {
         final Map<OffsetDateTime, Network> networksWithPrasMap = new HashMap<>();
 
-        for (final OffsetDateTime offsetDateTime : result.getTimestamps()) {
-            final RaoResult individualRaoResult = result.getIndividualRaoResult(offsetDateTime);
-            final RaoInput raoInput = timeCoupledRaoInput.getRaoInputs().getData(offsetDateTime).orElseThrow();
+        for (final OffsetDateTime timestamp : timeCoupledRaoResult.getTimestamps()) {
+            final RaoResult individualRaoResult = timeCoupledRaoResult.getIndividualRaoResult(timestamp);
+            final RaoInput raoInput = timeCoupledRaoInput.getRaoInputs().getData(timestamp).orElseThrow();
             final Network network = raoInput.getNetwork();
             final State preventiveState = raoInput.getCrac().getPreventiveState();
             final Set<NetworkAction> preventiveNetworkActions = individualRaoResult.getActivatedNetworkActionsDuringState(preventiveState);
@@ -159,7 +160,7 @@ public class TimeCoupledRaoRunnerService implements AbstractRaoRunnerService {
                 }
             });
 
-            networksWithPrasMap.put(offsetDateTime, network);
+            networksWithPrasMap.put(timestamp, network);
         }
         return networksWithPrasMap;
     }

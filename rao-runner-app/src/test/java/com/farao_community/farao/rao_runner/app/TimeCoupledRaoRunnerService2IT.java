@@ -46,7 +46,7 @@ class TimeCoupledRaoRunnerService2IT {
         Mockito.when(fileExporter.saveTimeCoupledRaoResult(Mockito.any(), Mockito.any(), Mockito.any())).thenReturn("raoResultUrl");
         Mockito.when(fileExporter.saveNetworks(Mockito.any(), Mockito.any())).thenReturn("networksUrl");
 
-        final AbstractRaoResponse abstractRaoResponse = raoRunnerService.runRao(simpleRaoRequest);
+        final AbstractRaoResponse abstractRaoResponse = raoRunnerService.runTimeCoupledRao(simpleRaoRequest);
 
         final ArgumentCaptor<TimeCoupledRaoResult> raoResultArgumentCaptor = ArgumentCaptor.forClass(TimeCoupledRaoResult.class);
         Mockito.verify(fileExporter).saveTimeCoupledRaoResult(raoResultArgumentCaptor.capture(), Mockito.any(), Mockito.any());

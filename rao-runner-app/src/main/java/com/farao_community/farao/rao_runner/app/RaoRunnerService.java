@@ -76,7 +76,7 @@ public class RaoRunnerService implements AbstractRaoRunnerService {
             applyRemedialActionsForState(network, raoResult, crac.getPreventiveState());
             return saveResultsAndCreateRaoResponse(raoRequest, crac, raoResult, network, computationStartInstant, raoParameters);
         } catch (OpenRaoException ore) {
-            return buildRaoFailureResponse(raoRequest.getId(), "FARAO exception occurred when running rao: " + ore.getMessage());
+            return buildRaoFailureResponse(raoRequest.getId(), "RAO exception occurred: " + ore.getMessage());
         } catch (FileImporterException fie) {
             return buildRaoFailureResponse(raoRequest.getId(), "Exception occurred in rao-runner: " + fie.getMessage());
         }

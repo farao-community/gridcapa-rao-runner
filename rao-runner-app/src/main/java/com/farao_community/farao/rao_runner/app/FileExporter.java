@@ -7,15 +7,16 @@
 package com.farao_community.farao.rao_runner.app;
 
 import com.farao_community.farao.minio_adapter.starter.MinioAdapter;
-import com.farao_community.farao.rao_runner.api.resource.TimeCoupledRaoRequest;
+import com.farao_community.farao.rao_runner.api.resource.AbstractRaoRequest;
 import com.farao_community.farao.rao_runner.api.resource.RaoRequest;
+import com.farao_community.farao.rao_runner.api.resource.TimeCoupledRaoRequest;
 import com.farao_community.farao.rao_runner.app.exceptions.FileExporterException;
 import com.powsybl.commons.datasource.MemDataSource;
 import com.powsybl.iidm.network.Network;
 import com.powsybl.openrao.commons.Unit;
 import com.powsybl.openrao.data.crac.api.Crac;
-import com.powsybl.openrao.data.raoresult.api.TimeCoupledRaoResult;
 import com.powsybl.openrao.data.raoresult.api.RaoResult;
+import com.powsybl.openrao.data.raoresult.api.TimeCoupledRaoResult;
 import com.powsybl.openrao.raoapi.RaoInput;
 import com.powsybl.openrao.raoapi.TimeCoupledRaoInput;
 import org.apache.commons.io.FilenameUtils;
@@ -27,7 +28,6 @@ import java.io.File;
 import java.io.IOException;
 import java.time.OffsetDateTime;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Properties;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -95,7 +95,7 @@ public class FileExporter {
                                         final OffsetDateTime offsetDateTime) throws IOException, FileExporterException {
         final String networkFilePath = raoRequest.getTimedInputs().stream()
             .filter(input -> input.timestamp().isEqual(offsetDateTime))
-            .findFirst().orElseThrow()
+            .findFirst().orElseThrow(() -> new FileExporterException("The rao-request doesn't contain any data matching the requested timestamp " + offsetDateTime))
             .networkFileUrl();
         final String networkFilename = FilenameUtils.getName(networkFilePath);
         final Matcher matcher = NETWORK_FILENAME_PATTERN.matcher(networkFilename);
@@ -145,16 +145,8 @@ public class FileExporter {
         return minioAdapter.generatePreSignedUrl(resultDestination);
     }
 
-    private String makeTargetDirectoryPath(final RaoRequest raoRequest) {
-        return makeTargetDirectoryPath(raoRequest.getResultsDestination(), raoRequest.getId());
-    }
-
-    private String makeTargetDirectoryPath(final TimeCoupledRaoRequest raoRequest) {
-        return makeTargetDirectoryPath(raoRequest.getResultsDestination(), raoRequest.getId());
-    }
-
-    private String makeTargetDirectoryPath(final Optional<String> resultsDestination, final String raoRequestId) {
-        return resultsDestination
-                .orElse(minioAdapter.getProperties().getBasePath() + "/" + raoRequestId);
+    private String makeTargetDirectoryPath(final AbstractRaoRequest raoRequest) {
+        return raoRequest.getResultsDestination()
+                .orElse(minioAdapter.getProperties().getBasePath() + "/" + raoRequest.getId());
     }
 }

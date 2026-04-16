@@ -18,7 +18,7 @@ class TimeCoupledRaoSuccessResponseTest {
 
     @Test
     void checkRaoRequestNormalUsage() {
-        TimeCoupledRaoSuccessResponse raoResponse = new TimeCoupledRaoSuccessResponse.Builder()
+        final TimeCoupledRaoSuccessResponse raoResponse = new TimeCoupledRaoSuccessResponse.Builder()
                 .withId("id")
                 .withNetworksWithPraFileUrl("networksWithPraFileUrl")
                 .withRaoResultsFileUrl("raoResultsFileUrl")

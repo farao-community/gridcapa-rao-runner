@@ -54,7 +54,7 @@ class TimeCoupledRaoRunnerServiceTest {
         final TimeCoupledRaoRequest simpleRaoRequest = TimeCoupledTestHelper.getValidTimeCoupledRaoRequest("file:");
         Mockito.when(fileImporter.importRaoParameters(Mockito.any())).thenThrow(new FileImporterException("It's a test", null));
 
-        final AbstractRaoResponse abstractRaoResponse = raoRunnerService.runRao(simpleRaoRequest);
+        final AbstractRaoResponse abstractRaoResponse = raoRunnerService.runTimeCoupledRao(simpleRaoRequest);
 
         Assertions.assertThat(abstractRaoResponse)
             .isNotNull()
@@ -79,7 +79,7 @@ class TimeCoupledRaoRunnerServiceTest {
         Mockito.when(crac.getTimestamp()).thenReturn(Optional.of(OffsetDateTime.now()));
         Mockito.when(raoRunnerProvider.run(Mockito.any(), Mockito.any())).thenThrow(new OpenRaoException("It's a test"));
 
-        final AbstractRaoResponse abstractRaoResponse = raoRunnerService.runRao(simpleRaoRequest);
+        final AbstractRaoResponse abstractRaoResponse = raoRunnerService.runTimeCoupledRao(simpleRaoRequest);
 
         Assertions.assertThat(abstractRaoResponse)
             .isNotNull()
@@ -88,7 +88,7 @@ class TimeCoupledRaoRunnerServiceTest {
         final RaoFailureResponse raoFailureResponse = (RaoFailureResponse) abstractRaoResponse;
         Assertions.assertThat(raoFailureResponse)
             .hasFieldOrPropertyWithValue("id", "raoRequestId")
-            .hasFieldOrPropertyWithValue("errorMessage", "FARAO exception occurred when running rao: It's a test");
+            .hasFieldOrPropertyWithValue("errorMessage", "RAO exception occurred: It's a test");
     }
 
     @Test
@@ -107,7 +107,7 @@ class TimeCoupledRaoRunnerServiceTest {
         Mockito.when(raoRunnerProvider.run(Mockito.any(), Mockito.any())).thenReturn(timeCoupledRaoResult);
         Mockito.when(timeCoupledRaoResult.getComputationStatus()).thenReturn(ComputationStatus.FAILURE);
 
-        final AbstractRaoResponse abstractRaoResponse = raoRunnerService.runRao(simpleRaoRequest);
+        final AbstractRaoResponse abstractRaoResponse = raoRunnerService.runTimeCoupledRao(simpleRaoRequest);
 
         Assertions.assertThat(abstractRaoResponse)
             .isNotNull()
@@ -144,7 +144,7 @@ class TimeCoupledRaoRunnerServiceTest {
         Mockito.when(fileExporter.saveTimeCoupledRaoResult(Mockito.any(), Mockito.any(), Mockito.any())).thenReturn("raoResultsUrl");
         Mockito.when(fileExporter.saveNetworks(Mockito.any(), Mockito.any())).thenReturn("networksUrl");
 
-        final AbstractRaoResponse abstractRaoResponse = raoRunnerService.runRao(simpleRaoRequest);
+        final AbstractRaoResponse abstractRaoResponse = raoRunnerService.runTimeCoupledRao(simpleRaoRequest);
 
         Assertions.assertThat(abstractRaoResponse)
             .isNotNull()

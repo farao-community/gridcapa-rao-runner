@@ -22,23 +22,18 @@ import org.springframework.amqp.core.MessagePropertiesBuilder;
  * @author Vincent Bochet {@literal <vincent.bochet at rte-france.com>}
  */
 public class TimeCoupledRaoRunnerClient {
-
-    private static final String CONTENT_ENCODING = "UTF-8";
-    private static final String CONTENT_TYPE = "application/vnd.api+json";
-    private static final int DEFAULT_PRIORITY = 1;
-
+    private final RaoRunnerClientProperties.AmqpConfiguration amqpConfiguration;
     private final AmqpTemplate amqpTemplate;
-    private final RaoRunnerClientProperties raoRunnerClientProperties;
     private final JsonApiConverter jsonConverter;
 
     public TimeCoupledRaoRunnerClient(AmqpTemplate amqpTemplate, RaoRunnerClientProperties raoRunnerClientProperties) {
+        this.amqpConfiguration = raoRunnerClientProperties.getAmqp();
         this.amqpTemplate = amqpTemplate;
-        this.raoRunnerClientProperties = raoRunnerClientProperties;
         this.jsonConverter = new JsonApiConverter();
     }
 
     public AbstractRaoResponse runRao(final TimeCoupledRaoRequest raoRequest, final int priority) {
-        final Message responseMessage = amqpTemplate.sendAndReceive(raoRunnerClientProperties.getAmqp().getQueueName(), buildMessage(raoRequest, priority));
+        final Message responseMessage = amqpTemplate.sendAndReceive(amqpConfiguration.getQueueName(), buildMessage(raoRequest, priority));
         if (responseMessage != null) {
             return RaoResponseConversionHelper.convertTimeCoupledRaoResponse(responseMessage, jsonConverter);
         } else {
@@ -50,7 +45,7 @@ public class TimeCoupledRaoRunnerClient {
     }
 
     public AbstractRaoResponse runRao(final TimeCoupledRaoRequest raoRequest) {
-        return runRao(raoRequest, DEFAULT_PRIORITY);
+        return runRao(raoRequest, RaoRunnerConstants.DEFAULT_PRIORITY);
     }
 
     private Message buildMessage(final TimeCoupledRaoRequest raoRequest, final int priority) {
@@ -61,11 +56,11 @@ public class TimeCoupledRaoRunnerClient {
 
     private MessageProperties buildMessageProperties(final int priority) {
         return MessagePropertiesBuilder.newInstance()
-                .setAppId(raoRunnerClientProperties.getAmqp().getClientAppId())
-                .setContentEncoding(CONTENT_ENCODING)
-                .setContentType(CONTENT_TYPE)
+                .setAppId(amqpConfiguration.getClientAppId())
+                .setContentEncoding(RaoRunnerConstants.CONTENT_ENCODING)
+                .setContentType(RaoRunnerConstants.CONTENT_TYPE)
                 .setDeliveryMode(MessageDeliveryMode.NON_PERSISTENT)
-                .setExpiration(raoRunnerClientProperties.getAmqp().getExpiration())
+                .setExpiration(amqpConfiguration.getExpiration())
                 .setPriority(priority)
                 .setReceivedRoutingKey(RaoRunnerConstants.TIME_COUPLED_ROUTING_KEY)
                 .build();

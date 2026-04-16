@@ -14,5 +14,8 @@ public final class RaoRunnerConstants {
 
     }
 
+    public static final String CONTENT_ENCODING = "UTF-8";
+    public static final String CONTENT_TYPE = "application/vnd.api+json";
+    public static final int DEFAULT_PRIORITY = 1;
     public static final String TIME_COUPLED_ROUTING_KEY = "TIME-COUPLED";
 }
