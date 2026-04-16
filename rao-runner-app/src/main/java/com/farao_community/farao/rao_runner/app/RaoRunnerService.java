@@ -13,7 +13,6 @@ import com.farao_community.farao.rao_runner.app.exceptions.FileImporterException
 import com.powsybl.glsk.commons.ZonalData;
 import com.powsybl.iidm.network.Network;
 import com.powsybl.openrao.commons.OpenRaoException;
-import com.powsybl.openrao.commons.Unit;
 import com.powsybl.openrao.data.crac.api.Crac;
 import com.powsybl.openrao.data.crac.api.State;
 import com.powsybl.openrao.data.glsk.virtual.hubs.GlskVirtualHubs;
@@ -24,6 +23,7 @@ import com.powsybl.openrao.raoapi.Rao;
 import com.powsybl.openrao.raoapi.RaoInput;
 import com.powsybl.openrao.raoapi.json.JsonRaoParameters;
 import com.powsybl.openrao.raoapi.parameters.RaoParameters;
+import com.powsybl.openrao.searchtreerao.commons.RaoUtil;
 import com.powsybl.openrao.virtualhubs.VirtualHubsConfiguration;
 import com.powsybl.sensitivity.SensitivityVariableSet;
 import org.slf4j.Logger;
@@ -124,8 +124,7 @@ public class RaoRunnerService implements AbstractRaoRunnerService {
     }
 
     private RaoSuccessResponse saveResultsAndCreateRaoResponse(final RaoRequest raoRequest, final Crac crac, final RaoResult raoResult, final Network network, final Instant computationStartInstant, final RaoParameters raoParameters) {
-        final Unit flowUnit = getSensitivityWithLoadFlowParameters(raoParameters).getLoadFlowParameters().isDc() ? Unit.MEGAWATT : Unit.AMPERE;
-        final String raoResultFileUrl = fileExporter.saveRaoResult(raoResult, crac, raoRequest, flowUnit);
+        final String raoResultFileUrl = fileExporter.saveRaoResult(raoResult, crac, raoRequest, RaoUtil.getFlowUnit(raoParameters));
         final String networkWithPraFileUrl = fileExporter.saveNetwork(network, raoRequest);
         final String raoInstant = raoRequest.getInstant().orElse(null);
         final Instant computationEndInstant = Instant.now();
