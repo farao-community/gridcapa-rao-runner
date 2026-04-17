@@ -15,7 +15,7 @@
     <packaging>pom</packaging>
 
     <name>GridCapa RAO runner</name>
-    <description>Based on FARAO it provides an application to launch a RAO through messaging</description>
+    <description>Based on OpenRAO it provides an application to launch a RAO through messaging</description>
 
     <scm>
         <connection>scm:git:https://github.com/farao-community/gridcapa-rao-runner.git</connection>

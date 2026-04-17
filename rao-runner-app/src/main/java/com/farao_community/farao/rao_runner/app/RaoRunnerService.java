@@ -7,9 +7,9 @@
 package com.farao_community.farao.rao_runner.app;
 
 import com.farao_community.farao.rao_runner.api.resource.AbstractRaoResponse;
-import com.farao_community.farao.rao_runner.api.resource.RaoFailureResponse;
 import com.farao_community.farao.rao_runner.api.resource.RaoRequest;
 import com.farao_community.farao.rao_runner.api.resource.RaoSuccessResponse;
+import com.farao_community.farao.rao_runner.app.exceptions.FileImporterException;
 import com.powsybl.glsk.commons.ZonalData;
 import com.powsybl.iidm.network.Network;
 import com.powsybl.openrao.commons.OpenRaoException;
@@ -41,7 +41,7 @@ import java.util.Optional;
  * @author Vincent Bochet {@literal <vincent.bochet at rte-france.com>}
  */
 @Service
-public class RaoRunnerService {
+public class RaoRunnerService implements AbstractRaoRunnerService {
     private static final Logger LOGGER = LoggerFactory.getLogger(RaoRunnerService.class);
 
     private final Rao.Runner raoRunnerProvider;
@@ -76,7 +76,7 @@ public class RaoRunnerService {
             applyRemedialActionsForState(network, raoResult, crac.getPreventiveState());
             return saveResultsAndCreateRaoResponse(raoRequest, crac, raoResult, network, computationStartInstant, raoParameters);
         } catch (OpenRaoException ore) {
-            return buildRaoFailureResponse(raoRequest.getId(), "FARAO exception occurred when running rao: " + ore.getMessage());
+            return buildRaoFailureResponse(raoRequest.getId(), "RAO exception occurred: " + ore.getMessage());
         } catch (FileImporterException fie) {
             return buildRaoFailureResponse(raoRequest.getId(), "Exception occurred in rao-runner: " + fie.getMessage());
         }
@@ -135,13 +135,6 @@ public class RaoRunnerService {
                 .withComputationStartInstant(computationStartInstant)
                 .withComputationEndInstant(computationEndInstant)
                 .withInterrupted(false)
-                .build();
-    }
-
-    private RaoFailureResponse buildRaoFailureResponse(final String id, final String message) {
-        return new RaoFailureResponse.Builder()
-                .withId(id)
-                .withErrorMessage(message)
                 .build();
     }
 }

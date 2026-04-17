@@ -35,9 +35,21 @@ public class RaoRunnerClientAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean
+    public TimeCoupledRaoRunnerClient timeCoupledRaoRunnerClient(AmqpTemplate amqpTemplate) {
+        return new TimeCoupledRaoRunnerClient(amqpTemplate, clientProperties);
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
     @ConditionalOnBean(AsyncAmqpTemplate.class)
     public AsynchronousRaoRunnerClient asynchronousRaoRunnerClient(AsyncAmqpTemplate asyncAmqpTemplate) {
         return new AsynchronousRaoRunnerClient(asyncAmqpTemplate, clientProperties);
     }
 
+    @Bean
+    @ConditionalOnMissingBean
+    @ConditionalOnBean(AsyncAmqpTemplate.class)
+    public AsynchronousTimeCoupledRaoRunnerClient asynchronousTimeCoupledRaoRunnerClient(AsyncAmqpTemplate asyncAmqpTemplate) {
+        return new AsynchronousTimeCoupledRaoRunnerClient(asyncAmqpTemplate, clientProperties);
+    }
 }

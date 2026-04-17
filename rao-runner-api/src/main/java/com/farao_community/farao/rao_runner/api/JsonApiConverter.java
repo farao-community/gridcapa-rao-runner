@@ -10,6 +10,8 @@ import com.farao_community.farao.rao_runner.api.exceptions.RaoRunnerException;
 import com.farao_community.farao.rao_runner.api.resource.RaoFailureResponse;
 import com.farao_community.farao.rao_runner.api.resource.RaoRequest;
 import com.farao_community.farao.rao_runner.api.resource.RaoSuccessResponse;
+import com.farao_community.farao.rao_runner.api.resource.TimeCoupledRaoRequest;
+import com.farao_community.farao.rao_runner.api.resource.TimeCoupledRaoSuccessResponse;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
@@ -54,7 +56,12 @@ public class JsonApiConverter {
     }
 
     private ResourceConverter createConverter() {
-        ResourceConverter converter = new ResourceConverter(objectMapper, RaoRequest.class, RaoSuccessResponse.class, RaoFailureResponse.class);
+        ResourceConverter converter = new ResourceConverter(
+            objectMapper,
+            RaoRequest.class, RaoSuccessResponse.class,
+            TimeCoupledRaoRequest.class, TimeCoupledRaoSuccessResponse.class,
+            RaoFailureResponse.class
+        );
         converter.disableSerializationOption(SerializationFeature.INCLUDE_META);
         return converter;
     }

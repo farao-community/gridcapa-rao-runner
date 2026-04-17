@@ -8,13 +8,17 @@ package com.farao_community.farao.rao_runner.app;
 
 import com.farao_community.farao.rao_runner.api.exceptions.RaoRunnerException;
 import com.farao_community.farao.rao_runner.app.configuration.UrlConfiguration;
+import com.farao_community.farao.rao_runner.app.exceptions.FileImporterException;
 import com.powsybl.glsk.api.GlskDocument;
 import com.powsybl.glsk.api.io.GlskDocumentImporters;
 import com.powsybl.glsk.commons.ZonalData;
 import com.powsybl.iidm.network.Network;
 import com.powsybl.openrao.data.crac.api.Crac;
+import com.powsybl.openrao.data.crac.api.CracCreationContext;
 import com.powsybl.openrao.data.refprog.referenceprogram.ReferenceProgram;
 import com.powsybl.openrao.data.refprog.refprogxmlimporter.RefProgImporter;
+import com.powsybl.openrao.data.timecoupledconstraints.TimeCoupledConstraints;
+import com.powsybl.openrao.data.timecoupledconstraints.io.JsonTimeCoupledConstraints;
 import com.powsybl.openrao.raoapi.json.JsonRaoParameters;
 import com.powsybl.openrao.raoapi.parameters.RaoParameters;
 import com.powsybl.openrao.virtualhubs.VirtualHubsConfiguration;
@@ -72,6 +76,17 @@ public class FileImporter {
         }
     }
 
+    public Crac importCracWithContext(final String cracFileUrl, final Network network) throws FileImporterException {
+        try {
+            final CracCreationContext context = Crac.readWithContext(getFileNameFromUrl(cracFileUrl), openUrlStream(cracFileUrl), network);
+            context.getCreationReport().printCreationReport();
+            return context.getCrac();
+        } catch (Exception e) {
+            final String message = String.format("Exception occurred while importing CRAC file %s", FilenameUtils.getName(cracFileUrl));
+            throw new FileImporterException(message, e);
+        }
+    }
+
     ZonalData<SensitivityVariableSet> importGlsk(final String instant, final String glskUrl, final Network network) throws FileImporterException {
         try {
             final InputStream glskFileInputStream = openUrlStream(glskUrl);
@@ -110,6 +125,16 @@ public class FileImporter {
         }
     }
 
+    TimeCoupledConstraints importIcsFile(String icsFileUrl) throws FileImporterException {
+        try (final InputStream inputStream = openUrlStream(icsFileUrl)) {
+            return JsonTimeCoupledConstraints.read(inputStream);
+        } catch (Exception e) {
+            final String message = String.format("Error occurred while reading ICS file %s",
+                FilenameUtils.getName(icsFileUrl));
+            throw new FileImporterException(message, e);
+        }
+    }
+
     private InputStream openUrlStream(final String urlString) {
         try {
             if (urlConfiguration.getWhitelist().stream().noneMatch(urlString::startsWith)) {
@@ -122,8 +147,10 @@ public class FileImporter {
         }
     }
 
-    private String getFileNameFromUrl(final String stringUrl) {
+    private static String getFileNameFromUrl(final String stringUrl) {
         try {
+            // toUrl() ensures that the URI is absolute
+            // getPath() gets rid of the eventual queryparams of the URL (all that comes after "?")
             final URL url = new URI(stringUrl).toURL();
             return FilenameUtils.getName(url.getPath());
         } catch (IOException | URISyntaxException | IllegalArgumentException e) {

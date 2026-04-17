@@ -1,0 +1,12 @@
+{
+  "data": {
+    "type": "time-coupled-rao-response",
+    "id": "id",
+    "attributes": {
+      "networksWithPraFileUrl": "networksWithPraFileUrl",
+      "raoResultsFileUrl": "raoResultsFileUrl",
+      "computationStartInstant": 1637052884.944727,
+      "computationEndInstant": 1647057884.934927
+    }
+  }
+}
