@@ -89,10 +89,7 @@ class TimeCoupledRaoRunnerMessageHandlerTest {
     @Test
     void pendingInterruptionTest() throws IOException {
         final byte[] request = getClass().getResourceAsStream("/timeCoupledRaoRequestMessage.json").readAllBytes();
-        final MessageProperties properties = new MessageProperties();
-        properties.setReplyTo("ReplyTo");
-        properties.setCorrelationId("CorrelationId");
-        final Message message = new Message(request, properties);
+        final Message message = buildMessageFromRequest(request);
 
         final RestTemplate restTemplate = mock(RestTemplate.class);
         when(restTemplateBuilder.build()).thenReturn(restTemplate);
@@ -100,7 +97,7 @@ class TimeCoupledRaoRunnerMessageHandlerTest {
 
         raoRunnerMessageHandler.handleMessage(message);
 
-        Mockito.verify(amqpTemplate, Mockito.times(1)).send(Mockito.eq("ReplyTo"), Mockito.any(Message.class));
+        Mockito.verify(amqpTemplate, Mockito.times(1)).send(Mockito.eq("replyToMe"), Mockito.any(Message.class));
         Mockito.verify(raoRunnerService, Mockito.never()).runTimeCoupledRao(Mockito.any(TimeCoupledRaoRequest.class));
     }
 
@@ -111,10 +108,7 @@ class TimeCoupledRaoRunnerMessageHandlerTest {
                 .withRunId("runId")
                 .withEventPrefix("prefix")
                 .build();
-        final MessageProperties properties = new MessageProperties();
-        properties.setReplyTo("replyToMe");
-        properties.setCorrelationId("correlationId");
-        final Message message = new Message(jsonApiConverter.toJsonMessage(request), properties);
+        final Message message = buildMessageFromRequest(jsonApiConverter.toJsonMessage(request));
 
         final RestTemplate restTemplate = mock(RestTemplate.class);
         when(restTemplateBuilder.build()).thenReturn(restTemplate);
@@ -137,10 +131,7 @@ class TimeCoupledRaoRunnerMessageHandlerTest {
                 .withRunId("runId")
                 .withEventPrefix("prefix")
                 .build();
-        final MessageProperties properties = new MessageProperties();
-        properties.setReplyTo("replyToMe");
-        properties.setCorrelationId("correlationId");
-        final Message message = new Message(jsonApiConverter.toJsonMessage(request), properties);
+        final Message message = buildMessageFromRequest(jsonApiConverter.toJsonMessage(request));
 
         final RestTemplate restTemplate = mock(RestTemplate.class);
         when(restTemplateBuilder.build()).thenReturn(restTemplate);
@@ -156,5 +147,12 @@ class TimeCoupledRaoRunnerMessageHandlerTest {
         Assertions.assertThat(messageCaptor.getValue()).isNotNull();
         final TimeCoupledRaoSuccessResponse response = jsonApiConverter.fromJsonMessage(messageCaptor.getValue().getBody(), TimeCoupledRaoSuccessResponse.class);
         Assertions.assertThat(response).isNotNull();
+    }
+
+    private static Message buildMessageFromRequest(final byte[] request) {
+        final MessageProperties properties = new MessageProperties();
+        properties.setReplyTo("replyToMe");
+        properties.setCorrelationId("correlationId");
+        return new Message(request, properties);
     }
 }

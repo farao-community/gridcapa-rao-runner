@@ -199,8 +199,8 @@ public abstract class AbstractRaoRunnerMessageHandler<RAO_RUNNER_SERVICE_TYPE ex
         } else {
             final AbstractRaoResponse raoResponse = raoThreadResult.result();
             businessLogger.info("RAO computation is finished");
-            LOGGER.info("RAO response sent: {}", raoResponse);
             sendRaoResponse(raoResponse, replyTo, brokerCorrelationId);
+            LOGGER.info("RAO response sent: {}", raoResponse);
         }
         System.gc(); // NOSONAR because memory management is crucial for rao-runner, therefore suggesting to the JVM to collect garbage here should not be considered as a problem by Sonar
     }
