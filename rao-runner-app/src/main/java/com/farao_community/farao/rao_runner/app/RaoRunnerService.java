@@ -10,6 +10,7 @@ import com.farao_community.farao.rao_runner.api.resource.AbstractRaoResponse;
 import com.farao_community.farao.rao_runner.api.resource.RaoFailureResponse;
 import com.farao_community.farao.rao_runner.api.resource.RaoRequest;
 import com.farao_community.farao.rao_runner.api.resource.RaoSuccessResponse;
+import com.powsybl.commons.report.ReportNode;
 import com.powsybl.glsk.commons.ZonalData;
 import com.powsybl.iidm.network.Network;
 import com.powsybl.openrao.commons.OpenRaoException;
@@ -84,7 +85,7 @@ public class RaoRunnerService {
 
     private void logParameters(final RaoParameters raoParameters) {
         try (final ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
-            JsonRaoParameters.write(raoParameters, baos);
+            JsonRaoParameters.write(raoParameters, baos, ReportNode.NO_OP);
             if (LOGGER.isInfoEnabled()) {
                 LOGGER.info("Running RAO with following parameters:{}{}", System.lineSeparator(), baos);
             }

@@ -10,6 +10,7 @@ import com.farao_community.farao.rao_runner.api.resource.AbstractRaoResponse;
 import com.farao_community.farao.rao_runner.api.resource.RaoFailureResponse;
 import com.farao_community.farao.rao_runner.api.resource.RaoRequest;
 import com.farao_community.farao.rao_runner.api.resource.RaoSuccessResponse;
+import com.powsybl.commons.report.ReportNode;
 import com.powsybl.glsk.api.GlskDocument;
 import com.powsybl.glsk.api.io.GlskDocumentImporters;
 import com.powsybl.glsk.commons.ZonalData;
@@ -70,7 +71,7 @@ class RaoRunnerServiceTest {
 
     @BeforeEach
     void setUp() throws IOException, FileImporterException {
-        raoParameters = new RaoParameters();
+        raoParameters = new RaoParameters(ReportNode.NO_OP);
         network = Network.read("network.xiidm", getClass().getResourceAsStream("/rao_inputs/network.xiidm"));
         crac = Crac.read("crac.json", Objects.requireNonNull(getClass().getResourceAsStream("/rao_inputs/crac.json")), network);
 
@@ -90,7 +91,7 @@ class RaoRunnerServiceTest {
         final RaoResult raoResult = mock(RaoResult.class);
 
         when(raoResult.getComputationStatus()).thenReturn(ComputationStatus.FAILURE);
-        when(raoRunnerProvider.run(any(), any())).thenReturn(raoResult);
+        when(raoRunnerProvider.run(any(RaoInput.class), any(RaoParameters.class))).thenReturn(raoResult);
 
         final AbstractRaoResponse abstractRaoResponse = raoRunnerService.runRao(simpleRaoRequest);
 
@@ -175,7 +176,7 @@ class RaoRunnerServiceTest {
         when(fileImporter.importVirtualHubs(coreRaoRequest.getVirtualhubsFileUrl().get())).thenReturn(virtualHubsConfiguration);
 
         when(fileExporter.saveNetwork(network, coreRaoRequest)).thenReturn("simple-networkWithPRA-url");
-        when(fileExporter.saveRaoResult(raoResult, crac, coreRaoRequest, RaoUtil.getFlowUnit(RaoParameters.load()))).thenReturn("simple-RaoResultJson-url");
+        when(fileExporter.saveRaoResult(raoResult, crac, coreRaoRequest, RaoUtil.getFlowUnit(RaoParameters.load(ReportNode.NO_OP)))).thenReturn("simple-RaoResultJson-url");
 
         final ArgumentCaptor<RaoInput> raoInputCaptor = ArgumentCaptor.forClass(RaoInput.class);
         when(raoRunnerProvider.run(raoInputCaptor.capture(), eq(raoParameters))).thenReturn(raoResult);
@@ -222,7 +223,7 @@ class RaoRunnerServiceTest {
                 .build();
 
         final OpenRaoException testException = new OpenRaoException("This is a test");
-        when(raoRunnerProvider.run(any(), any())).thenThrow(testException);
+        when(raoRunnerProvider.run(any(RaoInput.class), any(RaoParameters.class))).thenThrow(testException);
 
         final AbstractRaoResponse abstractRaoResponse = raoRunnerService.runRao(simpleRaoRequest);
 

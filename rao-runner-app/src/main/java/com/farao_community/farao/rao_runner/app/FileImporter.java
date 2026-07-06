@@ -8,6 +8,7 @@ package com.farao_community.farao.rao_runner.app;
 
 import com.farao_community.farao.rao_runner.api.exceptions.RaoRunnerException;
 import com.farao_community.farao.rao_runner.app.configuration.UrlConfiguration;
+import com.powsybl.commons.report.ReportNode;
 import com.powsybl.glsk.api.GlskDocument;
 import com.powsybl.glsk.api.io.GlskDocumentImporters;
 import com.powsybl.glsk.commons.ZonalData;
@@ -45,9 +46,9 @@ public class FileImporter {
     RaoParameters importRaoParameters(String raoParametersFileUrl) throws FileImporterException {
         try {
             //keep using update method instead of read directly to avoid serialisation issues
-            final RaoParameters defaultRaoParameters = new RaoParameters();
+            final RaoParameters defaultRaoParameters = new RaoParameters(ReportNode.NO_OP);
             final InputStream customRaoParameters = openUrlStream(raoParametersFileUrl);
-            return JsonRaoParameters.update(defaultRaoParameters, customRaoParameters);
+            return JsonRaoParameters.update(defaultRaoParameters, customRaoParameters, ReportNode.NO_OP);
         } catch (Exception e) {
             final String message = String.format("Exception occurred while importing rao parameters %s", FilenameUtils.getName(raoParametersFileUrl));
             throw new FileImporterException(message, e);
